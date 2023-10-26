@@ -71,6 +71,7 @@ class EscapiClient:
     def clear_status(self):
         self.status = "OFFLINE"
         self.reachable = False 
+        return True
     
     # Use a simple ping to see if the Pi is even reachable
     def reach(self):
@@ -108,7 +109,7 @@ class EscapiClient:
         return self.reachable
     
     # Send a request to the pi to reset the Flask-Server
-    def soft_reset(self): 
+    def reset(self): 
         self.status_was = self.status
         self.status = "RESETTING"
         try:
@@ -120,7 +121,7 @@ class EscapiClient:
             return False
     
     # Send a request to the pi to reboot the whole pi. This is a last resort
-    def hard_reset(self):
+    def reboot(self):
         # print(f"Hard resetting {pi.name}...")
         self.status = "REBOOTING"
         command = f'ssh lodomo@{self.ip} "sudo nohup reboot now &"'
