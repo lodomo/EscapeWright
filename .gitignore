@@ -1,2 +1,3 @@
 FROM LODOMODEV/
 /escapewright/__pycache__
+/tests/__pycache__
