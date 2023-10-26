@@ -7,8 +7,10 @@
 #              
 ################################################################################
 
-from flask import Flask, render_template, request
+from flask import Flask
 import socket
+from .escapiclient import EscapiClient
+import subprocess
 
 class EscapiServer:
     def __init__(self, name, role, transmitter, location="N/A", port=12413):
@@ -17,7 +19,7 @@ class EscapiServer:
         self.port = port                 # Port of the Pi, ETA uses 12413
         self.transmitter = transmitter   # This is the class that sends messages to the control panel
         self.role = role                 # This is the class that is the pi's purpose
-        self.role.add_observer(self)     # Add this server as an observer to the role
+        self.role.set_observer(self)     # Add this server as an observer to the role
         self.ip = self.get_local_ip()    # IP of the Pi
         self.status = "BOOTING"          # Status of the Pi
         self.app = Flask(__name__)       # Flask app
@@ -55,8 +57,16 @@ class EscapiServer:
         
         @self.app.route('/reboot')
         def reboot():
-            # Define behavious to reboot
+            # Force a reboot
+            subprocess.run(['sudo', 'reboot', 'now'])
             return "NOT YET IMPLEMENTED!"
+        
+        @self.app.route('/add_to_control_panel')
+        def add_to_control_panel():
+            # Create a client to pass onto the transmitter
+            client = EscapiClient(self.name, self.ip, self.port)
+            self.transmitter.add_self(client)
+
     
     def update_status(self, status):
         self.status = status
@@ -70,3 +80,4 @@ class EscapiServer:
     def start_server(self):
         self.define_routes()
         self.app.run(host=self.ip, port=self.port)
+        return

@@ -8,13 +8,14 @@
 ################################################################################
 import threading
 import requests
+from .escapiclient import EscapiClient
 
 class EscapiTransmitter:
     def __init__(self, name, control_ip, port=12413):
         self.name = name
         self.control_ip = control_ip
         self.port = port
-        self.transmit_url = f"http://{self.control_ip}:{self.port}/trigger_event/"
+        self.transmit_url = f"http://{self.control_ip}:{self.port}/trigger/"
         self.status_url = f"http://{self.control_ip}:{self.port}/update_status/"
         self.add_pi = f"http://{self.control_ip}:{self.port}/add_pi/"
     
@@ -32,13 +33,20 @@ class EscapiTransmitter:
     def trigger(self, message):
         url = self.transmit_url + message
         self.threaded_request(url)
+        return
     
     def update_status(self, message):
         url = self.status_url + message
         self.threaded_request(url)
+        return
     
     # Takes in a "EscapiClient" to add this pi to the control panel
     def add_self(self, escapiclient):
-        #TODO FIGURE OUT HOW THIS URL WORKS
-        url = "TODO"
+        # Deconstruct the escapiclient and push it to the control panel
+        name = escapiclient.name            
+        ip = escapiclient.ip                
+        location = escapiclient.location    
+        port = escapiclient.port            
+        url = self.add_pi + f"{name}/{ip}/{location}/{port}" 
         self.threaded_request(url)
+        return

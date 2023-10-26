@@ -11,13 +11,7 @@
 #
 ################################################################################
 
-# Internal Imports 
-from .timer import Timer
-
-# External Imports
-from flask import Flask, render_template, Response, request, jsonify
-import threading
-import requests
+from flask import Flask
 
 class Control:
     def __init__(self, host, port, room):
