@@ -22,7 +22,7 @@ class EscapiServer:
         self.role.set_observer(self)     # Add this server as an observer to the role
         self.ip = self.get_local_ip()    # IP of the Pi
         self.status = "BOOTING"          # Status of the Pi
-        self.app = Flask(__name__)       # Flask app
+        self.flaskapp = Flask(__name__)       # Flask app
         return
     
     def get_local_ip(self):
@@ -38,12 +38,12 @@ class EscapiServer:
         return ip                            # Return the ip
     
     def define_routes(self):
-        @self.app.route('/')
+        @self.flaskapp.route('/')
         def index():
             # return render_template('index.html', pi_name=self.name, status=self.status)
             return "IT WORKS!"
         
-        @self.app.route('/relay/<message>', methods=['GET'])
+        @self.flaskapp.route('/relay/<message>', methods=['GET'])
         def relay(message):
             try:
                 if message:
@@ -51,17 +51,17 @@ class EscapiServer:
             except Exception as e:
                 return 'Error processing message', 500 
         
-        @self.app.route('/status')
+        @self.flaskapp.route('/status')
         def status():
             return str(self.status)
         
-        @self.app.route('/reboot')
+        @self.flaskapp.route('/reboot')
         def reboot():
             # Force a reboot
             subprocess.run(['sudo', 'reboot', 'now'])
             return "NOT YET IMPLEMENTED!"
         
-        @self.app.route('/add_to_control_panel')
+        @self.flaskapp.route('/add_to_control_panel')
         def add_to_control_panel():
             # Create a client to pass onto the transmitter
             client = EscapiClient(self.name, self.ip, self.port)
@@ -79,5 +79,5 @@ class EscapiServer:
     
     def start_server(self):
         self.define_routes()
-        self.app.run(host=self.ip, port=self.port)
+        self.flaskapp.run(host=self.ip, port=self.port)
         return
