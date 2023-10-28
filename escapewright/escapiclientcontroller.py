@@ -12,8 +12,11 @@
 #              
 ################################################################################
 
+from typing import List
+from .escapiclient import EscapiClient
+
 class EscapiClientController:
-    def __init__(self, clients):
+    def __init__(self, clients: List[EscapiClient]):
         self.clients = clients
     
     def if_print(self, message):
@@ -76,3 +79,7 @@ class EscapiClientController:
             if not client.clear_status():
                 success = False
         return success
+    
+    def broadcast(self, message):
+        for clients in self.clients:
+            clients.relay(message)

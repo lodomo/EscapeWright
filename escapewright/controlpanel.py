@@ -15,9 +15,9 @@ from flask import Flask
 import socket
 from .timer import Timer
 
-class Control:
-    def __init__(self, host, port, room, client_controller, room_length=60, reset_time=2.5):
-        self.host = host
+class ControlPanel:
+    def __init__(self, room, client_controller, room_length=60, reset_time=2.5, port=12413):
+        self.host = self.get_local_ip()
         self.port = port
         self.room = room
         self.flaskapp = Flask(__name__)  # Create the flask instance
@@ -42,25 +42,51 @@ class Control:
         @self.flaskapp.route('/')
         def index():
             # Figure out which page is actually getting delivered
+            #Logic of things to check....
+            #If the timer is not running, then the room is not running..
+            #If the statuses are all ready, then the room is ready
+            #Else, there is an error
+            return "Index Rendered"
+
+        @self.flaskapp.route('/start')
+        def start():
+            # Start the room
             return
         
         @self.flaskapp.route('/reset')
         def reset():
             # Reset the room
+            #Get confirmation from the user, then reset the room
             return
         
         @self.flaskapp.route('/stop')
         def stop():
             # Stop the room
+            # Get confirmation from the user, then stop the room
+            # This will likely require a hard reboot
             return
         
         @self.flaskapp.route('/failed')
         def failed():
-            # Return a failed status
+            # The players have failed, start the fail sequence.
             return
 
-        return
-    
+        @self.flaskapp.route('/hard_reset')
+        def hard_reset():
+            # Something wrong happened, hard reset everything
+            return
+
+        @self.flaskapp.route('/trigger/<message>')
+        def trigger(message):
+            # Receive a trigger and relay it to all the clients
+            return
+        
+        @self.flaskapp.route('/update_status/<name>/<message>')
+        def update_status(message):
+            # Receive a status update and update the status page
+            return
+        
     def run(self):
+        self.define_routes()
         self.flaskapp.run(host=self.host, port=self.port)
         return

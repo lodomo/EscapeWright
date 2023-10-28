@@ -7,16 +7,12 @@
 #              
 ################################################################################
 
-class Puzzle:
+class Role:
     def __init__(self):
         self.observer = None
         self.status = None
-        self.triggers = { 
-                            #"trigger" : self.function()
-                        }
+        self.triggers = {}
         self.running = False
-        
-        # Add devices here such as GPIO pins needed, etc.
         return
 
     def set_observer(self, observer):
@@ -46,4 +42,8 @@ class Puzzle:
     
     def reset(self):
         # Run whatever logic here for the puzzle to reset (even if it's being solved)
+        return
+    
+    def stop(self):
+        # Run whatever logic here for the puzzle to stop
         return

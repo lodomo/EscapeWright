@@ -2,7 +2,7 @@
 #
 #      Author: Lodomo.dev (Lorenzo D. Moon)
 #     Purpose: For a Raspberry Pi to serve data to the control panel
-#     Updated: 24 OCT 2023
+#     Updated: 28 OCT 2023
 # Description: 
 #              
 ################################################################################
@@ -11,9 +11,12 @@ from flask import Flask
 import socket
 from .escapiclient import EscapiClient
 import subprocess
+from typing import Type
+from .role import Role
+from .escapitransmitter import EscapiTransmitter
 
 class EscapiServer:
-    def __init__(self, name, role, transmitter, location="N/A", port=12413):
+    def __init__(self, name, role: Type[Role], transmitter: Type[EscapiTransmitter], location="N/A", port=12413):
         self.name = name                 # Name of the Pi
         self.location = location         # Location of the Pi
         self.port = port                 # Port of the Pi, ETA uses 12413
@@ -22,7 +25,7 @@ class EscapiServer:
         self.role.set_observer(self)     # Add this server as an observer to the role
         self.ip = self.get_local_ip()    # IP of the Pi
         self.status = "BOOTING"          # Status of the Pi
-        self.flaskapp = Flask(__name__)       # Flask app
+        self.flaskapp = Flask(__name__)  # Flask app
         return
     
     def get_local_ip(self):

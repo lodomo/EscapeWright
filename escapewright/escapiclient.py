@@ -136,6 +136,15 @@ class EscapiClient:
             print(f"An error occurred: {e}")
             return False
     
+    def relay(self, message):
+        try:
+            address = (f'{self.address}/relay/{message}')
+            response = requests.get(address, timeout=5)
+            if response.status_code == 200:
+                return True
+        except requests.exceptions.RequestException:
+            return False
+    
     # Convert the Escapi to a dictionary for JSON
     def to_dict(self):
         return {

@@ -36,7 +36,7 @@ class EscapiTransmitter:
         return
     
     def update_status(self, message):
-        url = self.status_url + message
+        url = self.status_url + name + "/" + message
         self.threaded_request(url)
         return
     
