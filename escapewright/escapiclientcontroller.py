@@ -83,3 +83,9 @@ class EscapiClientController:
     def broadcast(self, message):
         for clients in self.clients:
             clients.relay(message)
+    
+    def update_status(self, client_name, message):
+        client = self.find_client(client_name)
+        if client:
+            return client.update_status(message)
+        return False

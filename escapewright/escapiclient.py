@@ -145,6 +145,12 @@ class EscapiClient:
         except requests.exceptions.RequestException:
             return False
     
+    def update_status(self, status):
+        self.status_was = self.status   # Store the old status
+        self.status = status.upper()    # Keep all the statuses uppercase
+        return True
+
+    
     # Convert the Escapi to a dictionary for JSON
     def to_dict(self):
         return {

@@ -11,20 +11,44 @@
 #
 ################################################################################
 
-from flask import Flask
-import socket
-from .timer import Timer
+import os                                # Used to get the path to the templates
+import inspect                           # Used to get the path to the templates
+from flask import Flask                  # Used to create the flask app
+from flask import render_template        # Used to render the HTML
+from flask import render_template_string # Used to render the CSS
+from flask import jsonify                # Used to send JSON data
+import socket                            # Used to get the local IP address
+from .timer import Timer                 # Used to create the timers
+
+# Class Functions
+#   get_local_ip() - Get the local IP address, not intended to use outside of the class
+#   define_routes() - Define the routes for the flask app
+#   run() - Run the flask app
+
+# Flaskapp Routes
+#   index - The index page
+#   start - Start the room
+#   reset - Reset the room
+#   stop - Stop the room
+#   failed - The room has failed
+#   hard_reset - Hard reset the room
+#   trigger - Trigger a message
+#   update_status - Update the status of a specific client
+#   generate_css - Generate the CSS for the pages
 
 class ControlPanel:
-    def __init__(self, room, client_controller, room_length=60, reset_time=2.5, port=12413):
-        self.host = self.get_local_ip()
-        self.port = port
-        self.room = room
-        self.flaskapp = Flask(__name__)  # Create the flask instance
+    def __init__(self, room, client_controller, site_folder_path, room_length=60, reset_time=2.5, port=12413):
+        self.host = self.get_local_ip()             # Set the local IP
+        self.port = port                            # Set the port 
+        self.room = room                            # Set the room name
         self.room_timer = Timer(room_length)        # Create the timer for the room
-        self.reset_timer = Timer(reset_time)    # Create the timer for the reset button
-        self.client_controller = client_controller
-    
+        self.reset_timer = Timer(reset_time)        # Create the timer for the reset button
+        self.client_controller = client_controller  # Set the client controller
+        self.flaskapp = Flask(__name__)             # Create the flask app
+        self.flaskapp.static_folder = os.path.join(site_folder_path, 'static')
+        self.flaskapp.template_folder = os.path.join(site_folder_path, 'templates')
+        self.load_percentage = 0.0;
+
     def get_local_ip(self):
         # UDP Connection, No data sent
         s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM) 
@@ -46,7 +70,8 @@ class ControlPanel:
             #If the timer is not running, then the room is not running..
             #If the statuses are all ready, then the room is ready
             #Else, there is an error
-            return "Index Rendered"
+            return self.loading()
+            # return render_template("index.html")
 
         @self.flaskapp.route('/start')
         def start():
@@ -82,10 +107,22 @@ class ControlPanel:
             return
         
         @self.flaskapp.route('/update_status/<name>/<message>')
-        def update_status(message):
-            # Receive a status update and update the status page
-            return
+        def update_status(name, message):
+            self.client_controller.update_status(name, message)
+            return "Status Updated"
         
+        @self.flaskapp.route('/load_status')
+        def load_status():
+            if (self.load_percentage >= 100):
+                return jsonify({"status": "READY"})
+
+            self.load_percentage += 10
+            return jsonify({"status": self.load_percentage})
+ 
+    def loading(self):
+        # The room is loading, show the loading page
+        return render_template("loading.html")
+
     def run(self):
         self.define_routes()
         self.flaskapp.run(host=self.host, port=self.port)

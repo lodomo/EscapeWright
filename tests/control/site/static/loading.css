@@ -1,0 +1,72 @@
+:root {
+    --bg_color: #4B2840;
+    --text_color: #FFF275;
+    --bar_bg: #2D1326;
+    --bar_fg: #FFF275;
+    --bar_text: #2D1326;
+}
+
+body {
+    font-family: 'Rubik Mono One', sans-serif;
+    background-color: var(--bg_color); 
+    display: flex;
+    flex-direction: column;
+    height: 95vh;
+    justify-content: center;
+}
+
+h1 {
+    font-size: 40px;
+    color: var(--text_color);
+    text-align: center;
+}
+
+.page_container {
+    width: 100%;
+    max-width: 768px;
+    margin-left: auto;
+    margin-right: auto;
+    margin-top: 30px;
+    padding: 20px;
+}
+
+#loading-container {
+    width: 90%;
+    height: 50px;
+    background-color: var(--bar_bg);
+    border: 10px solid var(--bar_bg);  /* Added 'solid' for border-style */
+    border-radius: 35px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+#loading-bar {
+    width: 10%;
+    height: 50px;
+    background-color: var(--bar_fg); 
+    display: flex;             /* Use flexbox */
+    align-items: center;      /* Vertically align the number */
+    justify-content: flex-end;/* Start with the number on the right */
+    padding-right: 0px;       /* Give some space from the right edge */
+    transition: width 0.5s ease-in-out, background-color 0.5s ease-in-out;
+    border-radius: 25px;
+}
+
+#loading-number {
+    color: var(--bar_text); 
+    font-size: 27px;
+    padding-right: 20px;
+    padding-left: 20px;
+}
+
+.logo-container {
+    margin-left: auto;
+    margin-right: auto;
+    width: 435px; /* e.g., 100px or any other value */
+    height: 225px; /* e.g., 100px or any other value */
+    overflow: hidden; /* This will ensure that any part of the SVGs that go outside the container bounds will be hidden. */
+}
+
+.drop-shadow {
+    filter: drop-shadow(5px 5px rgba(0, 0, 0, 0.7));
+}
