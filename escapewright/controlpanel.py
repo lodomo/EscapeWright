@@ -12,13 +12,13 @@
 ################################################################################
 
 import os                                # Used to get the path to the templates
-import inspect                           # Used to get the path to the templates
 from flask import Flask                  # Used to create the flask app
 from flask import render_template        # Used to render the HTML
-from flask import render_template_string # Used to render the CSS
 from flask import jsonify                # Used to send JSON data
 import socket                            # Used to get the local IP address
 from .timer import Timer                 # Used to create the timers
+import datetime                          # Used to get the current time
+import math                              # Used to calculate the percentage
 
 # Class Functions
 #   get_local_ip() - Get the local IP address, not intended to use outside of the class
@@ -47,7 +47,12 @@ class ControlPanel:
         self.flaskapp = Flask(__name__)             # Create the flask app
         self.flaskapp.static_folder = os.path.join(site_folder_path, 'static')
         self.flaskapp.template_folder = os.path.join(site_folder_path, 'templates')
-        self.load_percentage = 0.0;
+
+        self.getting_statuses = False               # Set the getting statuses flag to false
+        self.last_reset = datetime.datetime.now()   # Set the last reset time to now
+        self.load_check = 0
+        self.status_checks = 0
+        self.MAX_CHECKS = 0
 
     def get_local_ip(self):
         # UDP Connection, No data sent
@@ -70,8 +75,13 @@ class ControlPanel:
             #If the timer is not running, then the room is not running..
             #If the statuses are all ready, then the room is ready
             #Else, there is an error
-            return self.loading()
+            return self.render_loading()
             # return render_template("index.html")
+        
+        @self.flaskapp.route('/bypass')
+        def bypass():
+            # Bypass the safety check
+            return self.render_index()
 
         @self.flaskapp.route('/start')
         def start():
@@ -82,6 +92,7 @@ class ControlPanel:
         def reset():
             # Reset the room
             #Get confirmation from the user, then reset the room
+            
             return
         
         @self.flaskapp.route('/stop')
@@ -113,15 +124,62 @@ class ControlPanel:
         
         @self.flaskapp.route('/load_status')
         def load_status():
-            if (self.load_percentage >= 100):
-                return jsonify({"status": "READY"})
+            # Return the load status of the room
 
-            self.load_percentage += 10
-            return jsonify({"status": self.load_percentage})
+            # If the room is ready, return ready
+            if self.client_controller.all_ready():
+                return jsonify({"status": "READY"})
+            
+            # If the room has checked MAX times, and still not ready,
+            # Return an error
+            if self.status_checks > self.MAX_CHECKS:
+                return jsonify({"status": "ERROR"})
+            
+            # If the room is not ready, and has not checked MAX times,
+            # Check the statuses. This prevents this from running too often
+            if not self.getting_statuses:
+                self.getting_statuses = True
+                self.status_checks += 1
+                if self.client_controller.get_statuses():
+                    # RETRIEVED STATUSES
+                    print(1)
+                else:
+                    # FAILED TO RETRIEVE STATUSES
+                    print(1)
+                self.getting_statuses = False
+
+            self.load_check += 1
+            return jsonify({"status": self.fake_percentage(self.load_check)})
  
-    def loading(self):
+    def render_loading(self):
         # The room is loading, show the loading page
         return render_template("loading.html")
+    
+    def render_index(self):
+        return render_template("index.html")
+    
+    def fake_percentage(x, estimated_time=60):
+        if x < 0:
+            return 0
+        elif x < 10:
+            # Linear increment to 50% in 10 seconds
+            percentage = 5 * x
+        elif x < (estimated_time/2:
+            # Increment slower from 50% to 95% in the next 50 seconds
+            percentage = 50 + 0.9 * (x - 10)
+        else:
+            # Asymptotically approach 99% after 60 seconds
+            percentage = 95 + 4 * (1 - math.exp(-(x - 60) / 10))
+
+        # Cap the percentage at 99%
+        percentage = min(99, percentage)
+        return round(percentage, 2)
+    
+    def reset_self(self):
+        self.load_percentage = 0.0
+        self.room_timer.reset()
+        self.last_reset = datetime.datetime.now()
+        self.status_checks = 0
 
     def run(self):
         self.define_routes()
