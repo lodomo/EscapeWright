@@ -16,14 +16,11 @@ from typing import List
 from .escapiclient import EscapiClient
 
 class EscapiClientController:
-    def __init__(self, clients: List[EscapiClient]):
-        self.clients = clients
+    def __init__(self, filename):
+        self.filename = filename
+        self.clients = self.load_clients()
     
-    def if_print(self, message):
-        if self.print_to_screen:
-            print(message)
- 
-    def refresh_statuses(self):
+    def get_statuses(self):
         success = True
         for client in self.clients:
             if not client.get_status():
@@ -44,13 +41,23 @@ class EscapiClientController:
                 self.errors.append(f"Failed to reset {client.name}")
         return success
 
-    def full_hard_reset(self):
+    def reboot_all(self):
         success = True
         for client in self.clients:
-            if not client.hard_reset():
+            if not client.reboot():
                 success = False
+                client.status = "REBOOT FAILED"
                 self.errors.append(f"Failed to hard reset {client.name}")
         return success
+    
+    def force_reboot_on_failed(self):
+        sent_reboot = False
+        for client in self.clients:
+            if client.status == "REBOOT FAILED":
+                client.status == "REBOOT FORCED"
+                client.force_reboot()
+                sent_reboot = True
+        return sent_reboot
     
     def all_ready(self):
         for client in self.clients:
@@ -89,3 +96,34 @@ class EscapiClientController:
         if client:
             return client.update_status(message)
         return False
+    
+    def load_clients(self):
+        client_list = []
+        client_info = {}
+        with open(self.filename, 'r') as file:
+            for line in file:
+                line = line.strip()
+                if not line:
+                    if client_info:
+                        client_list.append(EscapiClient(**client_info))
+                        client_info = {}
+                else:
+                    key, value = line.split(':')
+                    client_info[key.strip()] = value.strip()
+            if client_info:
+                client_list.append(EscapiClient(**client_info))
+        return client_list
+    
+    def print_all_data(self):
+        for client in self.clients:
+            client.print_data()
+        return
+    
+    def print_simple_data(self):
+        print()
+        print(f"**Client List**")
+        for client in self.clients:
+            client.print_simple()
+        print(f"**End of Client List**")
+        print()
+        return

@@ -18,7 +18,7 @@ from flask import jsonify                # Used to send JSON data
 import socket                            # Used to get the local IP address
 from .timer import Timer                 # Used to create the timers
 import datetime                          # Used to get the current time
-import math                              # Used to calculate the percentage
+import subprocess                        # Used to run the shell commands
 
 # Class Functions
 #   get_local_ip() - Get the local IP address, not intended to use outside of the class
@@ -52,7 +52,8 @@ class ControlPanel:
         self.last_reset = datetime.datetime.now()   # Set the last reset time to now
         self.load_check = 0
         self.status_checks = 0
-        self.MAX_CHECKS = 0
+        self.MAX_CHECKS = 3
+        self.check_status = None
 
     def get_local_ip(self):
         # UDP Connection, No data sent
@@ -90,9 +91,9 @@ class ControlPanel:
         
         @self.flaskapp.route('/reset')
         def reset():
-            # Reset the room
-            #Get confirmation from the user, then reset the room
-            
+            # Reset the room after the user confirms
+            self.reset_self()
+            self.client_controller.reset()
             return
         
         @self.flaskapp.route('/stop')
@@ -108,8 +109,11 @@ class ControlPanel:
             return
 
         @self.flaskapp.route('/hard_reset')
-        def hard_reset():
+        def reboot():
             # Something wrong happened, hard reset everything
+            if not self.client_controller.reboot_all():
+                self.client_controller.force_reboot_failed()
+            subprocess.run(["sudo", "reboot"])
             return
 
         @self.flaskapp.route('/trigger/<message>')
@@ -128,28 +132,35 @@ class ControlPanel:
 
             # If the room is ready, return ready
             if self.client_controller.all_ready():
-                return jsonify({"status": "READY"})
+                self.check_status = "READY"
             
             # If the room has checked MAX times, and still not ready,
             # Return an error
-            if self.status_checks > self.MAX_CHECKS:
+            if self.status_checks >= self.MAX_CHECKS:
+                self.check_status = "ERROR"
                 return jsonify({"status": "ERROR"})
             
             # If the room is not ready, and has not checked MAX times,
-            # Check the statuses. This prevents this from running too often
-            if not self.getting_statuses:
+            # Check the statuses. The "getting_statuses" bool prevents it
+            # from running in rapid succession and spamming the clients
+            if not self.getting_statuses and self.check_status is None:
                 self.getting_statuses = True
                 self.status_checks += 1
+                print("GETTING STATUS")
                 if self.client_controller.get_statuses():
                     # RETRIEVED STATUSES
-                    print(1)
+                    print("GOT ALL STATUSES")
                 else:
                     # FAILED TO RETRIEVE STATUSES
-                    print(1)
+                    print("FAILED TO GET ALL STATUSES")
                 self.getting_statuses = False
 
             self.load_check += 1
-            return jsonify({"status": self.fake_percentage(self.load_check)})
+
+            if self.check_status:
+                return jsonify({"status": self.check_status})
+
+            return jsonify({"status": self.fake_percentage(self.load_check, 30)})
  
     def render_loading(self):
         # The room is loading, show the loading page
@@ -158,22 +169,20 @@ class ControlPanel:
     def render_index(self):
         return render_template("index.html")
     
-    def fake_percentage(x, estimated_time=60):
-        if x < 0:
-            return 0
-        elif x < 10:
-            # Linear increment to 50% in 10 seconds
-            percentage = 5 * x
-        elif x < (estimated_time/2:
-            # Increment slower from 50% to 95% in the next 50 seconds
-            percentage = 50 + 0.9 * (x - 10)
-        else:
-            # Asymptotically approach 99% after 60 seconds
-            percentage = 95 + 4 * (1 - math.exp(-(x - 60) / 10))
+    def fake_percentage(self, secs, est_time=60):
+        # Ensure inputs are valid to avoid division by zero or negative values
+        if est_time <= 0 or secs < 0:
+            return "Invalid input parameters"
 
-        # Cap the percentage at 99%
-        percentage = min(99, percentage)
-        return round(percentage, 2)
+        raw_ratio = secs / est_time
+        
+        if raw_ratio <= 0.5:
+            percentage = round(raw_ratio * 100)
+            return percentage
+        else:
+            # When the ratio is greater than 50%, slow down the progression
+            # Using a logarithmic function to slow down the progress
+            return round(50 + (1 - 1 / (1 + (raw_ratio - 0.5) * 10)) * 50)
     
     def reset_self(self):
         self.load_percentage = 0.0

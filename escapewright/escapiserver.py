@@ -2,16 +2,20 @@
 #
 #      Author: Lodomo.dev (Lorenzo D. Moon)
 #     Purpose: For a Raspberry Pi to serve data to the control panel
-#     Updated: 28 OCT 2023
+#     Updated: 01 NOV 2023
 # Description: 
 #              
 ################################################################################
 
+# External Imports
 from flask import Flask
-import socket
-from .escapiclient import EscapiClient
-import subprocess
+from threading import Timer
 from typing import Type
+import socket
+import subprocess
+
+# Internal Imports
+from .escapiclient import EscapiClient
 from .role import Role
 from .escapitransmitter import EscapiTransmitter
 
@@ -60,16 +64,20 @@ class EscapiServer:
         
         @self.flaskapp.route('/reboot')
         def reboot():
-            # Force a reboot
-            subprocess.run(['sudo', 'reboot', 'now'])
-            return "NOT YET IMPLEMENTED!"
+            # Reboot the pi after 5 seconds
+            delay = 5
+            reboot_timer = Timer(delay, self.reboot_command)
+            reboot_timer.start()
+            return "Reboot initiated", 200
         
         @self.flaskapp.route('/add_to_control_panel')
         def add_to_control_panel():
             # Create a client to pass onto the transmitter
             client = EscapiClient(self.name, self.ip, self.port)
             self.transmitter.add_self(client)
-
+    
+    def reboot_command():
+        subprocess.run(['sudo', 'reboot', 'now'])
     
     def update_status(self, status):
         self.status = status

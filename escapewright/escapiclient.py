@@ -22,7 +22,7 @@ class EscapiClient:
         self.name = name                               # Name of the Pi
         self.ip = ip_address                           # IP of the Pi
         self.location = location                       # Location of the Pi
-        self.port = port                               # Port of the Pi, ETA uses 12413
+        self.port = int(port)                           # Port of the Pi, ETA uses 12413
         self.address = f'http://{self.ip}:{self.port}' # Address of the Pi
 
         self.errors = []                               # Errors during validation 
@@ -120,8 +120,17 @@ class EscapiClient:
             self.status = "ERROR"
             return False
     
-    # Send a request to the pi to reboot the whole pi. This is a last resort
     def reboot(self):
+        try:
+            response = requests.get(self.address + "/reboot", timeout=5)
+            if response.status_code == 200:
+                return True
+        except requests.exceptions.RequestException:
+            self.status = "ERROR"
+            return False
+    
+    # Send a request to the pi to reboot the whole pi. This is a last resort
+    def force_reboot(self):
         # print(f"Hard resetting {pi.name}...")
         self.status = "REBOOTING"
         command = f'ssh lodomo@{self.ip} "sudo nohup reboot now &"'
@@ -161,3 +170,21 @@ class EscapiClient:
             'status_was': self.status_was,
             'address': self.address
         }
+    
+    def print_data(self):
+        print(f"# Name:       {self.name}")
+        print(f"# IP:         {self.ip}")
+        print(f"# Port:       {self.port}")
+        print(f"# Location:   {self.location}")
+        print(f"# Status:     {self.status}")
+        print(f"# Status Was: {self.status_was}")
+        print(f"# Address:    {self.address}")
+        print(f"# Reachable:  {self.reachable}")
+        print(f"# Valid:      {self.valid}")
+        print(f"# Errors:     {self.errors}")
+        print()
+        return
+    
+    def print_simple(self):
+        print(f"{self.name} : {self.ip} : {self.location}")
+        return

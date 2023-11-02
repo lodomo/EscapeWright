@@ -7,16 +7,24 @@ const updateLoadingBar = async () => {
             const loadingNumber = document.getElementById('loading-number');
 
             if (data.status === "READY") {
+                clearInterval(intervalId);
                 loadingBar.style.backgroundColor = "#80D18A"; // green
                 loadingBar.style.width = "100%";
                 loadingNumber.innerText = "READY";
             } else if (data.status === "ERROR") {
+                clearInterval(intervalId);
                 loadingBar.style.backgroundColor = "#DD3C3C"; // red
                 loadingBar.style.width = "100%";
                 loadingNumber.innerText = "ERROR";
             } else {
                 loadingBar.style.backgroundColor = "#FFF275"; // yellow
-                loadingBar.style.width = data.status + "%";
+
+                if (data.status < 15) {
+                    loadingBar.style.width = "15%";
+                } else {
+                    loadingBar.style.width = data.status + "%";
+                }
+
                 loadingNumber.innerText = data.status;
             }
         } else {
@@ -27,4 +35,4 @@ const updateLoadingBar = async () => {
     }
 };
 
-setInterval(updateLoadingBar, 1000);
+const intervalId = setInterval(updateLoadingBar, 1000);
