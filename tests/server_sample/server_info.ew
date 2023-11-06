@@ -1,0 +1,5 @@
+name: sample_pi_name
+role: trash_class
+class: Trash
+location: sample_location
+port: 12413

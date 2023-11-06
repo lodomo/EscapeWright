@@ -20,14 +20,14 @@ from .role import Role
 from .escapitransmitter import EscapiTransmitter
 
 class EscapiServer:
-    def __init__(self, name, role: Type[Role], transmitter: Type[EscapiTransmitter], location="N/A", port=12413):
+    def __init__(self, name, role: Type[Role], location="N/A", port=12413):
         self.name = name                 # Name of the Pi
         self.location = location         # Location of the Pi
         self.port = port                 # Port of the Pi, ETA uses 12413
-        self.transmitter = transmitter   # This is the class that sends messages to the control panel
         self.role = role                 # This is the class that is the pi's purpose
         self.role.set_observer(self)     # Add this server as an observer to the role
         self.ip = self.get_local_ip()    # IP of the Pi
+        self.transmitter = EscapiTransmitter(self.name, self.location, self.port)
         self.status = "BOOTING"          # Status of the Pi
         self.flaskapp = Flask(__name__)  # Flask app
         return
@@ -58,6 +58,11 @@ class EscapiServer:
             except Exception as e:
                 return 'Error processing message', 500 
         
+        @self.flaskapp.route('/force_start')
+        def force_start():
+            #TODO
+            return
+        
         @self.flaskapp.route('/status')
         def status():
             return str(self.status)
@@ -76,6 +81,9 @@ class EscapiServer:
             client = EscapiClient(self.name, self.ip, self.port)
             self.transmitter.add_self(client)
     
+    def load_role(self):
+        return self.role.load()
+    
     def reboot_command():
         subprocess.run(['sudo', 'reboot', 'now'])
     
@@ -84,11 +92,20 @@ class EscapiServer:
         self.transmitter.update_status(status)
         return
     
+    def relay(self, message):
+        try:
+            if message:
+                self.role.process_message(message)
+                return True
+        except Exception as e:
+            return False
+    
     def trigger(self, event):
         self.transmitter.trigger(event)
         return
     
     def start_server(self):
+        self.load_role()
         self.define_routes()
         self.flaskapp.run(host=self.ip, port=self.port)
         return
