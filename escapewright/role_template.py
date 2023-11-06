@@ -1,43 +1,37 @@
 ################################################################################
 #
 #      Author: Lodomo.dev (Lorenzo D. Moon)
-#     Purpose: Example Puzzle Class. This is a template for creating a puzzle
+#     Purpose: Template for roles, which could be puzzles, maestro, or pretty
+#              much anything else.
 #     Updated: 24 OCT 2023
 # Description: 
 #              
 ################################################################################
 
-# *** DO NOT CHANGE THIS FILE ***
-# Make a subclass of this class with the "role_template"
-# This class ensures that the role_template is implemented correctly
+from .role import Role
 
-class Role:
+# INHERITED MEMBERS
+# observer = None
+# status = None
+# running = False
+# Triggers:
+#  "load": self.load,
+# "start": self.start,
+# "reset": self.reset,
+#  "stop": self.stop}
+
+class Role_Template(Role):
     def __init__(self):
-        self.observer = None
-        self.status = None
-        self.running = False
+        super().__init__()  # Call the parent class's initializer
 
+        # This is for triggers unique to this Role.
+        # Ex: "room_start" for roles that start at the beginning of the room
+        #     "door_opened" for roles that start when a door is opened
         # trigger format is { "trigger": function }
-        self.triggers = { "load": self.load,
-                          "start": self.start,
-                          "reset": self.reset,
-                          "stop": self.stop}
-        return
-    
-    def set_observer(self, observer):
-        self.observer = observer
-        return   
-    
-    def process_message(self, message):
-        for trigger in self.triggers:
-            if trigger in message:
-                self.triggers[trigger]
-        return
-    
-    def update_status(self, status):
-        self.status = status
-        if self.observer:
-            self.observer.update_status(status)
+        unique_triggers = { }
+
+        # Add to the default triggers
+        self.triggers.update(unique_triggers())
         return
     
     def load(self):
