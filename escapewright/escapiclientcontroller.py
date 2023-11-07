@@ -15,10 +15,13 @@
 from typing import List
 from .escapiclient import EscapiClient
 
+#### TODO SETUP LOGGER
+
 class EscapiClientController:
-    def __init__(self, filename):
+    def __init__(self, filename, logger = None):
         self.filename = filename
         self.clients = self.load_clients()
+        self.logger = logger
     
     def get_statuses(self):
         success = True

@@ -1,2 +1,4 @@
 FROM LODOMODEV/
 **/__pycache__/
+**/EW_Logs/
+**/EW.Logs/

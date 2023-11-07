@@ -31,7 +31,7 @@ class EscapiClient:
         # Status Members 
         self.reachable = False                         # Is the Pi reachable?
         self.status = "OFFLINE"                        # Status of the Pi
-        self.status_was = "OFFLINE"                    # Status of the Pi last check 
+        self.status_was = "CREATED"                    # Status of the Pi last check 
     
     # Makes sure the initialization members are valid
     def validate(self):
@@ -155,13 +155,15 @@ class EscapiClient:
             return False
     
     def update_status(self, status):
+        # Update the status of the pi
         self.status_was = self.status   # Store the old status
         self.status = status.upper()    # Keep all the statuses uppercase
         return True
 
     
-    # Convert the Escapi to a dictionary for JSON
     def to_dict(self):
+        # Return a dictionary of the Escapi
+        # Used for JSON conversion
         return {
             'name': self.name,
             'ip': self.ip,
@@ -172,6 +174,7 @@ class EscapiClient:
         }
     
     def print_data(self):
+        # Print all the information about the pi
         print(f"# Name:       {self.name}")
         print(f"# IP:         {self.ip}")
         print(f"# Port:       {self.port}")
@@ -183,8 +186,9 @@ class EscapiClient:
         print(f"# Valid:      {self.valid}")
         print(f"# Errors:     {self.errors}")
         print()
-        return
+        return True
     
     def print_simple(self):
+        # Print the bare minimum information about the pi
         print(f"{self.name} : {self.ip} : {self.location}")
-        return
+        return True
