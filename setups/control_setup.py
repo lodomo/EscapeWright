@@ -7,13 +7,19 @@
 #              
 ################################################################################
 
+import os
+import shutil
+from importlib import util
 import subprocess
+
 
 from escapewright.ewfunct import relative_path
 
 def main():
     welcome()
-    menu()
+    while menu():
+        pass
+    exit()
     return
 
 def welcome():
@@ -31,6 +37,7 @@ def welcome():
     print("Welcome to the Escape Wright Control Panel Setup Wizard!")
 
 def menu():
+    EXIT = 4
     print("Menu:")
     print("1. Create a new control panel server")
     print("2. Edit an existing control panel server")
@@ -41,15 +48,59 @@ def menu():
     menu_cases = {
         "1" : create,
         "2" : edit,
-        "3" : delete,
-        "4" : exit
+        "3" : delete
     }
 
-    menu_cases[user_input]()
-    return
+    if user_input == EXIT:
+        return False
+
+    if user_input in menu_cases:
+        menu_cases[user_input]()
+    else:
+        print("Invalid input.")
+    return again()
+
+def again():
+    user_input = input("Would you like to do something else? (y/n): ")
+    if user_input == "y":
+        print()
+        return True
+    elif user_input == "n":
+        print()
+        return False
+    else:
+        print("Invalid input. Returning to menu.")
+        print()
+    return True
 
 def create():
+    try:
+        relative_path(__file__, "control")
+        print("ERROR: A control panel server already exists.")
+        print("Choose 'Edit an existing control panel server' from the menu to edit the server.")
+        return
+    except FileNotFoundError:
+        pass
+    clone_directory("control")
     return
+
+def clone_directory(folder):
+    # Find the 'escapewright' module directory
+    module_spec = util.find_spec("escapewright")
+    if module_spec is not None and module_spec.origin is not None:
+        escapewright_path = os.path.dirname(module_spec.origin)
+        templates_control_path = os.path.join(escapewright_path, 'templates', folder)
+        
+        # Check if the 'templates/control' directory exists
+        if os.path.isdir(templates_control_path):
+            # Clone 'templates/control' to the current directory
+            destination_path = os.path.join(os.getcwd(), 'control')
+            shutil.copytree(templates_control_path, destination_path)
+            print(f"'templates/control' has been cloned to the current directory: {destination_path}")
+        else:
+            print(f"The 'templates/control' directory does not exist in the 'escapewright' library at {templates_control_path}")
+    else:
+        print("The 'escapewright' module is not installed or could not be found.")
 
 def edit():
     return
@@ -77,6 +128,8 @@ def delete():
     return
 
 def exit():
+    print("Thank you for using the Escape Wright Control Panel Setup Wizard.")
+    print("Come back if you ever need to edit your control panel")
     return
 
 if __name__ == "__main__":
