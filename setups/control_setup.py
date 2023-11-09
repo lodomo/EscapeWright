@@ -51,7 +51,7 @@ def menu():
         "3" : delete
     }
 
-    if user_input == EXIT:
+    if user_input == str(EXIT):
         return False
 
     if user_input in menu_cases:
@@ -74,15 +74,21 @@ def again():
     return True
 
 def create():
+    # Create a new control panel server
+    if check_if_exists(): return
+    if not clone_directory("control"): return
+    create_server_info()
+    return
+
+def check_if_exists():
     try:
         relative_path(__file__, "control")
         print("ERROR: A control panel server already exists.")
         print("Choose 'Edit an existing control panel server' from the menu to edit the server.")
-        return
+        return True
     except FileNotFoundError:
-        pass
-    clone_directory("control")
-    return
+        return False 
+
 
 def clone_directory(folder):
     # Find the 'escapewright' module directory
@@ -96,11 +102,57 @@ def clone_directory(folder):
             # Clone 'templates/control' to the current directory
             destination_path = os.path.join(os.getcwd(), 'control')
             shutil.copytree(templates_control_path, destination_path)
-            print(f"'templates/control' has been cloned to the current directory: {destination_path}")
+            print(f"'control' template has been cloned to the current directory: {destination_path}")
+            return True
         else:
-            print(f"The 'templates/control' directory does not exist in the 'escapewright' library at {templates_control_path}")
+            print(f"The 'control template' directory does not exist in the 'escapewright' library at {templates_control_path}")
+            print(f"Reinstall the escapewright library.")
+            return False
     else:
         print("The 'escapewright' module is not installed or could not be found.")
+    return False
+
+def create_server_info():
+    name = input("Enter the name of the server: ")
+    logging = input("Enable logging? (y/n): ")
+    if logging == "y":
+        logging = True
+        log_levels = ["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"]
+        print("Log levels: ", end="")
+        for level in log_levels:
+            print(f"{level} ", end="")
+        print()
+        log_level = input("Enter the logging level (or press enter for default): ")
+        log_level = log_level.upper()
+        if log_level not in log_levels:
+            if log_level != "":
+                print("Invalid logging level.")
+            print("Defaulting to 'INFO'")
+            log_level = "INFO"
+    else:
+        logging = False
+        log_level = "NONE"
+    
+    server_info = {
+        "name" : name,
+        "logging" : logging,
+        "log_level" : log_level
+    }
+
+    control_info_file = relative_path(__file__, "control/control_info.ew")
+
+    with open(control_info_file, "w") as f:
+        for key in server_info:
+            f.write(f"{key}: {server_info[key]}\n")
+        print("Server info file created successfully.")
+    
+    print("Server settings are as follows:")
+    print(f"Name: {name}")
+    print(f"Logging: {logging}")
+    print(f"Log level: {log_level}")
+
+    return True
+
 
 def edit():
     return

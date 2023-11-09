@@ -10,17 +10,19 @@
 import os
 import sys
 import importlib
+import logging
+
 from escapewright.escapiserver import EscapiServer
 from escapewright.ewfunct import ew_to_dict
+from escapewright.ewfunct import relative_path
 
 def main():
     # Get the info from the server_info.ew file
-    info = ew_to_dict(relative_path('server_info.ew'))
-    server = EscapiServer(info['name'], create_role(info), info['location'], int(info['port']))
+    info = ew_to_dict(relative_path(__file__, 'server_info.ew'))
+    site_dir = find_file_or_dir("site")              # Load the site folder path
+    server = EscapiServer(info['name'], create_role(info), site_dir, info['location'], int(info['port']))
+    server.start_server()
     return
-
-def relative_path(file_or_directory):
-    return os.path.join(os.path.dirname(os.path.abspath(__file__)), file_or_directory)
 
 def guarantee_path():
     # Find the role, and instantiate it
@@ -39,6 +41,22 @@ def create_role(info):
     # Instantiate the class
     instance = ClassToInstantiate()
     return instance
+
+def find_file_or_dir(filename, logger = None):
+    # Load the file, and return it
+    # If the file is not found, log the error and exit
+    try:
+        file = relative_path(__file__, filename)
+        if logger is not None:
+            logger.debug(f"Found {filename}")
+        return file
+    except FileNotFoundError as e:
+        if logger is not None:
+            logger.critical(f"{e}")
+            logger.critical("Exiting...")
+        print(f"EW:CRITICAL: {e}")
+        print("Exiting...")
+        sys.exit(1)
 
 if __name__ == "__main__":
     main()

@@ -1,4 +1,215 @@
-body {
-    background-color: #D9C5B2;
+@font-face {
+  font-family: 'wakuwaku';
+  src: url('../static/fonts/mini-wakuwaku.otf') format('opentype');
+  font-weight: normal;
+  font-style: normal;
 }
 
+@font-face {
+  font-family: 'Rubik';
+  src: url('../static/fonts/RubikMonoOne-Regular.ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: 'Valera';
+  src: url('../static/fonts/VarelaRound-Regular.ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+}
+
+:root {
+    /* Colors for backgrounds */
+    --bg-color:      #7D98A1;
+    --head-color:    #5E6572;
+    --body-color:    #5E6572;
+    --bg-name-color:    #1C2321;
+
+    /* Colors for text */
+    --title-color:   #1C2321;
+    --subtitle-color:#A9B4C2;
+    --name-color:    #A9B4C2;
+    --desc-color:    #1C2321;
+    --status-color:  #A9B4C2;
+    --btn-text-color: 1C2321;
+
+    /* Colors for buttons */
+    --start-color:   #839788;
+    --override-color:#FFD972;
+    --reset-color:   #83B8C5;
+    --reboot-color:  #EF6F6C;
+    --log-color:     #847767;
+
+    --h1-font-size: 2em; /*Title*/
+    --h2-font-size: 1.25em; /*Name*/
+    --h6-font_size: 1em; /*Subtitle to header*/
+    --status-font_size: 1.25em; /*Subtitle to header*/
+    --button-font_size: 1.25em; /*Subtitle to header*/
+}
+
+body {
+    background-color: var(--bg-color);
+    margin: 0; /* Remove default margin */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+h1 {
+    color: var(--title-color);
+    font-size: var(--h1-font-size);
+    font-family: 'Rubik', sans-serif;
+    text-align: center;
+    padding: 0;
+    padding-top: 10px;
+    margin: 0;
+}
+
+h2 {
+    color: var(--name-color);
+    font-size: var(--h2-font-size);
+    font-family: 'Rubik', sans-serif;
+    padding: 0px;
+    margin: 0px;
+    text-align: center;
+}
+
+h6 {
+    color: var(--subtitle-color);
+    font-size: var(--h6-font_size);
+    font-family: 'wakuwaku', sans-serif;
+    -webkit-text-stroke: 0;
+    text-align: center;
+    padding: 0;
+    margin: 0;
+    margin-top: -10px;
+}
+
+.container {
+    display: flex;
+    flex-direction: column;
+    /* 9:16 aspect ratio */
+    height: 100vh;
+    width: 56.25vh;
+    margin: auto;
+    padding-left: 10%;
+    padding-right: 10%;
+}
+
+
+.header {
+    margin-top: 20px;
+    padding: 0px;
+    background-color: var(--head-color);
+    border-radius: 40px;
+    width: 100%;
+    margin-left: auto;
+    margin-right: auto;
+    margin-bottom: 20px;
+}
+
+.info-container {
+    width: 100%;
+    margin-left: auto;
+    margin-right: auto;
+    margin: 0px;
+    padding-top: 0px;
+    border-radius: 40px; 
+    background-color: var(--body-color);
+}
+
+.name {
+    width: 100%;
+    /* border radius on top */
+    border-top-left-radius: 40px;
+    border-top-right-radius: 40px;
+    background-color: var(--bg-name-color);
+    margin-top: 0px;
+    padding-top: 20px;
+    padding-bottom: 20px;
+}
+
+.status {
+    margin-left: auto;
+    margin-right: auto;
+    margin-top: 10px;
+}
+
+
+.status table {
+    margin-left: auto;
+    margin-right: auto;
+    font-family: 'Valera', sans-serif;
+    font-size: var(--status-font_size);
+}
+
+/* Selects the first td in every tr and aligns text to the right */
+.status table tr td:nth-child(1) {
+    text-align: right;
+    color: var(--desc-color);
+}
+
+/* Selects the second td in every tr and aligns text to the left */
+.status table tr td:nth-child(2) {
+    text-align: left;
+    color: var(--status-color);
+}
+
+.footer {
+    width: 50%;
+    margin-top: 5px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.buttons {
+    width: 80%;
+    margin-left: auto;
+    margin-right: auto;
+    margin-bottom: 10px;
+}
+
+.buttons .btn {
+    font-family: 'Rubik', sans-serif;
+    font-size: var(--button-font_size);
+    color: var(--btn-text-color);
+    width: 100%;
+    padding: 10px;
+    border-radius: 30px;
+    border: none;
+    margin: 5px;
+    box-shadow: 5px 5px 0 rgba(0, 0, 0, 0.5);
+    transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out, filter 0.2s ease-in-out; /* Smooth transition for the transform property */
+}
+
+.buttons .btn:hover {
+    filter: brightness(90%);
+}
+
+.buttons .btn:active {
+    filter: brightness(80%);
+    box-shadow: 0px 0px 0px rgba(0, 0, 0, 0.5);
+    transform: translateX(5px) translateY(5px);
+}
+
+.start {
+    background-color: var(--start-color);
+}
+
+
+.override {
+    background-color: var(--override-color);
+}
+
+.reset {
+    background-color: var(--reset-color);
+}
+
+.reboot {
+    background-color: var(--reboot-color);
+}
+
+.logs {
+    background-color: var(--log-color);
+}

@@ -1,9 +1,64 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard for {{ name }}</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
 </head>
 <body>
-    <p>Hello, world!</p>
+    <div class="container">
+        <header class="header">
+            <h1>DASHBOARD</h1>
+            <h6>ダッシュボード</h6>
+        </header>
+
+        <div class="info-container">
+            <div class="name">
+                <h2>{{ name }}</h2>
+            </div>
+
+            <div class="status">
+                <table>
+                    <tr>
+                        <td>Status:</td>
+                        <td>{{ status }}</td>
+                    </tr>
+                    <tr>
+                        <td>IP:</td>
+                        <td>{{ ip }}</td>
+                    </tr>
+                    <tr>
+                        <td>Last Relay:</td>
+                        <td>{{ last_relay }}</td>
+                    </tr>
+                    <tr>
+                        <td>Last Reset:</td>
+                        <td>{{ last_reset }}</td>
+                    </tr>
+                    <tr>
+                        <td>Last Reboot:</td>
+                        <td>{{ last_reboot }}</td>
+                    </tr>
+                    <tr>
+                        <td>Uptime:</td>
+                        <td>{{ uptime }}</td>
+                    </tr>
+                </table>
+            </div>
+
+            <div class="buttons">
+                <button class="btn start" onclick="confirmAction(this, '{{ url_for('start') }}/self')">START</button>
+                <button class="btn override" onclick="confirmAction(this, '{{ url_for('override') }}')">OVERRIDE</button>
+                <button class="btn reset" onclick="confirmAction(this, '{{ url_for('reset') }}')">RESET</button>
+                <button class="btn reboot" onclick="confirmAction(this, '{{ url_for('reboot') }}')">REBOOT</button>
+                <button class="btn logs" onclick="window.location.href='{{ url_for('logs') }}'">LOGS</button>
+            </div>
+        </div>
+        <footer class="footer">
+            <img src="{{ url_for('static', filename='images/ew_logo.svg') }}" alt="logo"/>
+        </footer>
+    </div>
 </body>
+    <script src="{{ url_for('static', filename='confirm_action.js') }}"></script>
 </html>

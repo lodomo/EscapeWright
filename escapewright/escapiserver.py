@@ -8,11 +8,14 @@
 ################################################################################
 
 # External Imports
-from flask import Flask
-from threading import Timer
-from typing import Type
-import socket
-import subprocess
+from flask import Flask            # Flask is the web server
+from flask import render_template  # Render HTML templates
+from threading import Timer        # Timer for rebooting
+from typing import Type            # Type hinting
+import socket                      # For getting the local IP
+import subprocess                  # For rebooting
+import os
+import datetime
 
 # Internal Imports
 from .escapiclient import EscapiClient
@@ -20,7 +23,7 @@ from .role import Role
 from .escapitransmitter import EscapiTransmitter
 
 class EscapiServer:
-    def __init__(self, name, role: Type[Role], location="N/A", port=12413):
+    def __init__(self, name, role: Type[Role], site_folder_path, location="N/A", port=12413):
         self.name = name                 # Name of the Pi
         self.location = location         # Location of the Pi
         self.port = port                 # Port of the Pi, ETA uses 12413
@@ -29,7 +32,12 @@ class EscapiServer:
         self.ip = self.get_local_ip()    # IP of the Pi
         self.transmitter = EscapiTransmitter(self.name, self.location, self.port)
         self.status = "BOOTING"          # Status of the Pi
+        self.last_relay = "N/A"          # Last relayed message
+        self.last_reset = "N/A"          # Last reset
+        self.last_reboot = datetime.datetime.now()# Last reboot
         self.flaskapp = Flask(__name__)  # Flask app
+        self.flaskapp.static_folder = os.path.join(site_folder_path, 'static')
+        self.flaskapp.template_folder = os.path.join(site_folder_path, 'templates')
         return
     
     def get_local_ip(self):
@@ -47,8 +55,16 @@ class EscapiServer:
     def define_routes(self):
         @self.flaskapp.route('/')
         def index():
-            # return render_template('index.html', pi_name=self.name, status=self.status)
-            return "IT WORKS!"
+            last_reboot = self.last_reboot.strftime("%m/%d @ %H:%M:%S")
+            uptime = self.get_uptime() 
+            return render_template('index.html', 
+                                   name=self.name, 
+                                   status=self.status,
+                                   ip=self.ip,
+                                   last_relay=self.last_relay,
+                                   last_reset=self.last_reset,
+                                   last_reboot=last_reboot,
+                                   uptime=uptime)
         
         @self.flaskapp.route('/relay/<message>', methods=['GET'])
         def relay(message):
@@ -57,29 +73,43 @@ class EscapiServer:
                     self.role.process_message(message)
             except Exception as e:
                 return 'Error processing message', 500 
-        
-        @self.flaskapp.route('/force_start')
-        def force_start():
-            #TODO
-            return
-        
+       
         @self.flaskapp.route('/status')
         def status():
             return str(self.status)
+         
+        @self.flaskapp.route('/start/', defaults={'option': None})
+        @self.flaskapp.route('/start/<option>/')
+        def start(option):
+            if option == "self":
+                return 'START SELF NOT YET IMPLEMENTED', 200
+            return 'ROLE NOT STARTED NOT YET IMPLEMENTED', 200
+        
+        @self.flaskapp.route('/override')
+        def override():
+            return 'OVERRIDE NOT STARTED NOT YET IMPLEMENTED', 200
+        
+        @self.flaskapp.route('/reset')
+        def reset():
+            return 'RESET NOT STARTED NOT YET IMPLEMENTED', 200
         
         @self.flaskapp.route('/reboot')
         def reboot():
-            # Reboot the pi after 5 seconds
-            delay = 5
-            reboot_timer = Timer(delay, self.reboot_command)
-            reboot_timer.start()
-            return "Reboot initiated", 200
+            # # Reboot the pi after 5 seconds
+            # delay = 5
+            # reboot_timer = Timer(delay, self.reboot_command)
+            # reboot_timer.start()
+            return "REBOOT NOT STARTED NOT YET IMPLEMENTED", 200
         
         @self.flaskapp.route('/add_to_control_panel')
         def add_to_control_panel():
             # Create a client to pass onto the transmitter
             client = EscapiClient(self.name, self.ip, self.port)
             self.transmitter.add_self(client)
+
+        @self.flaskapp.route('/logs')
+        def logs():
+            return 'Logs'
     
     def load_role(self):
         return self.role.load()
@@ -99,6 +129,14 @@ class EscapiServer:
                 return True
         except Exception as e:
             return False
+    
+    def get_uptime(self):
+        uptime = datetime.datetime.now() - self.last_reboot
+        days = uptime.days
+        hours, remainder = divmod(uptime.seconds, 3600)
+        minutes, seconds = divmod(remainder, 60)
+        formatted_uptime = f"{days}d {hours}h {minutes}m {seconds}s"
+        return formatted_uptime
     
     def trigger(self, event):
         self.transmitter.trigger(event)
