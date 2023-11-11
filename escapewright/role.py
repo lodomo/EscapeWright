@@ -11,6 +11,13 @@
 # Make a subclass of this class with the "role_template"
 # This class ensures that the role_template is implemented correctly
 
+# List of default functions
+# load()     - Load the pi's role
+# start()    - Start the pi's role
+# reset()    - Reset the pi's role 
+# stop()     - Stop the pi's role 
+# override() - Override the pi's role 
+
 class Role:
     def __init__(self):
         self.observer = None
@@ -28,11 +35,20 @@ class Role:
         self.observer = observer
         return   
     
+    def trigger_event(self, event):
+        # Event is a string. This tells the control panel what event
+        # has been triggered
+        if self.observer:
+            self.observer.trigger(event)
+        return
+    
     def process_message(self, message):
+        trigger_activated = False
         for trigger in self.triggers:
             if trigger in message:
                 self.triggers[trigger]
-        return
+                trigger_activated = True
+        return trigger_activated 
     
     def update_status(self, status):
         self.status = status
@@ -59,4 +75,9 @@ class Role:
     def stop(self):
         # Run whatever logic here for the puzzle to stop
         print("No stop function defined for this role")
+        return False
+    
+    def override(self):
+        # Run whatever logic here for the puzzle to override
+        print("No override function defined for this role")
         return False

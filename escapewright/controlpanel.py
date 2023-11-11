@@ -19,6 +19,7 @@ import socket                            # Used to get the local IP address
 from .timer import Timer                 # Used to create the timers
 import datetime                          # Used to get the current time
 import subprocess                        # Used to run the shell commands
+import logging                           # Used to log the program
 
 # Class Functions
 #   get_local_ip() - Get the local IP address, not intended to use outside of the class
@@ -37,7 +38,7 @@ import subprocess                        # Used to run the shell commands
 #   generate_css - Generate the CSS for the pages
 
 class ControlPanel:
-    def __init__(self, room, client_controller, site_folder_path, room_length=60, reset_time=2.5, port=12413):
+    def __init__(self, room, client_controller, site_folder_path, logger, room_length=60, reset_time=2.5, port=12413):
         self.host = self.get_local_ip()             # Set the local IP
         self.port = port                            # Set the port 
         self.room = room                            # Set the room name
@@ -47,6 +48,8 @@ class ControlPanel:
         self.flaskapp = Flask(__name__)             # Create the flask app
         self.flaskapp.static_folder = os.path.join(site_folder_path, 'static')
         self.flaskapp.template_folder = os.path.join(site_folder_path, 'templates')
+
+        self.logger = logger                        # Set the logger
 
         self.getting_statuses = False               # Set the getting statuses flag to false
         self.last_reset = datetime.datetime.now()   # Set the last reset time to now

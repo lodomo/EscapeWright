@@ -38,14 +38,15 @@
     --start-color:   #839788;
     --override-color:#FFD972;
     --reset-color:   #83B8C5;
-    --reboot-color:  #EF6F6C;
+    --stop-color:    #EF6F6C;
+    --reboot-color:  #CE8D5D;
     --log-color:     #847767;
 
     --h1-font-size: 2em; /*Title*/
     --h2-font-size: 1.25em; /*Name*/
     --h6-font_size: 1em; /*Subtitle to header*/
     --status-font_size: 1.25em; /*Subtitle to header*/
-    --button-font_size: 1.25em; /*Subtitle to header*/
+    --button-font_size: 1em; /*Subtitle to header*/
 }
 
 body {
@@ -136,6 +137,12 @@ h6 {
     margin-top: 10px;
 }
 
+.status p {
+    text-align: center;
+    font-family: 'Valera', sans-serif;
+    font-size: var(--status-font_size);
+    color: var(--desc-color)
+}
 
 .status table {
     margin-left: auto;
@@ -175,10 +182,10 @@ h6 {
     font-size: var(--button-font_size);
     color: var(--btn-text-color);
     width: 100%;
-    padding: 10px;
     border-radius: 30px;
     border: none;
-    margin: 5px;
+    margin-bottom: 8px;
+    padding: 5px;
     box-shadow: 5px 5px 0 rgba(0, 0, 0, 0.5);
     transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out, filter 0.2s ease-in-out; /* Smooth transition for the transform property */
 }
@@ -200,6 +207,10 @@ h6 {
 
 .override {
     background-color: var(--override-color);
+}
+
+.stop {
+    background-color: var(--stop-color);
 }
 
 .reset {

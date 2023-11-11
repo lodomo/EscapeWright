@@ -48,11 +48,12 @@
             </div>
 
             <div class="buttons">
-                <button class="btn start" onclick="confirmAction(this, '{{ url_for('start') }}/self')">START</button>
-                <button class="btn override" onclick="confirmAction(this, '{{ url_for('override') }}')">OVERRIDE</button>
-                <button class="btn reset" onclick="confirmAction(this, '{{ url_for('reset') }}')">RESET</button>
-                <button class="btn reboot" onclick="confirmAction(this, '{{ url_for('reboot') }}')">REBOOT</button>
-                <button class="btn logs" onclick="window.location.href='{{ url_for('logs') }}'">LOGS</button>
+                <button alt="start" class="btn start" onclick="confirmAction(this, '{{ url_for('start') }}/self')">START</button>
+                <button alt="override" class="btn override" onclick="confirmAction(this, '{{ url_for('override') }}/self')">OVERRIDE</button>
+                <button alt="stop" class="btn stop" onclick="confirmAction(this, '{{ url_for('stop') }}/self')">STOP</button>
+                <button alt="reset" class="btn reset" onclick="confirmAction(this, '{{ url_for('reset') }}/self')">RESET</button>
+                <button alt="reboot" class="btn reboot" onclick="confirmAction(this, '{{ url_for('reboot') }}/self')">REBOOT</button>
+                <button alt="logs" class="btn logs" onclick="window.location.href='{{ url_for('logs') }}'">LOGS</button>
             </div>
         </div>
         <footer class="footer">
