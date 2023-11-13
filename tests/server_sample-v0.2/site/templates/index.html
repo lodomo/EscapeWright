@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard for {{ name }}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles/main.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='bootstrap/bootstrap-icons.css') }}">
+</head>
+<body>
+<div class="logo">
+    <object type="image/svg+xml" data="{{ url_for('static', filename='images/escape-wright-logo.svg') }}">Your browser does not support SVG</object>
+</div>
+</body>
+    <script src="{{ url_for('static', filename='confirm_action.js') }}"></script>
+</html>
+
+
+            <!-- <div class="buttons"> -->
+<!-- <button alt="reboot" class="btn reboot" onclick="confirmAction(this, '{{ url_for('reboot') }}/self')">REBOOT</button> -->
+            <!-- </div> -->

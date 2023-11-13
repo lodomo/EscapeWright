@@ -1,0 +1,26 @@
+@import url('_fonts.css');
+@import url('_mobile.css');
+@import url('_desktop.css');
+
+/* fonts
+---------
+waku-waku
+rubik
+prime-bold
+prime-regular
+made-infinity
+*/
+
+:root {
+    /* Colors for backgrounds */
+    --red:      #DD3353;
+    --orange:   #EC844A;
+    --yellow:   #E8CD46;
+    --green:    #8EB897;
+    --blue:     #639FAB;
+    --purple:   #463087;
+    --dark:     #222222;
+    --light:    #F9F4E9;
+
+    --bg-color: var(--light);
+}

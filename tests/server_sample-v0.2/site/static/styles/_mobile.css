@@ -1,0 +1,41 @@
+body {
+    background-color: var(--dark);
+}
+
+/* Logo Animation*/
+/* Logo Animation */
+@keyframes slideLogo {
+    0% {
+        /* Combine translate functions into a single transform property */
+        transform: translateY(100vh) translate(-50%, -50%);
+        opacity: 0;
+    }
+    10%, 90% {
+        /* Keep the logo centered and visible */
+        transform: translate(-50%, -50%);
+        opacity: 1;
+    }
+    100% {
+        /* Move the logo off the top of the screen */
+        transform: translateY(-100vh) translate(-50%, -50%);
+        opacity: 0;
+    }
+}
+
+.logo {
+    position: absolute;
+    top: 50%; /* Start at the vertical center of the screen */
+    left: 50%; /* Start at the horizontal center of the screen */
+    /* This initial transform will be overridden by the animation but is here for initial state */
+    transform: translate(-50%, -50%); 
+    animation: slideLogo 5s ease-in-out forwards;
+    /* Set a width and height for your SVG */
+    width: 100px; 
+    height: 100px;
+}
+
+.logo svg {
+    width: 100%;
+    height: auto;
+    display: block; /* Remove inline-block spaces */
+}

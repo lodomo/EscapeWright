@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ name }} : {{ message }}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+</head>
+<body>
+    <div class="container">
+        <header class="header">
+            <h1>MESSAGE</h1>
+            <h6>メッセージ</h6>
+        </header>
+
+        <div class="info-container">
+            <div class="name">
+                <h2>{{ name }}</h2>
+            </div>
+
+            <div class="status">
+                <p>{{ message }}</p>
+            </div>
+
+            <div class="buttons">
+                <button alt="home" class="btn start" onclick="window.location.href='{{ url_for('index') }}'">RETURN HOME</button>
+            </div>
+        </div>
+        <footer class="footer">
+            <img src="{{ url_for('static', filename='images/ew_logo.svg') }}" alt="logo"/>
+        </footer>
+    </div>
+</body>
+    <script src="{{ url_for('static', filename='confirm_action.js') }}"></script>
+</html>

@@ -1,0 +1,6 @@
+/* Styles that apply to devices that are 768px wide or wider (typically tablets and desktops) */
+@media (min-width: 768px) {
+    body {
+        background-color: var(--light); /* Desktop background */
+    }
+}
