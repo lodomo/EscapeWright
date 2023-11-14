@@ -1,40 +1,168 @@
 body {
-    background-color: var(--dark);
+    background-color: var(--light);
+    background-image: url('../images/dots-portrait.png');
+    background-position: bottom left;
+    background-repeat: no-repeat;
+    background-attachment: fixed;
+    background-size: 100% auto;
 }
 
-/* Logo Animation*/
+/* Header */
+header {
+    display: flex;
+    flex-direction: column; /* This will stack children vertically */
+    margin-top: 5px;
+    margin-left: 5px;
+    padding: 0;
+    align-items: flex-start; /* Align items to the start of the flex container */
+}
+
+h1 {
+    font-family: 'made-infinity';
+    font-size: 50px;
+    color: var(--h1-color);
+    margin: 0;
+    padding: 0;
+    line-height: 0.75;
+}
+
+.line {
+    height: 5px;
+    margin-top: 5px;
+    width: 100%; /* This ensures that the lines take full width if needed */
+    margin-left: -30px;
+}
+
+.kana {
+    font-family: 'waku-waku';
+    font-size: 12px;
+    margin-top: 5px;
+    margin-left: 195px;
+    margin-bottom: -15px;
+    width: auto;
+    color: var(--kana-color);
+}
+
+.line.purple {
+    background-color: var(--purple);
+    width: 220px; /* Adjust width as per design */
+}
+
+.line.red {
+    background-color: var(--red);
+    width: 148px; /* Adjust width as per design */
+}
+
+.line.orange {
+    background-color: var(--orange);
+    width: 115px; /* Adjust width as per design */
+}
+
+/* Main */
+.mobile-container {
+    padding: 0 20px;
+}
+
+.mobile-content {
+    background-color: var(--main-content-color);
+    border-style: solid;
+    border-width: 10px;
+}
+
+/* Splash Screen Animation */
+@keyframes slideOffScreen {
+    0%, 60% {
+        transform: translateY(0); /* Start in the original position */
+    }
+    99% {
+        transform: translateY(-120vh); /* Slide up out of view */
+    }
+    100% {
+        transform: scale(0); /* Hide the curtain */
+        display: none; /* Hide the curtain */
+    }
+}
+
 /* Logo Animation */
 @keyframes slideLogo {
     0% {
         /* Combine translate functions into a single transform property */
-        transform: translateY(100vh) translate(-50%, -50%);
+        transform: translateY(25vh) translate(-50%, -50%) rotate(-180deg);
         opacity: 0;
     }
-    10%, 90% {
-        /* Keep the logo centered and visible */
-        transform: translate(-50%, -50%);
+    20% {
+        transform: translateY(0vh) translate(-50%, -50%) rotate(0deg);
         opacity: 1;
     }
-    100% {
+    25% {
+        transform: translateY(0vh) translate(-50%, -50%) rotate(10deg);
+        opacity: 1;
+    }
+    30% {
+        transform: translateY(0vh) translate(-50%, -50%) rotate(-10deg);
+        opacity: 1;
+    }
+    35% {
+        transform: translateY(0vh) translate(-50%, -50%) rotate(10deg);
+        opacity: 1;
+    }
+    40% {
+        transform: translateY(0vh) translate(-50%, -50%) rotate(-5deg);
+        opacity: 1;
+    }
+    50% {
+        transform: translateY(3vh) translate(-50%, -50%) rotate(0deg);
+        opacity: 1;
+    }
+    99% {
         /* Move the logo off the top of the screen */
-        transform: translateY(-100vh) translate(-50%, -50%);
+        transform: translateY(-100vh) translate(-50%, -50%) rotate(360deg);
         opacity: 0;
+    }
+    100% {
+        transform: scale(0);
+        display: none;
     }
 }
 
-.logo {
+.load-curtain {
+    position: fixed; /* Fixed position to cover the whole screen */
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: var(--blue); /* Or any color you want */
+    animation: slideOffScreen 2s ease-in-out forwards;
+    z-index: 1000; /* High z-index to ensure it covers everything below */
+}
+
+.load-curtain-spikes {
+    position: absolute; /* or 'fixed' if you want it to stay at the bottom of the screen */
+    bottom: -50px; /* Align to the bottom of the .load-curtain */
+    left: 0;
+    right: 0;
+    height: 200px; /* Height of your SVG or desired height for the spikes */
+    background-image: url('../images/curtain-spikes.svg'); /* Path to your SVG image */
+    background-repeat: repeat-x; /* Repeat only along the x-axis */
+    background-position: bottom; /* Align the background to the bottom */
+    background-size: contain; /* Adjust the size as needed */
+    z-index: 1010; /* Ensure it's above the .load-curtain */
+}
+
+.load-logo {
     position: absolute;
     top: 50%; /* Start at the vertical center of the screen */
     left: 50%; /* Start at the horizontal center of the screen */
     /* This initial transform will be overridden by the animation but is here for initial state */
     transform: translate(-50%, -50%); 
-    animation: slideLogo 5s ease-in-out forwards;
+    animation: slideLogo 2s ease-in-out forwards;
     /* Set a width and height for your SVG */
     width: 100px; 
     height: 100px;
+    z-index: 10000;
 }
 
-.logo svg {
+.load-logo svg {
     width: 100%;
     height: auto;
     display: block; /* Remove inline-block spaces */

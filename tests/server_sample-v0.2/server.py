@@ -7,12 +7,14 @@
 #
 ################################################################################
 
+# External Imports
 import os                      # Used to get the path to the .ew files
 import sys                     # Used to exit the program during critical errors
 import importlib               # Used to import the role
 import logging                 # Used to log the program
 from datetime import datetime  # Used to get the current date
 
+# Internal Imports
 from escapewright.escapiserver import EscapiServer
 from escapewright.ewfunct import ew_to_dict
 from escapewright.ewfunct import relative_path

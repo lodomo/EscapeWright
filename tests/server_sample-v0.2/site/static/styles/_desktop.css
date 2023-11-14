@@ -1,6 +1,11 @@
 /* Styles that apply to devices that are 768px wide or wider (typically tablets and desktops) */
 @media (min-width: 768px) {
     body {
-        background-color: var(--light); /* Desktop background */
+        /* background-color: var(--light); Desktop background */
+        background-image: url('../images/dots-landscape.png');
+        background-position: bottom left;
+        background-repeat: no-repeat;
+        background-attachment: fixed;
+        background-size: auto 100%;
     }
 }

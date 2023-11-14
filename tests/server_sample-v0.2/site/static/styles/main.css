@@ -22,5 +22,14 @@ made-infinity
     --dark:     #222222;
     --light:    #F9F4E9;
 
+    /* Backgrounds */
     --bg-color: var(--light);
+    --mobile-content-color: var(--blue);
+
+    /* Borders */
+    --mobile-content-border: var(--dark);
+
+    /* Fonts */
+    --h1-color: var(--dark);
+    --kana-color: var(--purple);
 }

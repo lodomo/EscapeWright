@@ -1,34 +1,34 @@
 @font-face {
-  font-family: 'wakuwaku';
-  src: url('../static/fonts/mini-wakuwaku.otf') format('opentype');
+  font-family: 'waku-waku';
+  src: url('../fonts/Waku-Waku.otf') format('opentype');
   font-weight: normal;
   font-style: normal;
 }
 
 @font-face {
   font-family: 'rubik';
-  src: url('../static/fonts/RubikMonoOne-Regular.ttf') format('truetype');
+  src: url('../fonts/RubikMonoOne-Regular.ttf') format('truetype');
   font-weight: normal;
   font-style: normal;
 }
 
 @font-face {
   font-family: 'prime-bold';
-  src: url('../static/fonts/CourierPrime-Bold.ttf') format('truetype');
+  src: url('../fonts/CourierPrime-Bold.ttf') format('truetype');
   font-weight: bold;
   font-style: normal;
 }
 
 @font-face {
   font-family: 'prime-regular';
-  src: url('../static/fonts/CourierPrime-Regular.ttf') format('truetype');
+  src: url('../fonts/CourierPrime-Regular.ttf') format('truetype');
   font-weight: normal;
   font-style: normal;
 }
 
 @font-face {
   font-family: 'made-infinity';
-  src: url('../static/fonts/Made-Infinity.otf') format('opentype');
+  src: url('../fonts/Made-Infinity.otf') format('opentype');
   font-weight: normal;
   font-style: normal;
 }

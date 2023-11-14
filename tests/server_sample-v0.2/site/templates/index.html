@@ -6,11 +6,34 @@
     <title>Dashboard for {{ name }}</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='styles/main.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='bootstrap/bootstrap-icons.css') }}">
+    <link rel="shortcut icon" href="{{ url_for('static', filename='favicon.ico') }}">
 </head>
 <body>
-<div class="logo">
-    <object type="image/svg+xml" data="{{ url_for('static', filename='images/escape-wright-logo.svg') }}">Your browser does not support SVG</object>
-</div>
+
+    <header>
+    <h1>DASHBOARD</h1>
+    <div class="kana">ダッシュボード</div>
+    <div class="line purple"></div>
+    <div class="line red"></div>
+    <div class="line orange"></div>
+    </header>
+
+    <!-- Mobile Content -->
+    <div class="mobile-container">
+        <div class="mobile-content">
+            Words
+        </div>
+    </div>
+
+
+<!-- Loading Screen for Dashboard -->
+    <div class="load-curtain">
+        <div class="load-curtain-spikes"></div>
+    </div>
+    <div class="load-logo">
+        <object type="image/svg+xml" data="{{ url_for('static', filename='images/escape-wright-logo.svg') }}">Your browser does not support SVG</object>
+    </div>
+
 </body>
     <script src="{{ url_for('static', filename='confirm_action.js') }}"></script>
 </html>
