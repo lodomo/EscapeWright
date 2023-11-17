@@ -1,3 +1,8 @@
+/* Disable Desktop Content */
+.desktop-container {
+    display: none;
+}
+
 body {
     background-color: var(--light);
     background-image: url('../images/dots-portrait.png');
@@ -33,6 +38,7 @@ h1 {
     margin-left: -30px;
 }
 
+/* The katakana that says "Dashboard" lmao */
 .kana {
     font-family: 'waku-waku';
     font-size: 12px;
@@ -75,9 +81,10 @@ h1 {
         transform: translateY(0); /* Start in the original position */
     }
     99% {
-        transform: translateY(-120vh); /* Slide up out of view */
+        transform: translateY(-120vh) translateX(25vw); /* Slide up out of view */
     }
     100% {
+        transform: translateY(-120vh) translateX(25vw); /* Slide up out of view */
         transform: scale(0); /* Hide the curtain */
         display: none; /* Hide the curtain */
     }
@@ -127,10 +134,11 @@ h1 {
 
 .load-curtain {
     position: fixed; /* Fixed position to cover the whole screen */
-    top: 0;
-    left: 0;
+    top: -25vw;
+    left: -25vw;
     right: 0;
     bottom: 0;
+    width: 500vw; /* Full width */
     background: var(--blue); /* Or any color you want */
     animation: slideOffScreen 2s ease-in-out forwards;
     z-index: 1000; /* High z-index to ensure it covers everything below */
@@ -141,7 +149,7 @@ h1 {
     bottom: -50px; /* Align to the bottom of the .load-curtain */
     left: 0;
     right: 0;
-    height: 200px; /* Height of your SVG or desired height for the spikes */
+    height: 100px; /* Height of your SVG or desired height for the spikes */
     background-image: url('../images/curtain-spikes.svg'); /* Path to your SVG image */
     background-repeat: repeat-x; /* Repeat only along the x-axis */
     background-position: bottom; /* Align the background to the bottom */

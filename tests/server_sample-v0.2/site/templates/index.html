@@ -25,14 +25,35 @@
         </div>
     </div>
 
+    <!--Desktop Content-->
+    <div class="desktop-container">
+        <div class="desktop-content">
+            <div class="status">
+
+            </div>
+
+            <div class="controls">
+                <button alt="reboot" class="btn green"><p>START</p></button>
+                <button alt="reboot" class="btn orange"><p>BYPASS</p></button>
+                <button alt="reboot" class="btn blue"><p>RESET</p></button>
+                <button alt="reboot" class="btn purple"><p>REBOOT</p></button>
+                <button alt="reboot" class="btn red"><p>STOP</p></button>
+            </div>
+
+            <div class="recent-activity">
+                <p>Lorem ipsum </p>
+            </div>
+        </div>
+    </div>
+
 
 <!-- Loading Screen for Dashboard -->
-    <div class="load-curtain">
+    <!-- <div class="load-curtain">
         <div class="load-curtain-spikes"></div>
     </div>
     <div class="load-logo">
         <object type="image/svg+xml" data="{{ url_for('static', filename='images/escape-wright-logo.svg') }}">Your browser does not support SVG</object>
-    </div>
+    </div> -->
 
 </body>
     <script src="{{ url_for('static', filename='confirm_action.js') }}"></script>
