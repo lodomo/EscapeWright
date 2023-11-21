@@ -228,5 +228,5 @@ class EscapiServer:
         self.load_role()
         self.define_routes()
         self.log(f"Server started on {self.ip}:{self.port}", "INFO")
-        self.flaskapp.run(host=self.ip, port=self.port)
+        self.flaskapp.run(host=self.ip, port=self.port, debug=True)
         return
