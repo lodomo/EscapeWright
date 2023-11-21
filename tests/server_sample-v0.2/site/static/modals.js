@@ -48,6 +48,8 @@ document.addEventListener('DOMContentLoaded', function() {
         var action = this.getAttribute('data-action');
         console.log('Confirmed action:', action);
         // TODO: Add your action handling logic here based on the 'action' variable.
+        // Go to link /action/self
+        window.location.href = '/' + action + '/self';
         hideModal();
     });
 

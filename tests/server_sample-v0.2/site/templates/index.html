@@ -63,7 +63,9 @@
             <div class="recent-activity">
                 <h2>RECENT ACTIVITY</h2>
                 <p>
-                    [2023-11-16 12:30:11] DEBUG: Local IP set to: 192.168.254.121
+                    {% for line in logs %}
+                        {{ line }}<br>
+                    {% endfor %}
                 </p>
             </div>
 
@@ -89,11 +91,11 @@
     <div id="options" class="options-modal">
         <div class="options-modal-content">
             <div class="modal-body">
-                <button alt="reboot" class="mybtn btn green" data-action="start"><p>START</p></button>
-                <button alt="reboot" class="mybtn btn orange" data-action="bypass"><p>BYPASS</p></button>
-                <button alt="reboot" class="mybtn btn blue" data-action="reset"><p>RESET</p></button>
+                <button alt="start" class="mybtn btn green" data-action="start"><p>START</p></button>
+                <button alt="bypass" class="mybtn btn orange" data-action="bypass"><p>BYPASS</p></button>
+                <button alt="reset" class="mybtn btn blue" data-action="reset"><p>RESET</p></button>
                 <button alt="reboot" class="mybtn btn purple" data-action="reboot"><p>REBOOT</p></button>
-                <button alt="reboot" class="mybtn btn red" data-action="stop"><p>STOP</p></button>
+                <button alt="stop" class="mybtn btn red" data-action="stop"><p>STOP</p></button>
                 <button id="closeOptions" class="btn red">&times;</button>
             </div>
         </div>
@@ -134,7 +136,9 @@
                 <div class="recent-activity">
                     <h2>RECENT ACTIVITY</h2>
                     <p>
-                        [2023-11-16 12:30:11] DEBUG: Local IP set to: 192.168.254.121
+                        {% for line in logs %}
+                            {{ line }}<br>
+                        {% endfor %}
                     </p>
                     <button id="closeLogs" class="btn red">&times;</button>
             </div>

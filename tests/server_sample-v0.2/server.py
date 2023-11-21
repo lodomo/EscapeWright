@@ -28,7 +28,7 @@ def main():
     # disable_flask_log()                  # Disable Flask's default logger
 
     name = info['name']                  # Set Server Name
-    role = create_role(info)             # Set Server Role
+    role = create_role(info, logger)     # Set Server Role
     site_dir = find_file_or_dir("site")  # Load the site folder path
     location = info['location']          # Set Server Location
     port = int(info['port'])             # Set Server Port
@@ -47,7 +47,7 @@ def guarantee_path():
     if script_dir not in sys.path:
         sys.path.append(script_dir) 
 
-def create_role(info):
+def create_role(info, logger = None):
     # Import the module from the "role" key in the info dictionary
     module = importlib.import_module(info['role'])
 
@@ -55,7 +55,7 @@ def create_role(info):
     ClassToInstantiate = getattr(module, info['class'])
 
     # Instantiate the class
-    instance = ClassToInstantiate()
+    instance = ClassToInstantiate(logger)
     return instance
 
 def find_file_or_dir(filename, logger = None):

@@ -33,7 +33,6 @@ class EscapiServer:
         self.role.set_observer(self)     # Add this server as an observer to the role
         self.ip = self.get_local_ip()    # IP of the Pi
         self.transmitter = EscapiTransmitter(self.name, self.location, self.port)
-        self.status = "BOOTING"          # Status of the Pi
         self.last_relay = "N/A"          # Last relayed message
         self.last_reset = "N/A"          # Last reset
         self.last_reboot = datetime.datetime.now()# Last reboot
@@ -41,6 +40,8 @@ class EscapiServer:
         self.flaskapp = Flask(__name__)  # Flask app
         self.flaskapp.static_folder = os.path.join(site_folder_path, 'static')
         self.flaskapp.template_folder = os.path.join(site_folder_path, 'templates')
+
+        self.site_folder_path = site_folder_path
 
         self.logger.debug(f"Server Class Created")
         self.logger.debug(f"Server info: {self.name}")
@@ -73,14 +74,21 @@ class EscapiServer:
             self.log(f"Index Visited by {visit_ip}", "INFO")
             last_reboot = self.last_reboot.strftime("%m/%d @ %H:%M:%S")
             uptime = self.get_uptime() 
+
+            if self.logger == None:
+                logs = "No Logs Available. Logger Disabled."
+            else:
+               logs = self.generate_logs() 
+
             return render_template('index.html', 
                                    name=self.name, 
-                                   status=self.status,
+                                   status=self.role.status,
                                    ip=self.ip,
                                    last_relay=self.last_relay,
                                    last_reset=self.last_reset,
                                    last_reboot=last_reboot,
-                                   uptime=uptime)
+                                   uptime=uptime,
+                                   logs=logs)
         
         @self.flaskapp.route('/relay/<message>', methods=['GET'])
         def relay(message):
@@ -96,8 +104,8 @@ class EscapiServer:
        
         @self.flaskapp.route('/status')
         def status():
-            self.log(f"Status Requested, current status is: {self.status}", "DEBUG")
-            return str(self.status)
+            self.log(f"Status Requested, current status is: {self.role.status}", "DEBUG")
+            return str(self.role.status)
          
         @self.flaskapp.route('/start/', defaults={'option': None})
         @self.flaskapp.route('/start/<option>/')
@@ -106,11 +114,11 @@ class EscapiServer:
             function_name = "Start"
             return self.task_responses(function, option, function_name)
 
-        @self.flaskapp.route('/override/', defaults={'option': None})
-        @self.flaskapp.route('/override/<option>/')
+        @self.flaskapp.route('/bypass/', defaults={'option': None})
+        @self.flaskapp.route('/bypass/<option>/')
         def override(option):
-            function = self.role.override
-            function_name = "Override"
+            function = self.role.bypass
+            function_name = "Bypass"
             return self.task_responses(function, option, function_name)
 
 
@@ -158,10 +166,9 @@ class EscapiServer:
     def reboot_command(self):
         subprocess.run(['sudo', 'reboot', 'now'])
     
-    def update_status(self, status):
-        self.status = status
-        self.transmitter.update_status(status)
-        self.logger.info(f"Status Updated: {status}")
+    def update_status(self):
+        self.transmitter.update_status(self.role.status)
+        self.logger.info(f"Status Updated: {self.role.status}")
         return
     
     def get_uptime(self):
@@ -201,7 +208,7 @@ class EscapiServer:
         run = function
         success = run()
 
-        self.log(f"{ request_name } Requested, current status is: {self.status}", "INFO")
+        self.log(f"{ request_name } Requested, current status is: {self.role.status}", "INFO")
 
         if success: 
             message = f"{request_name} successful"
@@ -220,13 +227,30 @@ class EscapiServer:
         return message, 500
     
     def confirmation(self, message):
+        # DELETE THIS LINE LATER
+        return message, 200
         return render_template('message.html',
                                name = self.name,
                                message = message)
+                            
+    def generate_logs(self):
+        # open todays log file
+        parent = os.path.dirname(self.site_folder_path)
+        log_base_dir = os.path.join("EW.Logs")
+        current_date = datetime.datetime.now()
+        year_dir = os.path.join(log_base_dir, str(current_date.year))
+        month_dir = os.path.join(year_dir, f"{current_date.month:02d}")
+        day_file = os.path.join(month_dir, f"{current_date.day:02d}.ewlog") 
+        # Put every single line into a long string with a <br> between each line
+        log = [] 
+        with open(day_file, 'r') as f:
+            for line in f:
+                log.insert(0, line)
+        return log
 
     def run(self):
         self.load_role()
         self.define_routes()
         self.log(f"Server started on {self.ip}:{self.port}", "INFO")
-        self.flaskapp.run(host=self.ip, port=self.port, debug=True)
+        self.flaskapp.run(host=self.ip, port=self.port)
         return

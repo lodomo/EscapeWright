@@ -5,10 +5,10 @@
 # logging: True or False (if True, log file will be created)
 # log_level: DEBUG, INFO, WARNING, ERROR, CRITICAL
 
-name: sample_pi_name
-role: role_template 
-class: RoleTemplate 
-location: sample_location
+name: Fake Maze 
+role: maze
+class: Maze 
+location: garage 
 port: 12413
 logging: True
 log_level: DEBUG
