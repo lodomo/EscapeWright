@@ -11,15 +11,20 @@ import requests
 from .escapiclient import EscapiClient
 
 class EscapiTransmitter:
-    def __init__(self, name, control_ip, port=12413):
+    def __init__(self, name, control_ip, logger, port=12413):
         self.name = name
         self.control_ip = control_ip
+        self.logger = logger
         self.port = port
         self.transmit_url = f"http://{self.control_ip}:{self.port}/trigger/"
         self.status_url = f"http://{self.control_ip}:{self.port}/update_status/"
         self.add_pi = f"http://{self.control_ip}:{self.port}/add_pi/"
     
-    def send_request(url):
+    def send_request(self, url):
+        if self.control_ip == None:
+            self.log("From Escapi Transmitter: No control ip set", "ERROR")
+            return
+
         try:
             requests.get(url, timeout=5)
         except requests.exceptions.RequestException as e:
@@ -49,4 +54,25 @@ class EscapiTransmitter:
         port = escapiclient.port            
         url = self.add_pi + f"{name}/{ip}/{location}/{port}" 
         self.threaded_request(url)
+        return
+    
+    def log(self, message, level=None):
+        if self.logger == None: 
+            print(message)
+            return
+        
+        if level == None:
+            self.logger.info(message)
+        elif level == "DEBUG":
+            self.logger.debug(message)
+        elif level == "INFO":
+            self.logger.info(message)
+        elif level == "WARNING":
+            self.logger.warning(message)
+        elif level == "ERROR":
+            self.logger.error(message)
+        elif level == "CRITICAL":
+            self.logger.error(message)
+        else:
+            self.logger.info(message)
         return

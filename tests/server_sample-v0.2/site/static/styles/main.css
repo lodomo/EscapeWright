@@ -812,6 +812,22 @@ h1 {
     }
 }
 
+.message {
+    display: flex; /* Hidden by default */
+    align-items: center; /* Center vertically */
+    justify-content: center; /* Center horizontally */
+    z-index: 1; /* Sit on top */
+    top: 0;
+    left: 0;
+    width: 100%; /* Full width */
+    height: 100%; /* Full height */
+    overflow: auto; /* Enable scroll if needed */
+    background-color: var(--light); 
+    background-image: url('../images/tan-checker.svg');
+    background-size: 50px;
+    position: fixed;
+}
+
 /* @import url('_desktop.css'); */
 /* Styles that apply to devices that are 768px wide or wider (typically tablets and desktops) */
 @media (min-width: 768px) {

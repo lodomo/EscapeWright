@@ -87,7 +87,7 @@ class Role:
         self.status = status
         self.log(f"Status Updated: {self.status}", "INFO")
         if self.observer:
-            self.observer.update_status(status)
+            self.observer.update_status()
         return
     
     def load(self):

@@ -24,7 +24,7 @@ from .role import Role
 from .escapitransmitter import EscapiTransmitter
 
 class EscapiServer:
-    def __init__(self, name, role: Type[Role], site_folder_path, location="N/A", port=12413, logger=None):
+    def __init__(self, name, role: Type[Role], site_folder_path, logger=None, location="N/A", control_ip=None, port=12413, ):
         self.name = name                 # Name of the Pi
         self.location = location         # Location of the Pi
         self.port = port                 # Port of the Pi, ETA uses 12413
@@ -32,7 +32,7 @@ class EscapiServer:
         self.logger = logger             # Logger
         self.role.set_observer(self)     # Add this server as an observer to the role
         self.ip = self.get_local_ip()    # IP of the Pi
-        self.transmitter = EscapiTransmitter(self.name, self.location, self.port)
+        self.transmitter = EscapiTransmitter(self.name, control_ip, logger, self.port)
         self.last_relay = "N/A"          # Last relayed message
         self.last_reset = "N/A"          # Last reset
         self.last_reboot = datetime.datetime.now()# Last reboot
@@ -186,7 +186,9 @@ class EscapiServer:
         return
     
     def log(self, message, level=None):
-        if self.logger == None: return
+        if self.logger == None: 
+            print(message)
+            return
         
         if level == None:
             self.logger.info(message)
@@ -207,31 +209,34 @@ class EscapiServer:
     def task_responses(self, function, option, request_name):
         run = function
         success = run()
+        is_error = False
 
         self.log(f"{ request_name } Requested, current status is: {self.role.status}", "INFO")
 
         if success: 
-            message = f"{request_name} successful"
+            message = f"{ request_name } successful"
         else:
             message = f"{request_name} failed, see logs for details"
+            is_error = True
 
         self.log(f"{message}", "INFO")
 
         # If the request was sent via the dashboard, return the confirmation page
         if option == "self":
-            return self.confirmation(message)
+            return self.confirmation(message, is_error)
         
         # If the request was sent via the control panel, return answer
         if success:
             return message, 200
         return message, 500
     
-    def confirmation(self, message):
+    def confirmation(self, message, is_error=False):
         # DELETE THIS LINE LATER
-        return message, 200
+        # return message, 200
         return render_template('message.html',
                                name = self.name,
-                               message = message)
+                               message = message,
+                               is_error = is_error)
                             
     def generate_logs(self):
         # open todays log file

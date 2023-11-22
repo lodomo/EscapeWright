@@ -6,8 +6,8 @@
 # log_level: DEBUG, INFO, WARNING, ERROR, CRITICAL
 
 name: Fake Maze 
-role: maze
-class: Maze 
+role: locknswitch 
+class: LockNSwitch 
 location: garage 
 port: 12413
 logging: True

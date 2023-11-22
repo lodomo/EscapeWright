@@ -8,9 +8,10 @@
 #              
 ################################################################################
 
-from .role import Role
+from escapewright.role import Role
 import threading
 from time import sleep
+from gpiozero import InputDevice, OutputDevice
 
 # Inherited functions
 # trigger_event(event) - Trigger an event 
@@ -18,8 +19,9 @@ from time import sleep
 # log(message, level) - Log a message to the logger
 # join_thread() - Set "running" to False and wait till function is completed
 
-class RoleTemplate(Role):
-    def __init__(self, logger = None):
+
+class LockNSwitch(Role):
+    def __init__(self, logger = None, switch_pin = 21, maglock_pin = 17):
         self.EASY_RESET_STATUSES = ["COMPLETE", "STOPPED", "BYPASSED"]
 
         self.observer = None    # Inherited from Role
@@ -33,7 +35,6 @@ class RoleTemplate(Role):
                           "start": self.start,
                           "reset": self.reset,
                           "stop": self.stop,
-
                           }
 
         ### Unique Members ###
@@ -42,11 +43,16 @@ class RoleTemplate(Role):
         self.triggers.update(unique_triggers)
 
         # Add any unique members here
+        self.switch = InputDevice(switch_pin, pull_up=True)
+        self.maglock = OutputDevice(maglock_pin)
         return
 
     def load(self):
         self.update_status("READY")
         self.is_resetting = False
+
+        # Special to LockNSwitch
+        self.maglock.on()
         return True
     
     def start(self):
@@ -55,7 +61,7 @@ class RoleTemplate(Role):
             return False
 
         if self.status in self.EASY_RESET_STATUSES:
-            self.log("Cannot Start Role Thread from this status", "ERROR")
+            self.log(f"Cannot Start Role from {self.status}", "ERROR")
             return False
         
 
@@ -67,11 +73,16 @@ class RoleTemplate(Role):
     
     def logic(self):
         self.running = True
-        # This is the main function for the puzzle
-        # It should be called in a thread
+
         while self.running:
-            print("Looping")
-            sleep(1)
+            # Unique to LockNSwitch
+            if self.switch.is_active:
+                self.maglock.off()
+                self.update_status("COMPLETE")
+                self.log("Role Thread Complete", "INFO")
+                self.running = False
+                break
+            sleep(1/60) # 60Hz Checking
         return
     
     def reset(self):
@@ -94,4 +105,5 @@ class RoleTemplate(Role):
     def bypass(self):
         self.update_status("BYPASSED")
         self.force_join_thread()
+        self.maglock.off()
         return True

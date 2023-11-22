@@ -34,7 +34,7 @@ def main():
     port = int(info['port'])             # Set Server Port
 
     # Create the server
-    server = EscapiServer(name, role, site_dir, location, port, logger)
+    server = EscapiServer(name, role, site_dir, logger)
 
     # Start of the server
     server.run()
