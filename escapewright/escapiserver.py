@@ -68,10 +68,11 @@ class EscapiServer:
     def define_routes(self):
         self.log(f"Defining Routes:", "DEBUG")
         self.log(f"index, relay, status, start, override, reset, stop, reboot, logs", "DEBUG")
+
         @self.flaskapp.route('/')
         def index():
             visit_ip = request.remote_addr
-            self.log(f"Index Visited by {visit_ip}", "INFO")
+            self.log(f"Index Visited by {visit_ip}", "DEBUG")
             last_reboot = self.last_reboot.strftime("%m/%d @ %H:%M:%S")
             uptime = self.get_uptime() 
 
@@ -88,7 +89,8 @@ class EscapiServer:
                                    last_reset=self.last_reset,
                                    last_reboot=last_reboot,
                                    uptime=uptime,
-                                   logs=logs)
+                                   logs=logs
+                                    )
         
         @self.flaskapp.route('/relay/<message>', methods=['GET'])
         def relay(message):
@@ -167,8 +169,8 @@ class EscapiServer:
         subprocess.run(['sudo', 'reboot', 'now'])
     
     def update_status(self):
+        self.log(f"Status Transmit: {self.role.status}", "DEBUG")
         self.transmitter.update_status(self.role.status)
-        self.logger.info(f"Status Updated: {self.role.status}")
         return
     
     def get_uptime(self):
@@ -177,12 +179,12 @@ class EscapiServer:
         hours, remainder = divmod(uptime.seconds, 3600)
         minutes, seconds = divmod(remainder, 60)
         formatted_uptime = f"{days}d {hours}h {minutes}m {seconds}s"
-        self.logger.debug(f"Uptime Calculated: {formatted_uptime}")
+        self.log(f"Uptime Calculated: {formatted_uptime}", "DEBUG")
         return formatted_uptime
     
     def trigger(self, event):
         self.transmitter.trigger(event)
-        self.logger.info(f"Triggered event: {event}")    
+        self.log(f"Triggered event: {event}", "INFO")
         return
     
     def log(self, message, level=None):

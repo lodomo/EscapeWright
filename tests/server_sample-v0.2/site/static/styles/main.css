@@ -276,12 +276,17 @@ h1 {
     background-color: var(--green);
 }
 
-.beeg-btn .bg-orange {
+.beeg-btn.bg-orange {
     background-color: var(--orange);
 }
 
-.beeg-btn .bg-purple {
+.beeg-btn.bg-purple {
     background-color: var(--purple);
+}
+
+.beeg-btn.bg-blue {
+    filter: brightness(1.25);
+    background-color: var(--blue);
 }
 
 .two-btn-container {
@@ -822,10 +827,11 @@ h1 {
     width: 100%; /* Full width */
     height: 100%; /* Full height */
     overflow: auto; /* Enable scroll if needed */
-    background-color: var(--light); 
-    background-image: url('../images/tan-checker.svg');
-    background-size: 50px;
+    /* background-color: var(--light);  */
+    /* background-image: url('../images/tan-checker.svg'); */
+    /* background-size: 50px; */
     position: fixed;
+    animation: modalSlideUp 0.75s ease-in-out forwards;
 }
 
 /* @import url('_desktop.css'); */

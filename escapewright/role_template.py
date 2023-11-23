@@ -20,8 +20,6 @@ from time import sleep
 
 class RoleTemplate(Role):
     def __init__(self, logger = None):
-        self.EASY_RESET_STATUSES = ["COMPLETE", "STOPPED", "BYPASSED"]
-
         self.observer = None    # Inherited from Role
         self.status = None      # Inherited from Role
         self.running = False    # Inherited from Role
@@ -33,7 +31,6 @@ class RoleTemplate(Role):
                           "start": self.start,
                           "reset": self.reset,
                           "stop": self.stop,
-
                           }
 
         ### Unique Members ###
@@ -54,10 +51,9 @@ class RoleTemplate(Role):
             self.log("Role Thread already running", "ERROR")
             return False
 
-        if self.status in self.EASY_RESET_STATUSES:
-            self.log("Cannot Start Role Thread from this status", "ERROR")
+        if self.status != "READY":
+            self.log("Cannot Start Role Thread from this status. Reset Required", "ERROR")
             return False
-        
 
         self.update_status("ACTIVE")
         self.log("Role Thread Started", "INFO")
@@ -75,11 +71,13 @@ class RoleTemplate(Role):
         return
     
     def reset(self):
+        CAN_RESET_STATUSES = ["COMPLETE", "STOPPED", "BYPASSED"]
         self.log(f"Reset Requested", "DEBUG")
         if self.status == "READY":
+            self.log("No reset neccessary, already ready", "INFO")
             return True
 
-        if self.status in self.EASY_RESET_STATUSES:
+        if self.status in self.CAN_RESET_STATUSES:
             return self.load()
 
         if self.force_join_thread(): 
@@ -87,11 +85,22 @@ class RoleTemplate(Role):
         return False
     
     def stop(self):
+        if self.status == "STOPPED":
+            self.log("Role already stopped", "WARNING")
+            return False
+
         self.update_status("STOPPED")
         self.force_join_thread() 
         return True
     
     def bypass(self):
+        if self.status == "BYPASSED":
+            self.log("Role already bypassed", "WARNING")
+            return False
+        if self.status == "STOPPED":
+            self.log("Cannot bypass a stopped role", "ERROR")
+            return False
+
         self.update_status("BYPASSED")
         self.force_join_thread()
         return True

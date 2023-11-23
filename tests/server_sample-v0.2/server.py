@@ -25,7 +25,7 @@ def main():
     info = ew_to_dict(server_info)
 
     logger = set_logger(info)            # Set the logger, if logging is enabled
-    # disable_flask_log()                  # Disable Flask's default logger
+    disable_flask_log()                  # Disable Flask's default logger
 
     name = info['name']                  # Set Server Name
     role = create_role(info, logger)     # Set Server Role
