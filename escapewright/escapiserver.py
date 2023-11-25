@@ -48,6 +48,8 @@ class EscapiServer:
         self.logger.debug(f"           : {self.location}")
         self.logger.debug(f"           : {self.port}")
         self.logger.debug(f"           : {self.ip}")
+
+        self.show_curtain = True
         return
     
     def get_local_ip(self):
@@ -71,35 +73,49 @@ class EscapiServer:
 
         @self.flaskapp.route('/')
         def index():
+            show_curtain = self.show_curtain
+
+            if self.show_curtain:
+                self.show_curtain = False
+
             visit_ip = request.remote_addr
             self.log(f"Index Visited by {visit_ip}", "DEBUG")
-            last_reboot = self.last_reboot.strftime("%m/%d @ %H:%M:%S")
+            last_reboot = self.last_reboot.strftime("%m/%d @ %H:%M")
+
+            last_reset = self.last_reset
+            if last_reset != "N/A":
+                last_reset = self.last_reset.strftime("%m/%d @ %H:%M")
+
             uptime = self.get_uptime() 
 
             if self.logger == None:
                 logs = "No Logs Available. Logger Disabled."
             else:
-               logs = self.generate_logs() 
+                logs = "All kids love logs"
+            #    logs = self.generate_logs() 
 
             return render_template('index.html', 
                                    name=self.name, 
                                    status=self.role.status,
                                    ip=self.ip,
                                    last_relay=self.last_relay,
-                                   last_reset=self.last_reset,
+                                   last_reset=last_reset,
                                    last_reboot=last_reboot,
                                    uptime=uptime,
-                                   logs=logs
+                                   logs=logs,
+                                   show_curtain=show_curtain
                                     )
         
         @self.flaskapp.route('/relay/<message>', methods=['GET'])
         def relay(message):
             try:
                 if message:
+                    self.last_relay = message
                     if self.role.process_message(message):
                         self.log(f"Relay: {message}, Event Activated", "INFO")
                     else:
                         self.log(f"Relay: {message}, Event Not Activated", "INFO")
+                    return 'Message Processed', 200
             except Exception as e:
                 self.log(f"Relay: {message} failed to process", "ERROR")
                 return 'Error processing message', 500 

@@ -17,6 +17,9 @@ from time import sleep
 # update_status(status) - Update the status of the role
 # log(message, level) - Log a message to the logger
 # join_thread() - Set "running" to False and wait till function is completed
+# can_start(status)    - Check if the role is startable
+# can_reset(status)   - Check if the role is resettable
+# can_bypass(status)   - Check if the role is bypassable
 
 class RoleTemplate(Role):
     def __init__(self, logger = None):
@@ -47,12 +50,7 @@ class RoleTemplate(Role):
         return True
     
     def start(self):
-        if self.running:
-            self.log("Role Thread already running", "ERROR")
-            return False
-
-        if self.status != "READY":
-            self.log("Cannot Start Role Thread from this status. Reset Required", "ERROR")
+        if not self.can_start(self.status):
             return False
 
         self.update_status("ACTIVE")
@@ -69,20 +67,6 @@ class RoleTemplate(Role):
             print("Looping")
             sleep(1)
         return
-    
-    def reset(self):
-        CAN_RESET_STATUSES = ["COMPLETE", "STOPPED", "BYPASSED"]
-        self.log(f"Reset Requested", "DEBUG")
-        if self.status == "READY":
-            self.log("No reset neccessary, already ready", "INFO")
-            return True
-
-        if self.status in self.CAN_RESET_STATUSES:
-            return self.load()
-
-        if self.force_join_thread(): 
-            return self.load()
-        return False
     
     def stop(self):
         if self.status == "STOPPED":
@@ -104,3 +88,11 @@ class RoleTemplate(Role):
         self.update_status("BYPASSED")
         self.force_join_thread()
         return True
+    
+    def is_bypassable(self, status):
+        if self.status == "BYPASSED":
+            self.log("Role already bypassed", "WARNING")
+            return False
+        if self.status == "STOPPED":
+            self.log("Cannot bypass a stopped role", "ERROR")
+            return False

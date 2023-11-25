@@ -34,7 +34,7 @@
 
 body {
     background-color: var(--light);
-    background-image: url('../images/dots-portrait.png');
+    /* background-image: url('../images/dots-portrait.png'); */
     background-position: bottom left;
     background-repeat: no-repeat;
     background-attachment: fixed;

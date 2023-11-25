@@ -18,6 +18,8 @@ from gpiozero import InputDevice, OutputDevice
 # update_status(status) - Update the status of the role
 # log(message, level) - Log a message to the logger
 # join_thread() - Set "running" to False and wait till function is completed
+# can_start(status)    - Check if the role is startable
+# can_bypass(status)   - Check if the role is bypassable
 
 
 class LockNSwitch(Role):
@@ -35,11 +37,12 @@ class LockNSwitch(Role):
                           "start": self.start,
                           "reset": self.reset,
                           "stop": self.stop,
+                          "bypass": self.bypass
                           }
 
         ### Unique Members ###
         # trigger format is { "trigger": function }
-        unique_triggers = {"bypass": self.bypass}
+        unique_triggers = {}
         self.triggers.update(unique_triggers)
 
         # Add any unique members here
@@ -56,14 +59,8 @@ class LockNSwitch(Role):
         return True
     
     def start(self):
-        if self.running:
-            self.log("Role Thread already running", "ERROR")
+        if not self.can_start(self.status):
             return False
-
-        if self.status in self.EASY_RESET_STATUSES:
-            self.log(f"Cannot Start Role from {self.status}", "ERROR")
-            return False
-        
 
         self.update_status("ACTIVE")
         self.log("Role Thread Started", "INFO")
@@ -85,25 +82,17 @@ class LockNSwitch(Role):
             sleep(1/60) # 60Hz Checking
         return
     
-    def reset(self):
-        self.log(f"Reset Requested", "DEBUG")
-        if self.status == "READY":
-            return True
-
-        if self.status in self.EASY_RESET_STATUSES:
-            return self.load()
-
-        if self.force_join_thread(): 
-            return self.load()
-        return False
-    
     def stop(self):
         self.update_status("STOPPED")
         self.force_join_thread() 
         return True
     
     def bypass(self):
-        self.update_status("BYPASSED")
-        self.force_join_thread()
-        self.maglock.off()
-        return True
+        if self.can_bypass(self.status):
+            self.update_status("BYPASSED")
+            self.force_join_thread()
+
+            # Unique to LockNSwitch
+            self.maglock.off()
+            return True
+        return False 

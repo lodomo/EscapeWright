@@ -23,12 +23,15 @@
 # update_status(status)   - Update the status of the role
 # log(message, level)     - Log a message to the logger
 # join_thread()           - Join the thread
+# can_start(status)    - Check if the role is startable
+# can_bypass(status)   - Check if the role is bypassable
 
 #### List of 'hidden' functions
 # set_observer(observer) - Set the observer for this role
 # process_message(message) - Process a message from the control panel
 
 import threading
+import datetime
 
 class Role:
     def __init__(self, logger = None):
@@ -69,7 +72,7 @@ class Role:
         trigger_activated = False
         for trigger in self.triggers:
             if trigger in message:
-                self.triggers[trigger]
+                self.triggers[trigger]()
                 trigger_activated = True
         return trigger_activated 
     
@@ -102,8 +105,25 @@ class Role:
         return False
     
     def reset(self):
-        # Run whatever logic here for the puzzle to reset (even if it's being solved)
-        self.log("No reset function defined for empty role", "ERROR")
+        CAN_RESET_STATUSES = ["COMPLETE", "STOPPED", "BYPASSED"]
+        self.log(f"Reset Requested", "DEBUG")
+
+        # If the role is already ready, then no reset is needed
+        if self.status == "READY":
+            self.log("Already ready, if need to trouble shoot, use Reboot", "INFO")
+            return True
+        
+        # Tell the observer that the role is resetting
+        if self.observer != None:
+            self.observer.last_reset = datetime.datetime.now()
+
+        # If the role is already resetting, then no reset is needed
+        if self.status in CAN_RESET_STATUSES:
+            return self.load()
+
+        # If the role is active, then we need to stop the thread
+        if self.force_join_thread(): 
+            return self.load()
         return False
     
     def stop(self):
@@ -115,6 +135,31 @@ class Role:
         # Run whatever logic here for the puzzle to override
         self.log("No override function defined for empty role", "ERROR")
         return False
+    
+    def can_start(self, status):
+        if self.running:
+            self.log("Role Thread already running", "ERROR")
+            return False
+
+        if self.status != "READY":
+            self.log("Cannot Start Role Thread from this status. Reset Required", "ERROR")
+            return False
+        return True
+
+    def can_bypass(self, status):
+        if self.status == "BYPASSED":
+            self.log("Role already bypassed", "ERROR")
+            return False
+        
+        if self.status == "READY":
+            self.log("Role not started yet, can only bypass when active", "ERROR")
+            return False
+        
+        if self.status == "COMPLETE":
+            self.log("Role already complete.", "ERROR")
+            return False
+        
+        return True
     
     def log(self, message, level=None):
         if self.logger == None: 
