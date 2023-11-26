@@ -22,7 +22,7 @@ class EscapiTransmitter:
     
     def send_request(self, url):
         if self.control_ip == None:
-            self.log("From Escapi Transmitter: No control ip set", "ERROR")
+            self.log("From Escapi Transmitter: No control ip set", "WARNING")
             return
 
         try:

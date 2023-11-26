@@ -9,7 +9,6 @@
 ################################################################################
 
 from .role import Role
-import threading
 from time import sleep
 
 # Inherited functions
@@ -44,55 +43,29 @@ class RoleTemplate(Role):
         # Add any unique members here
         return
 
-    def load(self):
-        self.update_status("READY")
-        self.is_resetting = False
-        return True
-    
-    def start(self):
-        if not self.can_start(self.status):
-            return False
-
-        self.update_status("ACTIVE")
-        self.log("Role Thread Started", "INFO")
-        self.role_thread = threading.Thread(target=self.logic)
-        self.role_thread.start()
-        return True
-    
-    def logic(self):
-        self.running = True
-        # This is the main function for the puzzle
-        # It should be called in a thread
-        while self.running:
-            print("Looping")
-            sleep(1)
+    def u_load(self):
+        # Add any unique load functions here
         return
     
-    def stop(self):
-        if self.status == "STOPPED":
-            self.log("Role already stopped", "WARNING")
-            return False
-
-        self.update_status("STOPPED")
-        self.force_join_thread() 
-        return True
+    def u_start(self):
+        # Add any unique start functions here
+        # Happens before the logic starts
+        return
     
-    def bypass(self):
-        if self.status == "BYPASSED":
-            self.log("Role already bypassed", "WARNING")
-            return False
-        if self.status == "STOPPED":
-            self.log("Cannot bypass a stopped role", "ERROR")
-            return False
-
-        self.update_status("BYPASSED")
-        self.force_join_thread()
-        return True
+    def u_logic(self):
+        # Add any unique logic functions here
+        # This logic will run infinitely until "self.running" is set to false
+        # You are in charge of setting "self.running" to false
+        # You are in charge of setting the Hz, otherwise it will run
+        # as fast as the processor will allow
+        # If you do not want a loop, create a function called "logic" and it
+        # will override the default logic function
+        return
     
-    def is_bypassable(self, status):
-        if self.status == "BYPASSED":
-            self.log("Role already bypassed", "WARNING")
-            return False
-        if self.status == "STOPPED":
-            self.log("Cannot bypass a stopped role", "ERROR")
-            return False
+    def u_stop(self):
+        # Add any unique stop functions here
+        return
+    
+    def u_bypass(self):
+        # Add any unique bypass functions here
+        return

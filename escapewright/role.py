@@ -12,31 +12,33 @@
 # This class ensures that the role_template is implemented correctly
 
 ### List of functions to implement
-# load()     - Load the pi's role
-# start()    - Start the pi's role
-# reset()    - Reset the pi's role 
-# stop()     - Stop the pi's role 
-# bypass()   - Bypass the pi's current taskrole 
+# u_load() - Unique load function for the role
+# u_logic() - Unique logic function for the role
+# u_stop() - Unique stop function for the role
+# u_bypass() - Unique bypass function for the role
 
 ### List of inherited functions
 # trigger_event(event)    - Trigger an event
 # update_status(status)   - Update the status of the role
 # log(message, level)     - Log a message to the logger
-# join_thread()           - Join the thread
-# can_start(status)    - Check if the role is startable
-# can_bypass(status)   - Check if the role is bypassable
 
 #### List of 'hidden' functions
 # set_observer(observer) - Set the observer for this role
 # process_message(message) - Process a message from the control panel
+# load()     - Load the pi's role
+# start()    - Start the pi's role
+# reset()    - Reset the pi's role 
+# stop()     - Stop the pi's role 
+# bypass()   - Bypass the pi's current taskrole 
+# can_start(status)    - Check if the role is startable
+# can_bypass(status)   - Check if the role is bypassable
+# join_thread()           - Join the thread
 
 import threading
 import datetime
 
 class Role:
     def __init__(self, logger = None):
-        self.EASY_RESET_STATUSES = ["COMPLETE", "STOPPED", "BYPASSED"]
-
         self.observer = None
         self.status = None
         self.running = False
@@ -95,14 +97,46 @@ class Role:
     
     def load(self):
         # Load the puzzle
-        # This is time to prime the GPIO pins for whatever they're going to do
-        self.log("No load function defined for empty role", "ERROR")
+        self.update_status("READY")
+        self.is_resetting = False
+        self.u_load()
+        return True 
+    
+    def u_load(self):
+        # This is the unique load function for the role
+        # This is where the unique load logic goes
+        self.log("No unique load function defined for empty role", "ERROR")
         return False
     
     def start(self):
-        # Run whatever logic here for the puzzle to be solvable
-        self.log("No start function defined for empty role", "ERROR")
+        if not self.can_start():
+            return False
+        
+        self.update_status("ACTIVE")
+        self.log("Role Thread Started", "INFO")
+        self.u_start()
+        self.role_thread = threading.Thread(target=self.logic)
+        self.role_thread.start()
+        return True
+    
+    def u_start(self):
+        # This is the unique start function for the role
+        # This is where the unique start logic goes
+        self.log("No unique start function defined for empty role", "WARNING")
         return False
+    
+    def logic(self):
+        self.running = True
+        while self.running:
+            self.u_logic()
+        return
+    
+    def u_logic(self):
+        # This is the unique logic function for the role
+        # This is where the unique logic goes
+        self.log("No unique logic function defined for empty role", "ERROR")
+        self.running = False # This is to prevent an infinite loop
+        return False 
     
     def reset(self):
         CAN_RESET_STATUSES = ["COMPLETE", "STOPPED", "BYPASSED"]
@@ -127,16 +161,37 @@ class Role:
         return False
     
     def stop(self):
-        # Run whatever logic here for the puzzle to stop
-        self.log("No stop function defined for empty role", "ERROR")
+        if self.status == "STOPPED":
+            self.log("Role already stopped", "WARNING")
+            return False
+
+        self.update_status("STOPPED")
+        self.force_join_thread() 
+        self.u_stop()
+        return True
+    
+    def u_stop(self):
+        # This is the unique stop function for the role
+        # This is where the unique stop logic goes
+        self.log("No unique stop function defined for this role", "WARNING")
         return False
     
     def bypass(self):
-        # Run whatever logic here for the puzzle to override
-        self.log("No override function defined for empty role", "ERROR")
+        if not self.can_bypass(): 
+            return False
+
+        self.update_status("BYPASSED")
+        self.force_join_thread()
+        self.u_bypass()
+        return True
+    
+    def u_bypass(self):
+        # This is the unique bypass function for the role
+        # This is where the unique bypass logic goes
+        self.log("No unique bypass function defined for this role", "WARNING")
         return False
     
-    def can_start(self, status):
+    def can_start(self):
         if self.running:
             self.log("Role Thread already running", "ERROR")
             return False
@@ -146,13 +201,9 @@ class Role:
             return False
         return True
 
-    def can_bypass(self, status):
+    def can_bypass(self):
         if self.status == "BYPASSED":
             self.log("Role already bypassed", "ERROR")
-            return False
-        
-        if self.status == "READY":
-            self.log("Role not started yet, can only bypass when active", "ERROR")
             return False
         
         if self.status == "COMPLETE":
@@ -162,10 +213,14 @@ class Role:
         return True
     
     def log(self, message, level=None):
+        # Log a message to the logger
+
+        # If no logger is set, then print the message
         if self.logger == None: 
             print(message)
-            return
+            return False
         
+        # Set message level and log it, defaults to Info
         if level == None:
             self.logger.info(message)
         elif level == "DEBUG":
@@ -180,4 +235,4 @@ class Role:
             self.logger.error(message)
         else:
             self.logger.info(message)
-        return
+        return True

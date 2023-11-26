@@ -8,8 +8,7 @@
 #              
 ################################################################################
 
-from .role import Role
-import threading
+from escapewright.role import Role
 from time import sleep
 from gpiozero import InputDevice, OutputDevice
 
@@ -18,12 +17,12 @@ from gpiozero import InputDevice, OutputDevice
 # update_status(status) - Update the status of the role
 # log(message, level) - Log a message to the logger
 # join_thread() - Set "running" to False and wait till function is completed
+# can_start(status)    - Check if the role is startable
+# can_bypass(status)   - Check if the role is bypassable
 
 
 class LockNSwitch(Role):
-    def __init__(self, logger = None, switch_pin = 17, maglock_pin = 21):
-        self.EASY_RESET_STATUSES = ["COMPLETE", "STOPPED", "BYPASSED"]
-
+    def __init__(self, logger = None, switch_pin = 21, maglock_pin = 17):
         self.observer = None    # Inherited from Role
         self.status = None      # Inherited from Role
         self.running = False    # Inherited from Role
@@ -35,70 +34,42 @@ class LockNSwitch(Role):
                           "start": self.start,
                           "reset": self.reset,
                           "stop": self.stop,
+                          "bypass": self.bypass
                           }
 
         ### Unique Members ###
         # trigger format is { "trigger": function }
-        unique_triggers = {"bypass": self.bypass}
+        unique_triggers = {}
         self.triggers.update(unique_triggers)
 
         # Add any unique members here
         self.switch = InputDevice(switch_pin, pull_up=True)
         self.maglock = OutputDevice(maglock_pin)
         return
-
-    def load(self):
-        self.update_status("READY")
-        self.is_resetting = False
-
-        # Special to LockNSwitch
+    
+    def u_load(self):
         self.maglock.on()
         return True
     
-    def start(self):
-        if self.running:
-            self.log("Role Thread already running", "ERROR")
-            return False
-
-        self.update_status("ACTIVE")
-        self.log("Role Thread Started", "INFO")
-        self.role_thread = threading.Thread(target=self.logic)
-        self.role_thread.start()
+    def u_start(self):
+        # No Unique Start tasks 
         return True
     
-    def logic(self):
-        self.running = True
-
-        while self.running:
-            # Unique to LockNSwitch
-            if self.switch.is_active:
-                self.maglock.off()
-                self.update_status("COMPLETE")
-                self.log("Role Thread Complete", "INFO")
-                self.running = False
-                break
+    def u_logic(self):
+        if not self.switch.is_active:
             sleep(1/60) # 60Hz Checking
-        return
-    
-    def reset(self):
-        self.log(f"Reset Requested", "DEBUG")
-        if self.status == "READY":
-            return True
+            return False
 
-        if self.status in self.EASY_RESET_STATUSES:
-            return self.load()
-
-        if self.force_join_thread(): 
-            return self.load()
-        return False
-    
-    def stop(self):
-        self.update_status("STOPPED")
-        self.force_join_thread() 
-        return
-    
-    def bypass(self):
-        self.update_status("BYPASSED")
-        self.force_join_thread()
         self.maglock.off()
-        return
+        self.update_status("COMPLETE")
+        self.log("Role Thread Complete", "INFO")
+        self.running = False
+        return True 
+    
+    def u_stop(self):
+        self.maglock.off()
+        return True
+    
+    def u_bypass(self):
+        self.maglock.off()
+        return True

@@ -9,7 +9,6 @@
 ################################################################################
 
 from escapewright.role import Role
-import threading
 from time import sleep
 from gpiozero import InputDevice, OutputDevice
 
@@ -24,8 +23,6 @@ from gpiozero import InputDevice, OutputDevice
 
 class LockNSwitch(Role):
     def __init__(self, logger = None, switch_pin = 21, maglock_pin = 17):
-        self.EASY_RESET_STATUSES = ["COMPLETE", "STOPPED", "BYPASSED"]
-
         self.observer = None    # Inherited from Role
         self.status = None      # Inherited from Role
         self.running = False    # Inherited from Role
@@ -49,50 +46,30 @@ class LockNSwitch(Role):
         self.switch = InputDevice(switch_pin, pull_up=True)
         self.maglock = OutputDevice(maglock_pin)
         return
-
-    def load(self):
-        self.update_status("READY")
-        self.is_resetting = False
-
-        # Special to LockNSwitch
+    
+    def u_load(self):
         self.maglock.on()
         return True
     
-    def start(self):
-        if not self.can_start(self.status):
+    def u_start(self):
+        # No Unique Start tasks 
+        return True
+    
+    def u_logic(self):
+        if not self.switch.is_active:
+            sleep(1/60) # 60Hz Checking
             return False
 
-        self.update_status("ACTIVE")
-        self.log("Role Thread Started", "INFO")
-        self.role_thread = threading.Thread(target=self.logic)
-        self.role_thread.start()
+        self.maglock.off()
+        self.update_status("COMPLETE")
+        self.log("Role Thread Complete", "INFO")
+        self.running = False
+        return True 
+    
+    def u_stop(self):
+        self.maglock.off()
         return True
     
-    def logic(self):
-        self.running = True
-
-        while self.running:
-            # Unique to LockNSwitch
-            if self.switch.is_active:
-                self.maglock.off()
-                self.update_status("COMPLETE")
-                self.log("Role Thread Complete", "INFO")
-                self.running = False
-                break
-            sleep(1/60) # 60Hz Checking
-        return
-    
-    def stop(self):
-        self.update_status("STOPPED")
-        self.force_join_thread() 
+    def u_bypass(self):
+        self.maglock.off()
         return True
-    
-    def bypass(self):
-        if self.can_bypass(self.status):
-            self.update_status("BYPASSED")
-            self.force_join_thread()
-
-            # Unique to LockNSwitch
-            self.maglock.off()
-            return True
-        return False 

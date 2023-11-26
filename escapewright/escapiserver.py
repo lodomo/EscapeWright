@@ -91,8 +91,7 @@ class EscapiServer:
             if self.logger == None:
                 logs = "No Logs Available. Logger Disabled."
             else:
-                logs = "All kids love logs"
-            #    logs = self.generate_logs() 
+                logs = self.generate_logs() 
 
             return render_template('index.html', 
                                    name=self.name, 
@@ -162,7 +161,7 @@ class EscapiServer:
             delay = 5
             reboot_timer = Timer(delay, self.reboot_command)
             reboot_timer.start()
-            self.logger.info("Received Reboot Request")
+            self.log("Received Reboot Request", "INFO")
             if option == "self":
                 return self.confirmation(f"Rebooting in {delay} seconds")
             return f"Rebooting in {delay} seconds", 200
@@ -185,7 +184,7 @@ class EscapiServer:
         subprocess.run(['sudo', 'reboot', 'now'])
     
     def update_status(self):
-        self.log(f"Status Transmit: {self.role.status}", "DEBUG")
+        self.log(f"Status Transmit: {self.role.status}", "INFO")
         self.transmitter.update_status(self.role.status)
         return
     

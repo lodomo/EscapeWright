@@ -25,7 +25,7 @@ def main():
     info = ew_to_dict(server_info)
 
     logger = set_logger(info)            # Set the logger, if logging is enabled
-    # disable_flask_log()                  # Disable Flask's default logger
+    disable_flask_log()                  # Disable Flask's default logger
 
     name = info['name']                  # Set Server Name
     role = create_role(info, logger)     # Set Server Role
@@ -109,7 +109,7 @@ def set_logger(info):
                         filemode='a',        # Mode to open the file, 'w' for overwrite, 'a' to append
                         level=log_level[info['log_level']],      # Log level to capture
                         format='[%(asctime)s] %(levelname)s: %(message)s',  # Log message format
-                        datefmt='%Y-%m-%d %H:%M:%S')  # Date format
+                        datefmt='%m-%d %H:%M:%S')  # Date format
     
     logger = logging.getLogger(info['name'])
     return logger

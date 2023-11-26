@@ -11,4 +11,4 @@ class: LockNSwitch
 location: garage 
 port: 12413
 logging: True
-log_level: DEBUG
+log_level: INFO 
