@@ -1,0 +1,3 @@
+name: Poop
+logging: True
+log_level: INFO

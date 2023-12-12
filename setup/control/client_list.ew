@@ -1,0 +1,4 @@
+name: sample_client
+ip_address: 0.0.0.0
+port: 12413 
+location: sample_location 
