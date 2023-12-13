@@ -1,24 +1,31 @@
-# This file will get everything prepped for the Escape Wright Pis.
-# It will install the necessary packages, create the necessary directories,
-# and set up the necessary services.
+################################################################################
+#
+#      Author: Lodomo.dev (Lorenzo D. Moon)
+#     Purpose: Install EscapeWright and all of it's dependencies 
+#     Updated: December 13th 2023 
+# Description: This file will get everything prepped for the Escape Wright Pis.
+#              It will install the necessary packages, create the necessary
+#              directories, and set up the necessary services.
+#
+################################################################################
 
 # Create a variable for the current user name
 USER=$(whoami)
 
 # Install packages
 echo "[ESCAPEWRIGHT] Preparing to install packages"
-
 echo "[ESCAPEWRIGHT] Updating apt-get"
 sudo apt-get update
-
 echo "[ESCAPEWRIGHT] Upgrading apt-get" 
 sudo apt-get upgrade -y
-
 echo "[ESCAPEWRIGHT] Installing flask"
 sudo apt install python3-flask
-
+echo "[ESCAPEWRIGHT] Installing openpyxl"
+sudo apt install python3-openpyxl
 echo "[ESCAPEWRIGHT] Installing git"
 sudo apt install git -y
+echo "[ESCAPEWRIGHT] Installing vim"
+sudo apt install vim -y
 
 # If the EscapeWright directory already exists, run a fetch and pull on it.
 # Otherwise, clone the repository.
@@ -41,23 +48,18 @@ else
     echo "[ESCAPEWRIGHT] .bash_aliases exists adding EscapeWright to PYTHONPATH"
 fi
 
-# Source .bash_aliases if it exists and is not already sourced
-if [ -f /home/${USER}/.bash_aliases ]; then
-    source /home/${USER}/.bash_aliases
-fi
-
 # Adds a directory to the PYTHONPATH only if it is not already included
-if [[ ":$PYTHONPATH:" != *":/home/${USER}/EscapeWright/escapewright:"* ]]; then
+if [[ ":$PYTHONPATH:" != *":/home/${USER}/EscapeWright/"* ]]; then
     echo "[ESCAPEWRIGHT] Adding EscapeWright to PYTHONPATH in .bash_aliases"
-    echo 'if [[ ":$PYTHONPATH:" != *":/home/'"${USER}"'/EscapeWright/escapewright:"* ]]; then' >> /home/${USER}/.bash_aliases
-    echo '    export PYTHONPATH="/home/'"${USER}"'/EscapeWright/escapewright:$PYTHONPATH"' >> /home/${USER}/.bash_aliases
+    echo 'if [[ ":$PYTHONPATH:" != *":/home/'"${USER}"'/EscapeWright/"* ]]; then' >> /home/${USER}/.bash_aliases
+    echo '    export PYTHONPATH="/home/'"${USER}"'/EscapeWright/$PYTHONPATH"' >> /home/${USER}/.bash_aliases
     echo 'fi' >> /home/${USER}/.bash_aliases
 else
-    echo "[ESCAPEWRIGHT] PYTHONPATH already includes /home/${USER}/EscapeWright/escapewright"
+    echo "[ESCAPEWRIGHT] PYTHONPATH already includes /home/${USER}/EscapeWright/"
 fi
 
 echo "[ESCAPEWRIGHT] Sourcing .bashrc to permanently update PYTHONPATH" 
-source ~/.bashrc 
+source ~/.bashrc # This refreshes the PYTHONPATH variable
 
 # Create a directory for the files for it's purpose if it doesn't exist
 if [ ! -d "/home/${USER}/ew_local" ]; then
@@ -75,5 +77,5 @@ else
     mv /home/${USER}/EscapeWright/setup/setup.py /home/${USER}/ew_local
 fi
 
-# Run the setup script
-python3 /home/${USER}/ew_local/setup.py
+# Automatically run the "setup.py" file
+python /home/${USER}/ew_local/setup.py 
