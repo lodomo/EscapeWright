@@ -170,7 +170,7 @@ def clone_directory(folder):
         # Check if the 'templates/control' directory exists
         if os.path.isdir(templates_control_path):
             # Clone 'templates/control' to the current directory
-            destination_path = os.path.join(os.getcwd(), folder)
+            destination_path = os.path.join(os.getcwd(), f"ew_local/{folder}")
             shutil.copytree(templates_control_path, destination_path)
             print(f"{folder} template has been cloned to the current directory: {destination_path}")
             return True
