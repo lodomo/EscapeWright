@@ -19,9 +19,9 @@ sudo apt-get update
 echo "[ESCAPEWRIGHT] Upgrading apt-get" 
 sudo apt-get upgrade -y
 echo "[ESCAPEWRIGHT] Installing flask"
-sudo apt install python3-flask
+sudo apt install python3-flask -y
 echo "[ESCAPEWRIGHT] Installing openpyxl"
-sudo apt install python3-openpyxl
+sudo apt install python3-openpyxl -y
 echo "[ESCAPEWRIGHT] Installing git"
 sudo apt install git -y
 echo "[ESCAPEWRIGHT] Installing vim"

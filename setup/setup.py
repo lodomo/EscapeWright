@@ -141,6 +141,12 @@ def create_server():
     if check_if_exists(SERVER): return
     if not clone_directory(SERVER): return
     create_server_info()
+
+    # As if this is a headless server
+    if input("Is this a headless server? (y/n): ") == "y":
+        create_service(SERVER)
+    else:
+        print("TODO: Implement this as a launch from terminal")
     return
 
 def check_if_exists(folder):
@@ -303,6 +309,11 @@ def create_server_info():
 
     if port == "":
         port = 12413
+
+    is_control = input("Is this server a control panel? (y/n): ")
+    control_ip = "None"
+    if is_control == "y":
+        control_ip = input("Enter the IP address of the control panel: ")
     
     server_info = {
         "name" : name,
@@ -311,7 +322,8 @@ def create_server_info():
         "location" : location,
         "port" : port,
         "logging" : logging,
-        "log_level" : log_level
+        "log_level" : log_level,
+        "control_ip" : control_ip
     }
 
     server_info_file = relative_path(__file__, "server/server_info.ew")
@@ -329,6 +341,7 @@ def create_server_info():
     print(f"Port: {port}")
     print(f"Logging: {logging}")
     print(f"Log level: {log_level}")
+    print(f"Control IP: {control_ip}")
     return True
 
 def edit():
@@ -358,38 +371,57 @@ def delete():
     print("*PHEW* That was close. Server remains safe.")
     return
 
-def create_service(type):
-    # Create a file in /etc/systemd/system/ called ew-app.service
-    file_path = '/etc/systemd/system/ew-app.service'
-    username = subprocess.check_output("echo $USER", shell=True)
+def create_service(control_or_server):
+    username = subprocess.check_output("echo $USER", shell=True).strip()
 
+    # Create a file in this directory called "ew-app.service"
+    file_path = relative_path(__file__, f"server")
+    subprocess.call(f"touch {file_path}/ew-app.service", shell=True)
+    file_path = relative_path(__file__, f"server/ew-app.service")
 
-    content = f"""[Unit]
-        [Unit]
-        Description=Flask App
-        After=network-online.target
+    # Move the file to /etc/systemd/system/
+    destination_path = "/etc/systemd/system/ew-app.service"
 
-        [Service]
-        User=lodomo
-        WorkingDirectory=/home/{username}/ew_local/{type}
-        ExecStartPre=/bin/sleep 10
-        ExecStart=/usr/bin/python3 /home/{username}/ew_local/{type}/{type}.py
-        Restart=always
+    # Assuming username and type are provided as byte strings, decode them to strings
+    username = username.decode('utf-8') if isinstance(username, bytes) else username
+    control_or_server = control_or_server.decode('utf-8') if isinstance(control_or_server, bytes) else control_or_server 
 
-        [Install]
-        WantedBy=multi-user.target
-        """
+    content = []
+    content.append(f"[Unit]")
+    content.append(f"Description=Flask App")
+    content.append(f"After=network-online.target")
+    content.append(f"")
+    content.append(f"[Service]")
+    content.append(f"User={username}")
+    content.append(f"Environment=PYTHONPATH=/home/{username}/EscapeWright")
+    content.append(f"WorkingDirectory=/home/{username}/ew_local/{control_or_server}")
+    content.append(f"ExecStart=/usr/bin/python3 /home/{username}/ew_local/{control_or_server}/{control_or_server}.py")
+    content.append(f"Restart=always")
+    content.append(f"")
+    content.append(f"[Install]")
+    content.append(f"WantedBy=multi-user.target")
 
     try:
         with open(file_path, 'w') as file:
-            file.write(content)
+            for line in content:
+                file.write(line + "\n")
         print(f"File '{file_path}' created successfully.")
     except PermissionError:
         print(f"Permission denied: You need root privileges to create '{file_path}'.")
     except Exception as e:
-        print(f"An error occurred: {e}") 
+        print(f"An error occurred: {e}")
 
-    print("Client list file created successfully.")
+    # Move the file to /etc/systemd/system/
+    subprocess.call(f"sudo mv {file_path} {destination_path}", shell=True)
+    print("Service Created.")
+
+    print("Enabling and starting service.")
+    subprocess.call("sudo systemctl daemon-reload", shell=True)
+    subprocess.call("sudo systemctl enable ew-app.service", shell=True)
+    subprocess.call("sudo systemctl start ew-app.service", shell=True)
+    print("If the role script is not in the 'server' folder, move it there and reboot the server.")
+    print("Alternatively, you can run the following command:")
+    print("sudo systemctl restart ew-app.service")
     return True
 
 def exit():
@@ -399,14 +431,3 @@ def exit():
 
 if __name__ == "__main__":
     main()
-
-
-# # Move flask-app.service file to /etc/systemd/system/
-# sudo mv flask-app.service /etc/systemd/system/
-
-# # Reload systemd daemon
-# sudo systemctl daemon-reload
-
-# # Enable and start flask-app service
-# sudo systemctl enable flask-app.service
-# sudo systemctl start flask-app.service

@@ -32,9 +32,12 @@ def main():
     site_dir = find_file_or_dir("site")  # Load the site folder path
     location = info['location']          # Set Server Location
     port = int(info['port'])             # Set Server Port
+    control_ip = None                    # Set Server Control IP
+    if info['control_ip'] != "None":
+        control_ip = info['control_ip']
 
     # Create the server
-    server = EscapiServer(name, role, site_dir, logger)
+    server = EscapiServer(name, role, site_dir, logger, location, control_ip, port)
 
     # Start of the server
     server.run()
