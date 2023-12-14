@@ -677,6 +677,10 @@ body {
     background-color: var(--red);
 }
 
+.status-balloon.offline {
+    background-color: var(--red);
+}
+
 .status-balloon.complete {
     background-color: var(--blue);
 }
@@ -717,6 +721,11 @@ body {
     transition: all 0.25s ease-in-out;
     box-shadow: 2px 2px 0px 0px var(--dark);
     align-self: center;
+}
+
+.dashboard-btn svg {
+    pointer-events: none;
+    margin: auto;
 }
 
 .dashboard-btn:hover {

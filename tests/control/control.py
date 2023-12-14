@@ -28,12 +28,14 @@ def main():
     disable_flask_log()                                      # Disable Flask's default logger
 
     name = info['name']                                      # Set Control Panel Name
+    column1 = info['column1']                                # Set Control Panel Column 1 Name
+    column2 = info['column2']                                # Set Control Panel Column 2 Name
     clients = find_file_or_dir("client_list.ew", logger)     # Load the client list
     site_dir = find_file_or_dir("site", logger)              # Load the site folder path
 
     # Create the client controller and control panel
     c_ctrl = EscapiClientController(clients, logger)
-    control_panel = ControlPanel(name, c_ctrl, site_dir, logger)
+    control_panel = ControlPanel(name, column1, column2, c_ctrl, site_dir, logger)
 
     # Log the start of the control panel
     if logger is not None:

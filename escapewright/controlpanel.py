@@ -38,7 +38,7 @@ import logging                           # Used to log the program
 #   generate_css - Generate the CSS for the pages
 
 class ControlPanel:
-    def __init__(self, room, client_controller, site_folder_path, logger, room_length=60, reset_time=2.5, port=12413):
+    def __init__(self, room, column1, column2, client_controller, site_folder_path, logger, room_length=60, reset_time=2.5, port=12413):
         self.host = self.get_local_ip()             # Set the local IP
         self.port = port                            # Set the port 
         self.room = room                            # Set the room name
@@ -58,6 +58,9 @@ class ControlPanel:
         self.MAX_CHECKS = 3
         self.check_status = None
 
+        self.column1 = column1 
+        self.column2 = column2
+
     def get_local_ip(self):
         # UDP Connection, No data sent
         s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM) 
@@ -74,11 +77,22 @@ class ControlPanel:
         # Homepage
         @self.flaskapp.route('/')
         def index():
-            # If the room is not ready, show the loading curtain.
-            # If the room is ready, show the index page.
-            # If the room is running, show a modal that says "the game is running"
-            return render_template("index.html")
+            loading = True
 
+
+            # If the room is running, show the index page 
+            if self.room_timer.start_time != None:
+                loading = False
+                return self.render_index(loading)
+            
+            # If the room is ready, show the index page
+            if self.client_controller.all_ready():
+                loading = False
+                return self.render_index(loading)
+
+            # If the room is not ready, show the loading curtain.
+            return self.render_index()
+        
         @self.flaskapp.route('/start')
         def start():
             # Start the room
@@ -114,6 +128,7 @@ class ControlPanel:
         @self.flaskapp.route('/trigger/<message>')
         def trigger(message):
             # Receive a trigger and relay it to all the clients
+            self.client_controller.broadcast(message)
             return
         
         @self.flaskapp.route('/update_status/<name>/<message>')
@@ -126,6 +141,28 @@ class ControlPanel:
             if self.client_controller.detect_change():
                 return "True"
             return "False"
+        
+    def render_index(self, loading = True):
+        # Render the index page
+
+        # Split the clients by column
+        clients_column1 = self.clients_by_location(self.column1) 
+        clients_column2 = self.clients_by_location(self.column2)
+
+        return render_template('index.html', 
+                               name=self.room,
+                               loading=loading, 
+                               column1_name=self.column1,
+                               column2_name=self.column2,
+                               column1=clients_column1,
+                               column2=clients_column2)
+    
+    def clients_by_location(self, location):
+        clients = []
+        for client in self.client_controller.clients:
+            if client.location == location:
+                clients.append(client)
+        return clients
     
     def reset_self(self):
         self.load_percentage = 0.0
