@@ -1,4 +1,25 @@
-name: lodomotop 
-ip_address: 192.168.254.92
+name: Maze1 
+ip_address: 192.168.254.138
 port: 12413
-location: Beaverton
+location: garage 
+
+name: Maze2 
+ip_address: 192.168.254.138
+port: 12413
+location: garage 
+
+name: Maze3 
+ip_address: 192.168.254.138
+port: 12413
+location: garage 
+
+name: Maze4 
+ip_address: 192.168.254.138
+port: 12413
+location: garage 
+
+name: Maze5 
+ip_address: 192.168.254.138
+port: 12413
+location: garage 
+

@@ -74,18 +74,10 @@ class ControlPanel:
         # Homepage
         @self.flaskapp.route('/')
         def index():
-            # Figure out which page is actually getting delivered
-            #Logic of things to check....
-            #If the timer is not running, then the room is not running..
-            #If the statuses are all ready, then the room is ready
-            #Else, there is an error
-            return self.render_loading()
-            # return render_template("index.html")
-        
-        @self.flaskapp.route('/bypass')
-        def bypass():
-            # Bypass the safety check
-            return self.render_index()
+            # If the room is not ready, show the loading curtain.
+            # If the room is ready, show the index page.
+            # If the room is running, show a modal that says "the game is running"
+            return render_template("index.html")
 
         @self.flaskapp.route('/start')
         def start():
@@ -129,63 +121,11 @@ class ControlPanel:
             self.client_controller.update_status(name, message)
             return "Status Updated"
         
-        @self.flaskapp.route('/load_status')
-        def load_status():
-            # Return the load status of the room
-
-            # If the room is ready, return ready
-            if self.client_controller.all_ready():
-                self.check_status = "READY"
-            
-            # If the room has checked MAX times, and still not ready,
-            # Return an error
-            if self.status_checks >= self.MAX_CHECKS:
-                self.check_status = "ERROR"
-                return jsonify({"status": "ERROR"})
-            
-            # If the room is not ready, and has not checked MAX times,
-            # Check the statuses. The "getting_statuses" bool prevents it
-            # from running in rapid succession and spamming the clients
-            if not self.getting_statuses and self.check_status is None:
-                self.getting_statuses = True
-                self.status_checks += 1
-                print("GETTING STATUS")
-                if self.client_controller.get_statuses():
-                    # RETRIEVED STATUSES
-                    print("GOT ALL STATUSES")
-                else:
-                    # FAILED TO RETRIEVE STATUSES
-                    print("FAILED TO GET ALL STATUSES")
-                self.getting_statuses = False
-
-            self.load_check += 1
-
-            if self.check_status:
-                return jsonify({"status": self.check_status})
-
-            return jsonify({"status": self.fake_percentage(self.load_check, 30)})
- 
-    def render_loading(self):
-        # The room is loading, show the loading page
-        return render_template("loading.html")
-    
-    def render_index(self):
-        return render_template("index.html")
-    
-    def fake_percentage(self, secs, est_time=60):
-        # Ensure inputs are valid to avoid division by zero or negative values
-        if est_time <= 0 or secs < 0:
-            return "Invalid input parameters"
-
-        raw_ratio = secs / est_time
-        
-        if raw_ratio <= 0.5:
-            percentage = round(raw_ratio * 100)
-            return percentage
-        else:
-            # When the ratio is greater than 50%, slow down the progression
-            # Using a logarithmic function to slow down the progress
-            return round(50 + (1 - 1 / (1 + (raw_ratio - 0.5) * 10)) * 50)
+        @self.flaskapp.route('/detect_change')
+        def detect_change():
+            if self.client_controller.detect_change():
+                return "True"
+            return "False"
     
     def reset_self(self):
         self.load_percentage = 0.0
@@ -195,5 +135,6 @@ class ControlPanel:
 
     def run(self):
         self.define_routes()
+        # self.client_controller.print_all_data()
         self.flaskapp.run(host=self.host, port=self.port)
         return
