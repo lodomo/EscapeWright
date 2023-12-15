@@ -20,6 +20,8 @@ from .timer import Timer                 # Used to create the timers
 import datetime                          # Used to get the current time
 import subprocess                        # Used to run the shell commands
 import logging                           # Used to log the program
+import time                              # Used to sleep the program
+import threading                         # Used to run some tasks in a thread
 
 # Class Functions
 #   get_local_ip() - Get the local IP address, not intended to use outside of the class
@@ -57,6 +59,9 @@ class ControlPanel:
         self.status_checks = 0
         self.MAX_CHECKS = 3
         self.check_status = None
+        self.load_error = False
+        
+        self.load_percentage = 0
 
         self.column1 = column1 
         self.column2 = column2
@@ -78,8 +83,6 @@ class ControlPanel:
         @self.flaskapp.route('/')
         def index():
             loading = True
-
-
             # If the room is running, show the index page 
             if self.room_timer.start_time != None:
                 loading = False
@@ -91,6 +94,8 @@ class ControlPanel:
                 return self.render_index(loading)
 
             # If the room is not ready, show the loading curtain.
+            load_thread = threading.Thread(target=self.load_room)
+            load_thread.start()
             return self.render_index()
         
         @self.flaskapp.route('/start')
@@ -164,14 +169,83 @@ class ControlPanel:
                 clients.append(client)
         return clients
     
+    def load_room(self):
+        if self.getting_statuses: 
+            self.log("Already getting statuses", "DEBUG")
+            return False
+        
+        if self.MAX_CHECKS == self.status_checks:
+            self.log("Max checks reached, Refresh Page Needed", "WARNING")
+            self.status_checks = 0
+            self.load_error = True
+            return
+
+        self.getting_statuses = True
+
+        if self.room_timer.start_time != None:
+            self.log("Room already running, no load needed", "DEBUG")
+            self.getting_statuses = False
+            return False
+        
+        if self.client_controller.all_ready():
+            self.log("All clients ready", "INFO")
+            self.load_percentage = 100
+            self.getting_statuses = False
+            return True
+        
+        for client in self.client_controller.clients:
+            print(f"Checking {client.name}, load percentage: {self.load_percentage}")
+            if client.status == "READY":
+                self.log(f"{client.name} is ready, skipping recheck", "DEBUG")
+                continue
+
+            client.get_status()
+            print(f"Status of {client.name}: {client.status}")
+            if client.status == "READY":
+                self.load_percentage += (100 / len(self.client_controller.clients))
+            time.sleep(1)
+        
+        if self.client_controller.all_ready():
+            self.log("All clients ready", "INFO")
+            self.getting_statuses = False
+            return True
+        else:
+            self.status_checks += 1
+            self.log(f"Not all clients ready, checking again. Attempt {self.status_checks}", "WARNING")
+            self.getting_statuses = False
+            return self.load_room() 
+    
     def reset_self(self):
         self.load_percentage = 0.0
         self.room_timer.reset()
         self.last_reset = datetime.datetime.now()
         self.status_checks = 0
+        self.load_percentage = 0
+        self.load_error = False
 
     def run(self):
         self.define_routes()
         # self.client_controller.print_all_data()
         self.flaskapp.run(host=self.host, port=self.port)
+        return
+    
+    def log(self, message, level=None):
+        if self.logger == None: 
+            print(message)
+            return
+        
+        if level == None:
+            self.logger.info(message)
+        elif level == "DEBUG":
+            self.logger.debug(message)
+        elif level == "INFO":
+            self.logger.info(message)
+        elif level == "WARNING":
+            self.logger.warning(message)
+        elif level == "ERROR":
+            self.logger.error(message)
+        elif level == "CRITICAL":
+            self.logger.error(message)
+        else:
+            self.logger.info(message)
         return
