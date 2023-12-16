@@ -160,6 +160,7 @@ class ControlPanel:
 
         # Convert Script
         script_html = self.script_to_html()
+        override_html = self.overrides_to_html()
 
         return render_template('index.html', 
                                name=self.room,
@@ -168,7 +169,8 @@ class ControlPanel:
                                column2_name=self.column2,
                                column1=clients_column1,
                                column2=clients_column2,
-                               script_html=script_html)
+                               script_html=script_html,
+                               override_html=override_html)
     
     def clients_by_location(self, location):
         clients = []
@@ -240,6 +242,34 @@ class ControlPanel:
         # Convert that string to html with markdown
         html = markdown.markdown(script_data)
         return html
+    
+    def overrides_to_html(self):
+        # Load the overrides file into a dictionary. The dictionary
+        # needs to be the data from the "override" as the key, and the "link" 
+        # as the value
+        with open(self.overrides, 'r') as file:
+            lines = file.readlines()
+
+        override_dict = {}
+        key = ''
+        
+        for line in lines:
+            if line.startswith('Override:'):
+                key = line.strip().split(': ')[1]
+            elif line.startswith('Link:'):
+                value = line.strip().split(': ')[1]
+                override_dict[key] = value
+            
+        html = ""
+
+        for key, value in override_dict.items():
+            html += f'<button id="{key}" class="override-btn"><a href="http://{value}">{key}</a></button>'
+
+        return html
+    
+    def generate_overrides(self):
+        return
+
 
     def run(self):
         self.define_routes()

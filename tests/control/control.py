@@ -9,6 +9,9 @@
 #
 ################################################################################
 
+# You probably shouldn't change this file unless you know what you're doing.
+# Luckily you can redownload it from the GitHub repo if you mess it up.
+
 # External Libraries
 import os                      # Used to get the path to the .ew files
 import sys                     # Used to exit the program during critical errors
