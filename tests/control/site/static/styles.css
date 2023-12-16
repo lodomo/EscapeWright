@@ -75,6 +75,25 @@ body {
     padding: 0;
 }
 
+/* This styles the scrollbar track (the background) */
+::-webkit-scrollbar {
+    width: 10px; /* for vertical scrollbars */
+    height: 10px; /* for horizontal scrollbars */
+    transition: all 0.5s ease-in-out;
+}
+
+/* This styles the scrollbar thumb (the draggable portion) */
+::-webkit-scrollbar-thumb {
+    background: var(--dark); /* thumb color */
+    border-radius: 10px;
+}
+
+/* Options are 'auto', 'thin', and 'none' */
+html {
+    scrollbar-width: thin;
+    scrollbar-color: #888 #f0f0f0; /* thumb and track color */
+}
+
 .page-container {
     display: flex;
     width: 100%;
@@ -373,7 +392,7 @@ body {
     min-height: calc(100vh - var(--header-h) - var(--nav-h));
     width: 100vw;
     padding-bottom: var(--nav-h);
-    overflow-x: hidden;
+    overflow: hidden;
 }
 
 .content {
@@ -383,6 +402,8 @@ body {
     justify-content: center; /* Center horizontally */
     top: 0;
     left: 0;
+    height: 100%;
+    overflow-y: scroll;
 }
 
 .content.status {
@@ -410,6 +431,7 @@ body {
     /* animation: slideOutToLeft 0.75s ease-in-out; */
     animation: slideOutToBottom 0.75s ease-in-out forwards;
     z-index: 100;
+    overflow: hidden;
 }
 
 .content.emergencyprotocols {
@@ -546,6 +568,7 @@ body {
     }
     100% {
         display: none;
+        height: 0;
         transform: translateX(100vw); /* Move it off the screen */
     }
 }

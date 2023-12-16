@@ -22,6 +22,7 @@ import subprocess                        # Used to run the shell commands
 import logging                           # Used to log the program
 import time                              # Used to sleep the program
 import threading                         # Used to run some tasks in a thread
+import markdown
 
 # Class Functions
 #   get_local_ip() - Get the local IP address, not intended to use outside of the class
@@ -40,7 +41,7 @@ import threading                         # Used to run some tasks in a thread
 #   generate_css - Generate the CSS for the pages
 
 class ControlPanel:
-    def __init__(self, room, column1, column2, client_controller, site_folder_path, logger, room_length=60, reset_time=2.5, port=12413):
+    def __init__(self, room, script, overrides, column1, column2, client_controller, site_folder_path, logger, room_length=60, reset_time=2.5, port=12413):
         self.host = self.get_local_ip()             # Set the local IP
         self.port = port                            # Set the port 
         self.room = room                            # Set the room name
@@ -65,6 +66,9 @@ class ControlPanel:
 
         self.column1 = column1 
         self.column2 = column2
+
+        self.script = script
+        self.overrides = overrides
 
     def get_local_ip(self):
         # UDP Connection, No data sent
@@ -154,13 +158,17 @@ class ControlPanel:
         clients_column1 = self.clients_by_location(self.column1) 
         clients_column2 = self.clients_by_location(self.column2)
 
+        # Convert Script
+        script_html = self.script_to_html()
+
         return render_template('index.html', 
                                name=self.room,
                                loading=loading, 
                                column1_name=self.column1,
                                column2_name=self.column2,
                                column1=clients_column1,
-                               column2=clients_column2)
+                               column2=clients_column2,
+                               script_html=script_html)
     
     def clients_by_location(self, location):
         clients = []
@@ -222,6 +230,16 @@ class ControlPanel:
         self.status_checks = 0
         self.load_percentage = 0
         self.load_error = False
+    
+    def script_to_html(self):
+        # read the script file into a string
+        script_data = ""
+        with open(self.script, 'r') as f:
+            script_data = f.read()
+        
+        # Convert that string to html with markdown
+        html = markdown.markdown(script_data)
+        return html
 
     def run(self):
         self.define_routes()
