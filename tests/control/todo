@@ -13,15 +13,18 @@ Statuses:
 	Get the statuses to update when they announce themselves.
 
 Script:
-	Load the script EVERY time the page is loaded so quick changes can happen
-	Its conversion should be negligable.
-	Load the script from an external file
-	Convert it from Markdown to HTML
-	Put it in the "script" part of the page.
+	// Load the script EVERY time the page is loaded so quick changes can happen
+	// Its conversion should be negligable.
+	// Load the script from an external file
+	// Convert it from Markdown to HTML
+	// Put it in the "script" part of the page.
+	Beautify the script
 
 Emergency Overrides:
-	Load in a file EVERY time the page is loaded so quick changes can happen.
-	Have it be "OVERRIDE: NAME", and "LINK: URL" 
+	// Load in a file EVERY time the page is loaded so quick changes can happen.
+	// Have it be "OVERRIDE: NAME", and "LINK: URL" 
+	Beautify the buttons
+	Beautify the response
 
 Reset:
 	Custom page that says "RESETTING ROOM" and a link to the main page.
