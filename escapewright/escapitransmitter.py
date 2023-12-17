@@ -38,11 +38,13 @@ class EscapiTransmitter:
     def trigger(self, message):
         url = self.transmit_url + message
         self.threaded_request(url)
+        self.log(f"From Escapi Transmitter: Triggered {message}")
         return
     
     def update_status(self, message):
         url = f"{self.status_url}{self.name}/{message}"
         self.threaded_request(url)
+        self.log(f"From Escapi Transmitter: Updated status to {message}")
         return
     
     # Takes in a "EscapiClient" to add this pi to the control panel
@@ -54,6 +56,7 @@ class EscapiTransmitter:
         port = escapiclient.port            
         url = self.add_pi + f"{name}/{ip}/{location}/{port}" 
         self.threaded_request(url)
+        self.log(f"From Escapi Transmitter: Added self to control panel")
         return
     
     def log(self, message, level=None):
