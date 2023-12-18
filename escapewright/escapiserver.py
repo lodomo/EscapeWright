@@ -265,6 +265,11 @@ class EscapiServer:
         day_file = os.path.join(month_dir, f"{current_date.day:02d}.ewlog") 
         # Put every single line into a long string with a <br> between each line
         log = [] 
+
+        # If that file doesn't exist, create it.
+        if not os.path.exists(day_file):
+            subprocess.run(['touch', day_file])
+
         with open(day_file, 'r') as f:
             for line in f:
                 log.insert(0, line)
