@@ -1,192 +1,45 @@
-# Before they enter the room
+# Before Start
 
-Hey guys, you must be Lisa's group. OR Hey you guys must be here to test out the new arcade game. Lisa was supposed to be here for that. So, Katana Co. told us that you needed to sign a waiver. That’s this thing on the door, they said that you would know how to use it. She is somewhere in here, but don’t worry, feel free to use the restroom, “sign” the waiver, and lock up your items. She should be out in a few.
+## SubTitle
 
-So Lisa isn’t back yet, but I can get you started. Here is a coin for Code Samurai and you all know how to use a floppy right? Well just in case you didn’t know the part with the metal circle is the bottom. If you need to insert it make sure that, that is the bottom. And if you need to take it out there will be a button for you to press.
+Text
 
-(Press the fog button towards the end of the rules video)
-
-Don’t use excessive force.
-
-Don’t pull on any wires.
-
-You won’t need to reach above the height of the door frame.
-Don’t forget to close the door when you enter.
+* Bullet
+* Points
 
 # Story Script
 
-**(After ‘Get over here” and music starts)**
+## SubTitle
 
-Welcome to Neo Tokyo, I am Ronin. I shall crush you just like I crushed Lisa.
+Text
 
-**(When they input the door code before completing the lights)**
-
-Nice try, But I can still see you.
-
-You’ll have to shoot my eyes out before you try to get in here
-
-**(When they enter the lair)**
-
-You’re smarter than you look, but you’ll never be able to get this neon katana.
-
-Looks like you’ve made it into my lair, you’ll never be able to kill me. My beautiful heart is safe.
-
-**(When they get the katana)**
-
-No! Don’t take that neon katana and stab my heart! That would be a bad idea. You should do anything else, but that.
-
-What!? Impossible! Get that away from my heart! Don’t stab my heart!
-
-Make sure you press down on that button, if you're going to kill me at least do it right.
-
-No! Don’t stab me. I have a baby AI. They need me!
-
-Bleh! Dying sounds! Cough, cough. Dead. Don’t forget to close the door behind you.
-
-**(Other things to say)**
-
-Only one floppy disk remaining, you’ll never get it.
-
-I am only helping you because I’m bored.
-
-I’m only helping because you seem like you need it.
-
-You might have a case of the butter fingers someone else should try.
+* Bullet
+* Points
 
 # Hints
 
-## Satm:
+## SubTitle
 
-* If you’re looking to make some progress, you can bribe me, I see an ATM on the wall.
-* Have you tried hacking into the ATM?
-* What is that poster near it?
-* What’s on the screen?
-* Have you tried counting the ninjas?
-* What do you see when you press on that keypad?
-* You will need to count the different color ninjas in the correct color order. (Purple, blue, yellow, pink, brown)
+Text
 
-## Noodle lights:
+* Bullet
+* Points
 
-* Those blasters look like they can plug into an arcade machine.
-* Do you see the lantern symbols anywhere else in the room?
-* In what order are the lanterns flashing?
-* Have you noticed anything about the symbols on that noodle cart?
-* You’ll have to get closer if you are trying to blind me.
-* You’ll have to shoot my eyes out if you want to get in here.
-* Try shooting the cameras in the order that the lanterns flash.
+# Answer Key
 
-## Maze:
+## SubTitle
 
-* The ramen menu should give you directions.
-* Have you located the metal ball?
-* Have you tried looking in those togo boxes, one is marked with an arrow.
+Text
 
-## Claw Machine:
-
-* What happened to the rat? What do you think the rat was doing?
-* The machine needs power. Is there any way you can connect it to a power source?
-* Try holding the red wires together, while you play.
-* I have that rat gnaw through those wires, looks like you’ll have to connect them.
-* Fools that count won’t help you when the machine has no power.
-
-## Barrel:
-
-* Have you tried digging in the trash?
-* What’s inside that barrel?
-
-## Ronin’s Door:
-
-* The floppy from the claw machine can be removed from the case
-* Is there anywhere you can input that code?
-* Looks like a code you would use on a controller.
-* Are you inputting the code left to right?
-* I won’t be able to see you input that code now!
-
-# Cybernetics:
-
-* I remember one of you found something in the trash, disgusting.
-* That ocular device is to help you see through screens.
-* Have you checked in the trash barrel?
-* What is on the screen in my room?
-* Have you used that ocular device?
-* Use the ocular device on that screen.
-* Have you dried those buttons on the side of the cybernetics shop?
-* You must make both the glove and mask face each other, then press the middle green button.
-
-# Simon Puzzle:
-
-* The answer to that might not be in the same room.
-* You might have to use the power of friendship for that one.
-* You have to search for some lights for that light grid.
-* Where is big brother?
-* You've found big brother’s buttons
-* Are there any similar light grids in that first room?
-* Look at the lamp post, there seems to be some red dots.
-* Is there a shape on the lamp post that you can make with those buttons?
-* Did you check the lamp post? Something might change when you press it correctly.
-
-# Floppy:
-
-* Those symbols on the floppy, I threw them in the trash.
-
-# Floppy Riddle:
-
-* Have you tried using the wheel next to the console?
-* Remember it is a race, you’ll have to find which animal was first, second and so on.
-* If the rabbit is celebrating then that means it is first.
-* Each placement of the animal will give you a letter on the wheel.
-
-# Code Samurai Answer Key
-
-## Satm
-
-* 4225 (on the hack poster)
-* 24867 (purple, blue, yellow, pink, brown)
-
-## Noodle Lights
-
-## Claw Machine
-
-* Connect the red wires, hold them and play the claw machine to get the floppy
-
-## Barrel
-
-* Open lid to find magnifying glass
-
-## Ronin’s Door
-
-* Code can only work after noodle lights are complete
-* Up, up, down, down, left, right, left, right, B, A, start
-
-## Cybernetics
-
-* Mask and glove face each other then hit the green button.
-* Use the magnifying glass on the screen in Ronin’s room
-
-## Simon Puzzle
-
-```
-X - - X    X X X X    X - X -
-- X X -    - - - -    - X - X
-- X X -    - - - -    X - X -
-X - - X    X X X X    - X - X
-```
-
-* Lamp post will show the order buttons must be pressed.
-
-## Floppy Order
-
-* Red, green, yellow, blue
-
-## Floppy Riddle
-
-* Sync
-* (Rabbit, ox, rat, dragon)
+* Bullet
+* Points
 
 # Nudges
 
-## SATM
+## SubTitle
 
-* If you’re looking to make some progress, you can bribe me, I see an ATM on the wall.
+Text
 
-## Noodle lights
+* Bullet
+* Points
+

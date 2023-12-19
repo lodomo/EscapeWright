@@ -59,7 +59,7 @@
 
     /* padding constants */
     --header-h: 100px;
-    --nav-w: 100px;
+    --nav-w: 200px;
     --nav-h: 100px;
     --loadtime: 5s;
 }
@@ -73,6 +73,13 @@ body {
     color: var(--dark);
     margin: 0;
     padding: 0;
+}
+
+a {
+    text-decoration: none;
+    color: var(--dark);
+    padding: 0px;
+    margin: 0px;
 }
 
 /* This styles the scrollbar track (the background) */
@@ -352,6 +359,7 @@ html {
     justify-content: center;
     box-shadow: 0px 0px 0px 0px var(--dark);
     transition: all 0.25s ease-in-out;
+    padding: 30px;
 }
 
 .nav-btn:hover {
@@ -361,6 +369,11 @@ html {
 }
 
 .nav-btn svg { /* This applies the style to all child elements of the SVG */
+    pointer-events: none; /* Ignores all pointer events */
+    margin: auto;
+}
+
+.nav-btn img {
     pointer-events: none; /* Ignores all pointer events */
     margin: auto;
 }
@@ -404,14 +417,67 @@ html {
     left: 0;
     height: 100%;
     overflow-y: scroll;
+    padding-top: 20px;
 }
 
 .content.status {
+    background-image: url('images/status-bg-01.png');
     background-color: var(--light);
 }
 
 .content.script {
     background-color: var(--green);
+    padding-left: 40px;
+    padding-right: 40px;
+    box-sizing: border-box;
+    background-image: url('images/script-bg-01.png');
+}
+
+.content.script h1 {
+    font-family: 'Courier New', Courier, monospace;
+    font-size: larger;
+    background-color: var(--light);
+    color: var(--dark);
+    text-align: center;
+    padding: 10px;
+    border: 3px solid var(--dark);
+    border-radius: 10px;
+    box-shadow: 0px 3px 0px var(--dark);
+}
+
+.content.script h2 {
+    font-family: 'Courier New', Courier, monospace;
+    font-size: large;
+    font-weight: bold;
+    background-color: var(--blue);
+    color: var(--light);
+    display: inline-block;
+    padding: 10px;
+    border: 3px solid var(--dark);
+    border-radius: 10px;
+    box-shadow: 0px 3px 0px var(--dark);
+}
+
+.content.script p {
+    font-family: 'Courier New', Courier, monospace;
+    font-size: medium;
+    color: var(--dark);
+    padding: 5px;
+    border-radius: 10px;
+    background-color: var(--light);
+}
+
+.content.script ul {
+    font-family: 'Courier New', Courier, monospace;
+    font-size: medium;
+    color: var(--dark);
+    padding: 5px;
+    border-radius: 10px;
+    background-color: var(--light);
+}
+
+.content.script li::marker {
+    color: var(--light);
 }
 
 .content.active {
@@ -434,8 +500,55 @@ html {
     overflow: hidden;
 }
 
+.emergency-container{
+    display: flex;
+    flex-direction: unset;
+    flex-wrap: wrap;
+    align-items: flex-start;
+    justify-content: flex-start;
+    align-content: flex-start;
+    padding-right: 45px;
+    padding-left: 45px;
+}
+
 .content.emergencyprotocols {
+    background-image: url('images/overridebg.png');
     background-color: var(--orange);
+}
+
+.emergency-container a {
+    width: 100%;
+    padding: 0px;
+}
+
+.override-btn {
+    border-radius: 20px; /* Gives the balloon shape */
+    padding: 20px;
+    margin: 5px;
+    background-color: var(--light);
+    border: 3px solid var(--dark);
+    transition: all 0.25s ease-in-out;
+    box-shadow: 5px 5px 0px 0px var(--dark);
+    width: 90%;
+    font-family: 'prime-bold';
+    font-size: 30px;
+    color: var(--dark);
+    text-decoration: none;
+    text-align: center;
+    justify-content: center;
+    align-items: center;
+}
+
+.override-btn:hover {
+    transform: translateX(-2px) translateY(-2px); 
+    box-shadow: 7px 7px 0px 0px var(--dark);
+    filter: brightness(1.25);
+}
+
+.override-btn:active {
+    transform: translateX(5px) translateY(5px); 
+    filter: brightness(0.75);
+    box-shadow: 0px 0px 0px var(--dark);
 }
 
 .content.reset {
@@ -687,8 +800,8 @@ html {
     display: flex;
     flex-direction: row;
     border-radius: 100px; /* Gives the balloon shape */
-    padding: 15px;
-    margin: 5px;
+    padding: 20px 15px 20px 15px;
+    margin: 10px 0px 10px 10px;
     font-family: 'prime-bold';
 }
 
@@ -793,6 +906,10 @@ html {
         /* bottom: 0; */
     }
 
+    .nav-btn {
+        height: calc(100% / 5);
+    }
+
     .content-container {
         width: calc(100vw - var(--nav-w));
         min-height: calc(100vh - var(--header-h));
@@ -838,5 +955,9 @@ html {
     .company-logo {
         display: flex;
         margin-left: auto;
+    }
+
+    .emergency-container a {
+        width: 50%;
     }
 }

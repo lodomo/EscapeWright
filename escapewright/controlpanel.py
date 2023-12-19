@@ -263,7 +263,7 @@ class ControlPanel:
         html = ""
 
         for key, value in override_dict.items():
-            html += f'<button id="{key}" class="override-btn"><a href="http://{value}">{key}</a></button>'
+            html += f'<a href="http://{value}"><button id="{key}" class="override-btn">{key}</button></a>'
 
         return html
     
