@@ -53,6 +53,14 @@ class EscapiClientController:
                 self.errors.append(f"Failed to hard reset {client.name}")
         return success
     
+    def stop_all(self):
+        success = True
+        for client in self.clients:
+            if not client.stop():
+                success = False
+                self.errors.append(f"Failed to stop {client.name}")
+        return success
+    
     def force_reboot_on_failed(self):
         sent_reboot = False
         for client in self.clients:

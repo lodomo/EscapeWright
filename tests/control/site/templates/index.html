@@ -134,8 +134,8 @@
                     <div class="message-text">
                         ARE YOU SURE<br>YOU WANT TO RESET?
                     </div>
-                    <button class="message-btn yes">Yes</button>
-                    <button class="message-btn no">No</button>
+                    <button id="resetButton" class="message-btn yes">Yes</button>
+                    <button data-target="status" class="message-btn no">No</button>
                 </div>
 
             </div>
@@ -157,8 +157,8 @@
                     <div class="message-text">
                         ARE YOU SURE<br>YOU WANT TO STOP?
                     </div>
-                    <button class="message-btn yes">Yes</button>
-                    <button class="message-btn no">No</button>
+                    <button id="stopButton" class="message-btn yes">Yes</button>
+                    <button data-target="status" class="message-btn no">No</button>
                 </div>
             </div>
         </div>
@@ -167,4 +167,5 @@
     <script src="{{ url_for('static', filename='load-room.js') }}"></script>
     <script src="{{ url_for('static', filename='tab-changer.js') }}"></script>
     <script src="{{ url_for('static', filename='timer.js') }}"></script>
+    <script src="{{ url_for('static', filename='button-actions.js') }}"></script>
 </html>

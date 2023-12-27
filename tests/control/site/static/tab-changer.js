@@ -1,5 +1,7 @@
 // Select all buttons and divs
+// .nav-btn AND .message-btn
 const buttons = document.querySelectorAll('.nav-btn');
+const moreButtons = document.querySelectorAll('.message-btn');
 const divs = document.querySelectorAll('.content');
 
 // Function to handle button click
@@ -31,5 +33,9 @@ function handleButtonClick(e) {
 
 // Add click event listeners to each button
 buttons.forEach(button => {
+    button.addEventListener('click', handleButtonClick);
+});
+
+moreButtons.forEach(button => {
     button.addEventListener('click', handleButtonClick);
 });

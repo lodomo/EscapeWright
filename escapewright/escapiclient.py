@@ -120,6 +120,17 @@ class EscapiClient:
             self.status = "ERROR"
             return False
     
+    def stop(self):
+        self.status_was = self.status
+        self.status = "STOPPED"
+        try:
+            response = requests.get(self.address + "/stop", timeout=5)
+            if response.status_code == 200:
+                return True
+        except requests.exceptions.RequestException:
+            self.status = "ERROR"
+            return False
+    
     def reboot(self):
         try:
             response = requests.get(self.address + "/reboot", timeout=5)

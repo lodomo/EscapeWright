@@ -107,18 +107,19 @@ class ControlPanel:
             # Start the room
             return
         
-        @self.flaskapp.route('/reset')
+        @self.flaskapp.route('/reset', methods=['POST'])
         def reset():
             # Reset the room after the user confirms
             self.reset_self()
-            self.client_controller.reset()
+            self.client_controller.reset_all()
             return
         
-        @self.flaskapp.route('/stop')
+        @self.flaskapp.route('/stop', methods=['POST'])
         def stop():
             # Stop the room
             # Get confirmation from the user, then stop the room
             # This will likely require a hard reboot
+            self.client_controller.stop_all()
             return
         
         @self.flaskapp.route('/failed')
@@ -226,6 +227,7 @@ class ControlPanel:
             return self.load_room() 
     
     def reset_self(self):
+        self.reset_timer.start()
         self.load_percentage = 0.0
         self.room_timer.reset()
         self.last_reset = datetime.datetime.now()
