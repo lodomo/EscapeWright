@@ -1,4 +1,4 @@
-name: Maze1 
+name: MazeTest 
 ip_address: 192.168.254.138
 port: 12413
 location: COLUMN1 

@@ -807,6 +807,7 @@ html {
     padding: 20px 15px 20px 15px;
     margin: 10px 0px 10px 10px;
     font-family: 'prime-bold';
+    transition: all 0.25s ease-in-out;
 }
 
 .status-balloon.ready {

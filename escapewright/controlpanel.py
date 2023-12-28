@@ -14,6 +14,7 @@
 import os                                # Used to get the path to the templates
 from flask import Flask                  # Used to create the flask app
 from flask import render_template        # Used to render the HTML
+from flask import Response               # Used to send the status updates
 from flask import jsonify                # Used to send JSON data
 import socket                            # Used to get the local IP address
 from .timer import Timer                 # Used to create the timers
@@ -23,6 +24,7 @@ import logging                           # Used to log the program
 import time                              # Used to sleep the program
 import threading                         # Used to run some tasks in a thread
 import markdown
+import json
 
 # Class Functions
 #   get_local_ip() - Get the local IP address, not intended to use outside of the class
@@ -70,6 +72,10 @@ class ControlPanel:
         self.script = script
         self.overrides = overrides
 
+        self.change_pending = False
+
+        self.room_status = "LOADING"
+
     def get_local_ip(self):
         # UDP Connection, No data sent
         s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM) 
@@ -112,6 +118,7 @@ class ControlPanel:
             # Reset the room after the user confirms
             self.reset_self()
             self.client_controller.reset_all()
+            self.log("Resetting all clients", "INFO")
             return
         
         @self.flaskapp.route('/stop', methods=['POST'])
@@ -120,6 +127,9 @@ class ControlPanel:
             # Get confirmation from the user, then stop the room
             # This will likely require a hard reboot
             self.client_controller.stop_all()
+            self.room_timer.stop()
+            self.room_status = "STOPPED"
+            self.log("Stopping all clients", "INFO")
             return
         
         @self.flaskapp.route('/failed')
@@ -127,7 +137,7 @@ class ControlPanel:
             # The players have failed, start the fail sequence.
             return
 
-        @self.flaskapp.route('/hard_reset')
+        @self.flaskapp.route('/reboot')
         def reboot():
             # Something wrong happened, hard reset everything
             if not self.client_controller.reboot_all():
@@ -144,13 +154,32 @@ class ControlPanel:
         @self.flaskapp.route('/update_status/<name>/<message>')
         def update_status(name, message):
             self.client_controller.update_status(name, message)
+            self.change_pending = True
+            print("Status Updated")
             return "Status Updated"
         
-        @self.flaskapp.route('/detect_change')
-        def detect_change():
-            if self.client_controller.detect_change():
-                return "True"
-            return "False"
+        @self.flaskapp.route('/display_status')
+        def display_status():
+            def display_status_js():
+                while True:
+                    try:
+                        time.sleep(1)  # Only update Javascript every second
+                        if self.change_pending:
+                            print("Change Pending")
+                            self.change_pending = False
+                            changed_clients = self.client_controller.get_changes()
+                            for client in changed_clients:
+                                print(client.to_dict())
+                                data = json.dumps(client.to_dict())
+                                yield f"data: {data}\n\n"
+                        else:
+                            yield f"data: 'NTR'\n\n"
+                    except GeneratorExit:
+                        print("exiting generator")
+                        break
+                    except Exception as e:
+                        yield f"data: ERROR: {str(e)}\n\n"
+            return Response(display_status_js(), mimetype='text/event-stream')
         
     def render_index(self, loading = True):
         # Render the index page
@@ -185,6 +214,10 @@ class ControlPanel:
             self.log("Already getting statuses", "DEBUG")
             return False
         
+        if self.room_status == "STOPPED":
+            self.log("Room stopped, no load needed", "DEBUG")
+            return False
+        
         if self.MAX_CHECKS == self.status_checks:
             self.log("Max checks reached, Refresh Page Needed", "WARNING")
             self.status_checks = 0
@@ -211,6 +244,10 @@ class ControlPanel:
                 continue
 
             client.get_status()
+            if client.status != client.status_was:
+                self.change_pending = True
+                print(f"Status of {client.name} changed from {client.status_was} to {client.status}")
+
             print(f"Status of {client.name}: {client.status}")
             if client.status == "READY":
                 self.load_percentage += (100 / len(self.client_controller.clients))
@@ -234,6 +271,7 @@ class ControlPanel:
         self.status_checks = 0
         self.load_percentage = 0
         self.load_error = False
+        self.room_status = "LOADING"
     
     def script_to_html(self):
         # read the script file into a string

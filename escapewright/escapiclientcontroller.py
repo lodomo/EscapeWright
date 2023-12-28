@@ -82,6 +82,14 @@ class EscapiClientController:
                 return True
         return False
     
+    def get_changes(self):
+        changes = []
+        for client in self.clients:
+            if client.status != client.status_was:
+                changes.append(client)
+                self.log(f"Status change detected for {client.name}", "DEBUG")
+        return changes
+    
     def get_serializable_pis(self):
         return [client.to_dict() for client in self.clients]
     
@@ -137,4 +145,25 @@ class EscapiClientController:
             client.print_simple()
         print(f"**End of Client List**")
         print()
+        return
+    
+    def log(self, message, level=None):
+        if self.logger == None: 
+            print(message)
+            return
+        
+        if level == None:
+            self.logger.info(message)
+        elif level == "DEBUG":
+            self.logger.debug(message)
+        elif level == "INFO":
+            self.logger.info(message)
+        elif level == "WARNING":
+            self.logger.warning(message)
+        elif level == "ERROR":
+            self.logger.error(message)
+        elif level == "CRITICAL":
+            self.logger.error(message)
+        else:
+            self.logger.info(message)
         return
