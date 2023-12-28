@@ -72,7 +72,7 @@ class ControlPanel:
         self.script = script
         self.overrides = overrides
 
-        self.change_pending = False
+        self.last_change = datetime.datetime.now()
 
         self.room_status = "LOADING"
 
@@ -154,21 +154,21 @@ class ControlPanel:
         @self.flaskapp.route('/update_status/<name>/<message>')
         def update_status(name, message):
             self.client_controller.update_status(name, message)
-            self.change_pending = True
+            self.set_change_flags()
             print("Status Updated")
             return "Status Updated"
         
         @self.flaskapp.route('/display_status')
         def display_status():
             def display_status_js():
+                last_displayed_change = datetime.datetime.now() - datetime.timedelta(days=1)
                 while True:
                     try:
                         time.sleep(1)  # Only update Javascript every second
-                        if self.change_pending:
-                            print("Change Pending")
-                            self.change_pending = False
-                            changed_clients = self.client_controller.get_changes()
-                            for client in changed_clients:
+                        if last_displayed_change < self.last_change:
+                            print("updating page")
+                            last_displayed_change = self.last_change
+                            for client in self.client_controller.clients:
                                 print(client.to_dict())
                                 data = json.dumps(client.to_dict())
                                 yield f"data: {data}\n\n"
@@ -245,7 +245,7 @@ class ControlPanel:
 
             client.get_status()
             if client.status != client.status_was:
-                self.change_pending = True
+                self.set_change_flags()
                 print(f"Status of {client.name} changed from {client.status_was} to {client.status}")
 
             print(f"Status of {client.name}: {client.status}")
@@ -307,9 +307,14 @@ class ControlPanel:
 
         return html
     
+    def set_change_flags(self):
+        # for flags in self.change_pending:
+            # flags = True
+        self.last_change = datetime.datetime.now()
+        return
+    
     def generate_overrides(self):
         return
-
 
     def run(self):
         self.define_routes()
