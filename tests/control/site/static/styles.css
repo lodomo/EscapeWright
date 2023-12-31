@@ -839,6 +839,18 @@ html {
     background-color: var(--orange);
 }
 
+.status-balloon.bypassed {
+    background-color: var(--yellow);
+}
+
+.status-balloon.stopped {
+    background-color: var(--red);
+}
+
+.status-balloon.resetting {
+    background-color: var(--purple);
+}
+
 .pi-server-name {
     margin: 0;
     padding: 0;
