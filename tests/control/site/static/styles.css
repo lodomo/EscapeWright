@@ -534,15 +534,10 @@ html {
     background-color: var(--orange);
 }
 
-.emergency-container a {
-    width: 100%;
-    padding: 0px;
-}
-
 .override-btn {
     border-radius: 20px; /* Gives the balloon shape */
     padding: 20px;
-    margin: 5px;
+    margin: 8px;
     background-color: var(--light);
     border: 3px solid var(--dark);
     transition: all 0.25s ease-in-out;
@@ -1000,6 +995,109 @@ html {
     box-shadow: 0px 0px 0px 0px black; 
 }
 
+.override-modal {
+    display: none;
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    z-index: 10000;
+    background-color: rgba(0, 0, 0, 0.75);
+}
+
+.override-bubble {
+    position: fixed; /* Fixed position */
+    top: 50%; /* Center vertically */
+    left: 50%; /* Center horizontally */
+    transform: translate(-50%, -50%); /* Offset the position by half its size */
+    border-radius: 20px;/* Make it round */
+    border: 5px solid var(--dark);
+    /* vertically center text */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+    transition: all 0.25s ease-in-out;
+    padding: 20px;
+    background-color: var(--orange);
+    color: var(--light);
+    background-image: url('images/overridebg.png');
+}
+
+
+.override-text {
+    font-family: 'prime-bold';
+    font-size: 30px;
+    text-align: center;
+}
+
+.over-fade-in {
+    animation: overfadein 0.5s ease-in-out forwards;
+}
+
+.over-fade-out {
+    animation: overfadeout 0.5s ease-in-out forwards;
+}
+
+@keyframes overfadein {
+    0% {
+        opacity: 0;
+    }
+    100% {
+        opacity: 1;
+    }
+}
+
+@keyframes overfadeout {
+    0% {
+        opacity: 1;
+    }
+    100% {
+        opacity: 0;
+    }
+}
+
+.bubble-in {
+    animation: bubble-in 0.75s ease-in-out forwards;
+}
+
+.bubble-out {
+    animation: bubble-out 0.75s ease-in-out forwards;
+}
+
+@keyframes bubble-in {
+    0% {
+        /* Put this off the top of the screen */
+        top: -100%;
+    }
+    70% {
+        /* Put this in the center of the screen */
+        top: 55%;
+    }
+    100% {
+        /* Put this in the center of the screen */
+        top: 50%;
+    }
+}
+
+@keyframes bubble-out {
+    0% {
+        /* Put this off the top of the screen */
+        top: 50%;
+    }
+    30% {
+        /* Put this in the center of the screen */
+        top: 45%;
+    }
+    100% {
+        /* Put this in the center of the screen */
+        top: 100%;
+    }
+}
+
+
+
 /* Define the animation */
 @keyframes expand {
     0% {
@@ -1134,8 +1232,14 @@ html {
         width: 175px;
     }
 
-    .emergency-container a {
-        width: 50%;
+    .emergency-container {
+        /* Space everything evenly */
+        justify-content: space-evenly;
+    }
+
+    .override-btn {
+        box-sizing: border-box; 
+        width: 22%;
     }
 
     #fullscreenBtn {

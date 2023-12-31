@@ -284,26 +284,25 @@ class ControlPanel:
         return html
     
     def overrides_to_html(self):
-        # Load the overrides file into a dictionary. The dictionary
-        # needs to be the data from the "override" as the key, and the "link" 
-        # as the value
+        # Load the overrides file into a dictionary
         with open(self.overrides, 'r') as file:
             lines = file.readlines()
 
         override_dict = {}
         key = ''
-        
+
         for line in lines:
             if line.startswith('Override:'):
                 key = line.strip().split(': ')[1]
             elif line.startswith('Link:'):
                 value = line.strip().split(': ')[1]
                 override_dict[key] = value
-            
+
         html = ""
 
         for key, value in override_dict.items():
-            html += f'<a href="http://{value}"><button id="{key}" class="override-btn">{key}</button></a>'
+            # Create buttons with data-link attribute
+            html += f'<button id="{key}" class="override-btn" data-link="{value}">{key}</button>'
 
         return html
     

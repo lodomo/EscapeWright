@@ -177,6 +177,12 @@
         <p id="event-text" class="event-text"></p>
         <button id="close-event-modal" class="close-event-modal">✖</button>
     </div>
+
+    <div id="override-modal" class="override-modal">
+        <div id="override-bubble" class="override-bubble">
+            <p id="override-text" class="override-text"></p>
+        </div>
+    </div>
 </body>
     <script src="{{ url_for('static', filename='load-room.js') }}"></script>
     <script src="{{ url_for('static', filename='tab-changer.js') }}"></script>
@@ -184,4 +190,5 @@
     <script src="{{ url_for('static', filename='button-actions.js') }}"></script>
     <script src="{{ url_for('static', filename='status_updater.js') }}"></script>
     <script src="{{ url_for('static', filename='fullscreen.js') }}"></script>
+    <script src="{{ url_for('static', filename='override-buttons.js') }}"></script>
 </html>
