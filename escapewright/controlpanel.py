@@ -108,10 +108,38 @@ class ControlPanel:
             load_thread.start()
             return self.render_index()
         
-        @self.flaskapp.route('/start')
-        def start():
-            # Start the room
-            return
+        @self.flaskapp.route('/room_status', methods=['GET'])
+        def room_status():
+            return self.room_status
+        
+        @self.flaskapp.route('/start_pause_resume', methods=['POST'])
+        def start_pause_resume():
+            if self.room_timer.start_time != None:
+                # If the room is already running
+                if self.room_timer.is_paused:
+                    self.room_timer.resume()
+                    self.log("Resuming room", "INFO")
+                    self.client_controller.broadcast("room_resume")
+                    ## Return to javascript that the room is resumed
+                    return self.room_timer.calc_time_remaining() 
+                else:
+                    self.room_timer.pause()
+                    self.log("Pausing room", "INFO")
+                    self.client_controller.broadcast("room_pause")
+                    return "**PAUSED**"
+
+            if self.client_controller.all_ready():
+                # If the room is ready
+                self.room_timer.start()
+                self.room_status = "RUNNING"
+                self.client_controller.broadcast("room_start")
+                self.log("Starting room", "INFO")            
+                # Return the seconds remaining 
+                return self.room_timer.calc_time_remaining()
+            else:
+                # If the room is not running, and not ready
+                # Return an error
+                return "ERROR"
         
         @self.flaskapp.route('/reset', methods=['POST'])
         def reset():
@@ -158,6 +186,18 @@ class ControlPanel:
             print("Status Updated")
             return "Status Updated"
         
+        @self.flaskapp.route('/time_remaining', methods=['GET'])
+        def time_remaining():
+            if self.room_timer.is_paused:
+                return "PAUSED"
+            if self.room_timer.is_stopped:
+                return "STOPPED"
+
+            if self.room_timer.start_time == None:
+                return "READY"
+            else:
+                return str(self.room_timer.calc_time_remaining())
+        
         @self.flaskapp.route('/display_status')
         def display_status():
             def display_status_js():
@@ -166,10 +206,10 @@ class ControlPanel:
                     try:
                         time.sleep(1)  # Only update Javascript every second
                         if last_displayed_change < self.last_change:
-                            print("updating page")
+                            # print("updating page")
                             last_displayed_change = self.last_change
                             for client in self.client_controller.clients:
-                                print(client.to_dict())
+                                # print(client.to_dict())
                                 data = json.dumps(client.to_dict())
                                 yield f"data: {data}\n\n"
                         else:
@@ -232,6 +272,7 @@ class ControlPanel:
             return False
         
         if self.client_controller.all_ready():
+            self.room_status = "READY"
             self.log("All clients ready", "INFO")
             self.load_percentage = 100
             self.getting_statuses = False
@@ -254,6 +295,7 @@ class ControlPanel:
             time.sleep(1)
         
         if self.client_controller.all_ready():
+            self.room_status = "READY"
             self.log("All clients ready", "INFO")
             self.getting_statuses = False
             return True
