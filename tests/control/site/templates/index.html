@@ -45,7 +45,7 @@
 
             <div class="header-sub-container">
                 <div id="timer" class="status-or-timer ready">READY</div>
-                <button id="startTimer" class="control-btn start">START</button>
+                <button id="toggleButton" class="toggle-btn">BUTTON</button>
                 <div id="fullscreenBtn" class="company-logo">
                     <img src="{{ url_for('static', filename='images/eta-logo2.png') }}" alt="ETA Logo">
                 </div>
@@ -181,6 +181,32 @@
     <div id="override-modal" class="override-modal">
         <div id="override-bubble" class="override-bubble">
             <p id="override-text" class="override-text"></p>
+        </div>
+    </div>
+
+    <div id="info-modal" class="info-modal">
+        <div id="info-modal-moving-page" class="info-modal-moving-page">
+            <div id="info-modal-slow-background" class="info-modal-slow-background">
+                <div id="info-modal-name" class="info-modal-name">
+                   <form action="/submit-form" method="post">
+                        <label for="name">Name:</label>
+                        <input type="text" id="name" name="name">
+                        <label for="players">Player Count:</label>
+                        <input type="range" id="players" name="players" min="1" max="8" value="1" oninput="this.nextElementSibling.value = this.value">
+                        <output>1</output>
+                        <input type="submit" value="Submit">
+                    </form>
+ 
+
+                </div>
+
+                <div id="info-modal-players" class="info-modal-players">
+
+                </div>
+
+                <button id="info-modal-submit-btn" class="info-modal-submit-btn">START ROOM</button>
+                <button id="info-modal-cancel-btn" class="info-modal-cancel-btn">CANCEL</button>
+            </div>
         </div>
     </div>
 </body>

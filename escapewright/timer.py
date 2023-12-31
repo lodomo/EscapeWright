@@ -67,7 +67,12 @@ class Timer:
     
     # Get the difference between current time, and end time
     def calc_time_remaining(self):
-        time_remaining = self.end_time - datetime.now()
+        time_remaining = None
+
+        if self.start_time is None:
+            time_remaining = timedelta(minutes=self.length)
+        else:
+            time_remaining = self.end_time - datetime.now()
         if time_remaining.total_seconds() <= 0:
             return timedelta(seconds=0)
         return time_remaining
@@ -83,9 +88,8 @@ class Timer:
     def get_time(self):
         if self.is_paused:
             return "PAUSED"
-        elif self.is_stopped:
+
+        if self.is_stopped:
             return "STOPPED"
-        elif self.start_time is None:
-            return "01:00:00"
-        else:
-            return self.format_time()
+        
+        return self.format_time()

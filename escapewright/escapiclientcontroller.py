@@ -41,7 +41,7 @@ class EscapiClientController:
         for client in self.clients:
             if not client.reset():
                 success = False
-                self.errors.append(f"Failed to reset {client.name}")
+                self.log(f"Failed to reset {client.name}", "ERROR")
         return success
 
     def reboot_all(self):
@@ -50,7 +50,7 @@ class EscapiClientController:
             if not client.reboot():
                 success = False
                 client.status = "REBOOT FAILED"
-                self.errors.append(f"Failed to hard reset {client.name}")
+                self.log(f"Failed to reboot {client.name}", "ERROR")
         return success
     
     def stop_all(self):
@@ -58,7 +58,7 @@ class EscapiClientController:
         for client in self.clients:
             if not client.stop():
                 success = False
-                self.errors.append(f"Failed to stop {client.name}")
+                self.log(f"Failed to stop {client.name}", "ERROR")
         return success
     
     def force_reboot_on_failed(self):

@@ -108,38 +108,62 @@ class ControlPanel:
             load_thread.start()
             return self.render_index()
         
+        @self.flaskapp.route('/time_remaining', methods=['GET'])
+        def time_remaining():
+            def time_remaining_js():
+                while True:
+                    try:
+                        time.sleep(1)
+                        yield f"data: {self.room_timer.get_time()}\n\n"
+                    except GeneratorExit:
+                        break
+                    except Exception as e:
+                        yield f"data: ERROR: {str(e)}\n\n"
+            return Response(time_remaining_js(), mimetype='text/event-stream')
+        
         @self.flaskapp.route('/room_status', methods=['GET'])
         def room_status():
-            return self.room_status
-        
-        @self.flaskapp.route('/start_pause_resume', methods=['POST'])
-        def start_pause_resume():
-            if self.room_timer.start_time != None:
-                # If the room is already running
-                if self.room_timer.is_paused:
-                    self.room_timer.resume()
-                    self.log("Resuming room", "INFO")
-                    self.client_controller.broadcast("room_resume")
-                    ## Return to javascript that the room is resumed
-                    return self.room_timer.calc_time_remaining() 
-                else:
-                    self.room_timer.pause()
-                    self.log("Pausing room", "INFO")
-                    self.client_controller.broadcast("room_pause")
-                    return "**PAUSED**"
+            # If the room is loading, return loading, else return
+            # Keep checking every second to see if the room is ready
+            # what the room is doing
+            def room_status_js():
+                room_status_was = None
+                while True: 
+                    if self.room_status != room_status_was:
+                        try:
+                            room_status_was = self.room_status
+                            yield f"data: {self.room_status}\n\n"
+                        except GeneratorExit:
+                            break
+                        except Exception as e:
+                            yield f"data: ERROR: {str(e)}\n\n"
+                    else:
+                        time.sleep(1)
+            return Response(room_status_js(), mimetype='text/event-stream')
+                
+        @self.flaskapp.route('/toggle', methods=['POST'])
+        def toggle():
+            # Toggle the room state
 
-            if self.client_controller.all_ready():
-                # If the room is ready
+            # if the room is not running, start it.
+            if self.room_timer.start_time == None:
                 self.room_timer.start()
                 self.room_status = "RUNNING"
-                self.client_controller.broadcast("room_start")
-                self.log("Starting room", "INFO")            
-                # Return the seconds remaining 
-                return self.room_timer.calc_time_remaining()
-            else:
-                # If the room is not running, and not ready
-                # Return an error
-                return "ERROR"
+                self.log("Starting room", "INFO")
+                return "Room Started"
+
+            # if the room is running, pause it.
+            if not self.room_timer.is_paused:
+                self.room_timer.pause()
+                self.room_status = "PAUSED"
+                self.log("Pausing room", "INFO")
+                return "Room Paused"
+            
+            # else, resume it.
+            self.room_timer.resume()
+            self.room_status = "RUNNING"
+            self.log("Resuming room", "INFO")
+            return "Room Resumed"
         
         @self.flaskapp.route('/reset', methods=['POST'])
         def reset():
@@ -183,20 +207,8 @@ class ControlPanel:
         def update_status(name, message):
             self.client_controller.update_status(name, message)
             self.set_change_flags()
-            print("Status Updated")
+            # print("Status Updated")
             return "Status Updated"
-        
-        @self.flaskapp.route('/time_remaining', methods=['GET'])
-        def time_remaining():
-            if self.room_timer.is_paused:
-                return "PAUSED"
-            if self.room_timer.is_stopped:
-                return "STOPPED"
-
-            if self.room_timer.start_time == None:
-                return "READY"
-            else:
-                return str(self.room_timer.calc_time_remaining())
         
         @self.flaskapp.route('/display_status')
         def display_status():
@@ -215,7 +227,7 @@ class ControlPanel:
                         else:
                             yield f"data: NTR\n\n"
                     except GeneratorExit:
-                        print("exiting generator")
+                        # print("exiting generator")
                         break
                     except Exception as e:
                         yield f"data: ERROR: {str(e)}\n\n"
@@ -279,7 +291,7 @@ class ControlPanel:
             return True
         
         for client in self.client_controller.clients:
-            print(f"Checking {client.name}, load percentage: {self.load_percentage}")
+            # print(f"Checking {client.name}, load percentage: {self.load_percentage}")
             if client.status == "READY":
                 self.log(f"{client.name} is ready, skipping recheck", "DEBUG")
                 continue
@@ -287,9 +299,9 @@ class ControlPanel:
             client.get_status()
             if client.status != client.status_was:
                 self.set_change_flags()
-                print(f"Status of {client.name} changed from {client.status_was} to {client.status}")
+                # print(f"Status of {client.name} changed from {client.status_was} to {client.status}")
 
-            print(f"Status of {client.name}: {client.status}")
+            # print(f"Status of {client.name}: {client.status}")
             if client.status == "READY":
                 self.load_percentage += (100 / len(self.client_controller.clients))
             time.sleep(1)

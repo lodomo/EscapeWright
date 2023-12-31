@@ -324,7 +324,7 @@ html {
     background-color: var(--red);
 }
 
-.control-btn {
+.toggle-btn {
     display: flex;
     border: 5px solid var(--dark);
     box-shadow: 5px 5px 0px 0px var(--dark);
@@ -334,23 +334,8 @@ html {
     border-radius: 100px;
     margin: 0px 10px 10px 0px;
     align-self: center;
-    transition: all 0.25s ease-in-out;
+    transition: all 0.1s ease-in-out;
     display: none;
-}
-
-.control-btn.start {
-    color: var(--light);
-    background-color: var(--green);
-}
-
-.control-btn.pauseresume {
-    background-color: var(--yellow);
-}
-
-.control-btn:hover {
-    transform: translateX(-2px) translateY(-2px); 
-    box-shadow: 7px 7px 0px 0px var(--dark);
-    filter: brightness(1.25);
 }
 
 .nav-container {
@@ -1164,6 +1149,88 @@ html {
     }
 }
 
+.info-modal {
+    display: block;
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    z-index: 10000;
+}
+
+.info-modal-moving-page {
+    display: block;
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    animation: slideInFromBottom 0.75s ease-in-out forwards;
+    background-color: var(--dark);
+}
+
+/* Animations*/
+@keyframes slideInFromBottom {
+    0% {
+        display: block;
+        transform: translateY(100vh); /* Start in the original position */
+    }
+    50% {
+        transform:translateY(75vh);
+    }
+    100% {
+        transform:translateY(0vh);
+    }
+}
+
+.info-modal-slow-background {
+    display: block;
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background-image: url('images/bg-eb.png');
+    animation: scroll-top-right 120s linear infinite;
+}
+
+@keyframes scroll-top-right {
+    /* Move the background image to the top right corner */
+    0% {
+        background-position: 0% 0%;
+    }
+    100% {
+        background-position: -100% -100%;
+    }
+}
+
+.info-modal-name {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    font-family: 'prime-bold';
+    font-size: 50px;
+    color: var(--light);
+    text-align: center;
+    margin: 0;
+    padding: 0;
+    margin-top: 20px;
+}
+
+.info-modal-players {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    font-family: 'prime-bold';
+    font-size: 30px;
+    color: var(--light);
+    text-align: center;
+}
+
+
 /* For Desktop Specific */
 @media (min-width: 768px) {
     :root {
@@ -1219,8 +1286,54 @@ html {
         flex-basis: 49%;
     }
 
-    .control-btn {
+    .toggle-btn {
         display: flex;
+    }
+
+    .toggle-btn.ready {
+        color: var(--light);
+        background-color: var(--green);
+    }
+
+    .toggle-btn.pause {
+        color: var(--light);
+        background-color: var(--yellow);
+    }
+
+    .toggle-btn.pause:hover {
+        color: var(--dark);
+    }
+
+    .toggle-btn.stopped {
+        color: var(--light);
+        background-color: #888;
+    }
+
+    .toggle-btn.loading {
+        color: var(--light);
+        background-color: #888;
+    }
+
+    .toggle-btn.resume {
+        color: var(--light);
+        background-color: var(--orange);
+    }
+
+    .toggle-btn.error {
+        color: var(--light);
+        background-color: var(--red);
+    }
+
+    .toggle-btn:hover {
+        transform: translateX(-2px) translateY(-2px); 
+        box-shadow: 7px 7px 0px 0px var(--dark);
+        filter: brightness(1.25);
+    }
+
+    .toggle-btn:active {
+        transform: translateX(5px) translateY(5px); 
+        filter: brightness(0.75);
+        box-shadow: 0px 0px 0px var(--dark);
     }
 
     .status-or-timer {
