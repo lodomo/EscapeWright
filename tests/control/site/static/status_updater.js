@@ -5,7 +5,7 @@ document.addEventListener('DOMContentLoaded', function () {
         var client = new EventSource(flask_route);
 
         client.onmessage = function (event) {
-            if (event.data == "NTR") {
+            if (event.data == 'NTR') {
                 // Do nothing
                 return;
             }

@@ -173,7 +173,7 @@ class ControlPanel:
                                 data = json.dumps(client.to_dict())
                                 yield f"data: {data}\n\n"
                         else:
-                            yield f"data: 'NTR'\n\n"
+                            yield f"data: NTR\n\n"
                     except GeneratorExit:
                         print("exiting generator")
                         break

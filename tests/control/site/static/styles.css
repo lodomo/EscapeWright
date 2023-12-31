@@ -67,7 +67,6 @@
 body {
     width: 100%;
     height: 100%;
-    background-color: var(--orange); /* For Showing Leaks */
     font-family: 'prime-regular', 'courier', monospace;
     font-size: 1.5rem;
     color: var(--dark);
@@ -82,20 +81,17 @@ a {
     margin: 0px;
 }
 
-/* This styles the scrollbar track (the background) */
 ::-webkit-scrollbar {
     width: 10px; /* for vertical scrollbars */
     height: 10px; /* for horizontal scrollbars */
     transition: all 0.5s ease-in-out;
 }
 
-/* This styles the scrollbar thumb (the draggable portion) */
 ::-webkit-scrollbar-thumb {
     background: var(--dark); /* thumb color */
     border-radius: 10px;
 }
 
-/* Options are 'auto', 'thin', and 'none' */
 html {
     scrollbar-width: thin;
     scrollbar-color: #888 #f0f0f0; /* thumb and track color */
@@ -105,7 +101,6 @@ html {
     display: flex;
     width: 100%;
     height: 100%;
-    background-color: var(--orange);
 }
 
 .loading-screen {
@@ -203,9 +198,10 @@ html {
 
 }
 
-.header {
+.header-container {
     display: flex;
     flex-direction: row;
+    justify-content: flex-start;
     align-items: center;
     height: var(--header-h);
     min-height: var(--header-h);
@@ -216,67 +212,87 @@ html {
     z-index: 1000; 
 }
 
-.title-block {
-    scale: 0.75;
-    display: flex;
+.title-container {
+    display: none; /* Hidden for Mobile */
     flex-direction: column; /* This will stack children vertically */
     align-items: flex-start; /* Align items to the start of the flex container */
-    margin-left: -50px;
-    margin-top: -20px;
-    display: none; /* Hidden for Mobile */
+    box-sizing: border-box;
+    max-height: 100%;
+    height: 100%;
+    min-height: 100%;
+    align-content: center;
+    margin: 0px;
+    padding: 10px;
 }
 
-.title-block h1 {
+.title-container h1 {
     font-family: 'made-infinity';
-    font-size: 50px;
+    font-size: 40px;
     color: var(--h1-color);
-    padding: 0;
-    margin-top: -10px;
-    margin-bottom: -16px;
-    margin-left: 5px;
+    padding: 0px;
+    margin: 0px 0px -5px 0px;
+}
+
+.kana {
+    display: flex;
+    width: 100px;
+    height: 13px;
+    opacity: 1;
+    margin: 0px 0px -9px 200px;
 }
 
 .line {
     height: 5px;
-    width: 100%; /* This ensures that the lines take full width if needed */
+    width: 100%;
     margin-left: -30px;
     margin-bottom: 5px;
     border-top-right-radius: 5px;
     border-bottom-right-radius: 5px;
 }
 
-/* The katakana that says "ControlPanel" lmao */
-.kana {
-    width: 100px;
-    height: 13px;
-    opacity: 1;
-    margin-left: 195px;
-}
-
 .line.purple {
     background-color: var(--purple);
-    width: 220px; /* Adjust width as per design */
+    width: 220px;
 }
 
 .line.red {
     background-color: var(--red);
-    width: 148px; /* Adjust width as per design */
+    width: 148px;
 }
 
 .line.orange {
     background-color: var(--orange);
-    width: 115px; /* Adjust width as per design */
+    width: 115px;
+}
+
+.header-sub-container {
+    display: flex;
+    flex-direction: row;
+    justify-content: flex-end;
+    align-items: flex-end;
+    max-height: 100%;
+    min-height: 100%;
+    height: 100%;
+    width: 100%;
+}
+
+.company-logo {
+    display: flex;
+    height: 100%;
+    max-width: fit-content;
+    padding: 0px;
+    display: none;
 }
 
 .status-or-timer {
     display: flex;
+    width: 90%;
     border: 5px solid var(--dark);
     border-top: 0;
     box-shadow: 5px 5px 0px 0px var(--dark);
     font-family: 'chivo-mono';
     font-size: 60px;
-    margin-top: -35px;
-    width: 90%;
+    margin: -35px 10px 0px 10px;
     border-bottom-left-radius: 30px;
     border-bottom-right-radius: 30px;
     justify-content: center;
@@ -316,9 +332,9 @@ html {
     font-size: 40px;
     padding: 5px 20px 5px 20px;
     border-radius: 100px;
-    margin-top: -20px;
-    margin-left: 20px;
+    margin: 0px 10px 10px 0px;
     align-self: center;
+    transition: all 0.25s ease-in-out;
     display: none;
 }
 
@@ -331,12 +347,10 @@ html {
     background-color: var(--yellow);
 }
 
-.company-logo {
-    display: flex;
-    height: 100%;
-    margin-top: 0px;
-    margin-left: auto;
-    display: none;
+.control-btn:hover {
+    transform: translateX(-2px) translateY(-2px); 
+    box-shadow: 7px 7px 0px 0px var(--dark);
+    filter: brightness(1.25);
 }
 
 .nav-container {
@@ -882,6 +896,164 @@ html {
 
 }
 
+.event-modal {
+    display: none;
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    z-index: 10000;
+}
+
+.event-circle {
+    position: fixed; /* Fixed position */
+    top: 50%; /* Center vertically */
+    left: 50%; /* Center horizontally */
+    transform: translate(-50%, -50%); /* Offset the position by half its size */
+    width: 100px; /* Initial width */
+    height: 100px; /* Initial height, same as width to make it round */
+    border-radius: 50%; /* Make it round */
+}
+
+.event-circle.stop {
+    background-color: var(--dark);
+}
+
+.event-circle.reset {
+    background-color: var(--dark);
+}
+
+.event-circle.override {
+    background-color: var(--dark);
+}
+
+.event-text {
+    position: fixed; /* Fixed position */
+    top: 50%; /* Center vertically */
+    left: 50%; /* Center horizontally */
+    transform: translate(-50%, -50%); /* Offset the position by half its size */
+    z-index: 10001;
+    color: var(--light);
+    font-family: 'prime-bold';
+    font-size: 50px;
+    text-align: center;
+    margin: 0;
+    padding: 0;
+}
+
+.event-text.reset {
+    color: var(--blue);
+}
+
+.event-text.stop {
+    color: var(--red);
+}
+
+.fade-in {
+    animation: fade-in 1.5s ease-in-out forwards;
+}
+
+@keyframes fade-in {
+    0% {
+        opacity: 0;
+    }
+    50% {
+        opacity: 0;
+    }
+    100% {
+        opacity: 1;
+    }
+}
+
+.expand-circle {
+    animation: expand 1.5s ease-in-out forwards;
+}
+
+.shrink-circle {
+    animation: shrink 1.5s ease-in-out forwards;
+}
+
+.close-event-modal {
+    position: fixed; /* Fixed position */
+    top: 20px;
+    right: 20px;
+    width: 50px;
+    height: 50px;
+    font-size: 25px;
+    background-color: var(--red);
+    border: 5px solid black;
+    border-radius: 20px;
+    box-shadow: 5px 5px 0px 0px black;
+    transition: all 0.25s ease-in-out;
+}
+
+.close-event-modal:hover {
+    transform: translate(-2px, -2px);
+    box-shadow: 7px 7px 0px 0px black; 
+    filter: brightness(1.25);
+}
+
+.close-event-modal:active {
+    transform: translate(5px, 5px);
+    filter: brightness(0.75);
+    box-shadow: 0px 0px 0px 0px black; 
+}
+
+/* Define the animation */
+@keyframes expand {
+    0% {
+        width: 1px;
+        height: 1px;
+        opacity: 1;
+    }
+    10% {
+        width: 30vw; /* 100% of the viewport width */
+        height: 30vw; /* 100% of the viewport height */
+        opacity: 1;
+        transform: translate(-50%, -50%) scale(1);
+    }
+    30% {
+        width: 20vw; /* 200% of the viewport width */
+        height: 20vw; /* 200% of the viewport height */
+        opacity: 1;
+        transform: translate(-50%, -50%) scale(1);
+    }
+    100% {
+        width: 200vw; /* 200% of the viewport width */
+        height: 200vw; /* 200% of the viewport height */
+        opacity: 1;
+        transform: translate(-50%, -50%) scale(1);
+    }
+}
+
+/* Define the animation */
+@keyframes shrink {
+    0% {
+        width: 200vw; /* 200% of the viewport width */
+        height: 200vw; /* 200% of the viewport height */
+        opacity: 1;
+        transform: translate(-50%, -50%) scale(1);
+    }
+    10% {
+        width: 70vw; /* 200% of the viewport width */
+        height: 70vw; /* 200% of the viewport height */
+        opacity: 1;
+        transform: translate(-50%, -50%) scale(1);
+    }
+    30% {
+        width: 80vw; /* 200% of the viewport width */
+        height: 80vw; /* 200% of the viewport height */
+        opacity: 1;
+        transform: translate(-50%, -50%) scale(1);
+    }
+    100% {
+        width: 1px;
+        height: 1px;
+        opacity: 1;
+    }
+}
+
 /* For Desktop Specific */
 @media (min-width: 768px) {
     :root {
@@ -895,14 +1067,9 @@ html {
         align-items: center;
     }
 
-    .title-block {
-        scale: 1;
-        margin-left: 0px;
-        margin-top: 0px; 
+    .title-container {
         display: flex;
-        flex-basis: auto;
-        padding-right: 20px;
-    }
+   }
 
     .nav-container {
         flex-direction: column;
@@ -954,8 +1121,7 @@ html {
         font-family: 'chivo-mono';
         font-size: 60px;
         padding: 5px 60px 5px 60px;
-        margin: auto;
-        margin-top: -8px;
+        margin: -15px 10px 10px 10px;
         border-bottom-left-radius: 30px;
         border-bottom-right-radius: 30px;
         width: auto;
@@ -964,13 +1130,21 @@ html {
 
     .company-logo {
         display: flex;
-        /* Right of container */
-        margin-left: auto;
-        margin-top: 0px;
-
+        align-self: flex-start;
+        width: 175px;
     }
 
     .emergency-container a {
         width: 50%;
     }
+
+    #fullscreenBtn {
+        cursor: pointer;            /* Pointer cursor on hover */
+        transition: all 0.25s ease-in-out; /* Smooth animation between different cursor styles */
+    }
+
+    /* Optional: Add some hover effect */
+    #fullscreenBtn:hover {
+        filter: brightness(1.25);
+    } 
 }

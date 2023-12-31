@@ -123,7 +123,7 @@ def seconds_to_midnight():
     time_to_midnight = datetime(current_date.year, current_date.month, current_date.day, 0, 0, 0) - current_date
     # Convert the time to seconds
     seconds_until_midnight = time_to_midnight.seconds
-    return time_to_midnight 
+    return seconds_until_midnight 
 
 def update_logger_file(logger):
     if logger is None:
