@@ -187,25 +187,43 @@
     <div id="info-modal" class="info-modal">
         <div id="info-modal-moving-page" class="info-modal-moving-page">
             <div id="info-modal-slow-background" class="info-modal-slow-background">
-                <div id="info-modal-name" class="info-modal-name">
-                   <form action="/submit-form" method="post">
-                        <label for="name">Name:</label>
-                        <input type="text" id="name" name="name">
-                        <label for="players">Player Count:</label>
-                        <input type="range" id="players" name="players" min="1" max="8" value="1" oninput="this.nextElementSibling.value = this.value">
-                        <output>1</output>
-                        <input type="submit" value="Submit">
+                <div id="info-form-container" class="info-form-container">
+                    <form action="/submit-form" method="post">
+                        <div id="info-modal-name" class="info-modal-name">
+                            <label for="nameSelect">GAME GUIDE</label>
+                            <select id="nameSelect" name="nameSelect">
+                                <option value="option1">Kyle</option>
+                                <option value="option2">Ivette</option>
+                                <option value="option3">Lorenzo</option>
+                                <option value="option3">Trainee</option>
+                            </select>
+                        </div>
+                        
+                        <div id="info-modal-players" class="info-modal-players">
+                            <label for="players">PLAYERS</label>
+                            <div class="slider-container">
+                                <div class="slider-labels">
+                                    <label for="players">1</label>
+                                    <label for="players">2</label>
+                                    <label for="players">3</label>
+                                    <label for="players">4</label>
+                                    <label for="players">5</label>
+                                    <label for="players">6</label>
+                                    <label for="players">7</label>
+                                    <label for="players">8</label>
+                                </div>
+                                <input type="range" min="1" max="8" value="1" class="slider" id="players" name="players" step="1" oninput="this.nextElementSibling.value = this.value">
+                                <output id="playerOutput" for="players">1</output>
+                                
+                            </div>
+                        </div>
                     </form>
- 
 
+                    <div id="info-modal-controls" class="info-modal-controls">
+                        <button id="info-modal-submit-btn" class="info-modal-btn submit">START ROOM</button>
+                        <button id="info-modal-cancel-btn" class="info-modal-btn cancel">CANCEL</button>
+                    </div>
                 </div>
-
-                <div id="info-modal-players" class="info-modal-players">
-
-                </div>
-
-                <button id="info-modal-submit-btn" class="info-modal-submit-btn">START ROOM</button>
-                <button id="info-modal-cancel-btn" class="info-modal-cancel-btn">CANCEL</button>
             </div>
         </div>
     </div>
