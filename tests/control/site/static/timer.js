@@ -84,30 +84,97 @@ document.addEventListener('DOMContentLoaded', function () {
     get_initial_status();
 });
 
-// Set the toggle button 
-document.addEventListener('DOMContentLoaded', function () {
-    // Find the toggle button
-    var toggleButton = document.getElementById('toggleButton');
+// // Set the toggle button
+// document.addEventListener('DOMContentLoaded', function () {
+//     // Find the toggle button
+//     var toggleButton = document.getElementById('toggleButton');
+//     var modal = document.getElementById("info-modal");
+//     var closeButton = document.getElementById("info-modal-cancel-btn");
+//     var submitButton = document.getElementById("info-modal-submit-btn");
 
-    // Add a click event
+//     // Set the submit button to send a POST request to /start
+//     submitButton.onclick = function () {
+//         var client = new XMLHttpRequest();
+//         var gameGuide = document.getElementById('nameSelect').value;
+//         var players = document.getElementById('players').value;
+//         var flask_route = '/start/' + gameGuide + '/' + players;
+//         client.open("POST", flask_route, true);
+//         client.send();
+//     }
+
+//     closeButton.onclick = function () {
+//         modal.classList.add("slide-out-to-bottom");
+//         // When the animation is finished, hide the modal
+//         modal.addEventListener("animationend", function () {
+//             modal.classList.remove("slide-out-to-bottom");
+//             modal.style.display = "none";
+//         });
+//     }
+
+//     // Add a click event
+//     toggleButton.addEventListener('click', function () {
+//         var toggleText = toggleButton.textContent;
+
+//         if (toggleText == "START") {
+//             // Bring up modal
+//             //find the enter name modal
+
+
+//             // When the user clicks on the button, open the modal
+//             modal.style.display = "block";
+
+
+//         }
+//         else {
+//             // Send a POST request to /toggle
+//             var flask_route = '/toggle';
+//             var client = new XMLHttpRequest();
+//             client.open("POST", flask_route, true);
+//             client.send();
+//         }
+
+//     });
+// });
+
+document.addEventListener('DOMContentLoaded', function () {
+    var toggleButton = document.getElementById('toggleButton');
+    var modal = document.getElementById("info-modal");
+    var closeButton = document.getElementById("info-modal-cancel-btn");
+    var submitButton = document.getElementById("info-modal-submit-btn");
+
+    // Define the function to hide the modal after animation
+    function hideModalAfterAnimation() {
+        modal.classList.remove("slide-out-to-bottom");
+        modal.style.display = "none";
+        modal.removeEventListener("animationend", hideModalAfterAnimation);
+    }
+
+    submitButton.onclick = function () {
+        var client = new XMLHttpRequest();
+        var gameGuide = document.getElementById('nameSelect').value;
+        var players = document.getElementById('players').value;
+        var flask_route = '/start/' + gameGuide + '/' + players;
+        client.open("POST", flask_route, true);
+        client.send();
+        modal.classList.add("slide-out-to-bottom");
+        modal.addEventListener("animationend", hideModalAfterAnimation);
+    }
+
+    closeButton.onclick = function () {
+        modal.classList.add("slide-out-to-bottom");
+        modal.addEventListener("animationend", hideModalAfterAnimation);
+    }
+
     toggleButton.addEventListener('click', function () {
         var toggleText = toggleButton.textContent;
 
         if (toggleText == "START") {
-            // Bring up modal
-            //find the enter name modal
-            var modal = document.getElementById("info-modal");
-            var closeButton = document.getElementById("info-modal-close-btn");
-            var submitButton = document.getElementById("info-modal-submit-btn");
-
-        }
-        else {
-            // Send a POST request to /toggle
+            modal.style.display = "block";
+        } else {
             var flask_route = '/toggle';
             var client = new XMLHttpRequest();
             client.open("POST", flask_route, true);
             client.send();
         }
-
     });
 });

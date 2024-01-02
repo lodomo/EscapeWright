@@ -43,7 +43,7 @@ import json
 #   generate_css - Generate the CSS for the pages
 
 class ControlPanel:
-    def __init__(self, room, script, overrides, column1, column2, client_controller, site_folder_path, logger, room_length=60, reset_time=2.5, port=12413):
+    def __init__(self, room, script, overrides, crew, column1, column2, client_controller, site_folder_path, logger, room_length=60, reset_time=2.5, port=12413):
         self.host = self.get_local_ip()             # Set the local IP
         self.port = port                            # Set the port 
         self.room = room                            # Set the room name
@@ -53,6 +53,8 @@ class ControlPanel:
         self.flaskapp = Flask(__name__)             # Create the flask app
         self.flaskapp.static_folder = os.path.join(site_folder_path, 'static')
         self.flaskapp.template_folder = os.path.join(site_folder_path, 'templates')
+        self.crew = self.convert_to_list(crew)         # Set the crew 
+        print(self.crew)
 
         self.logger = logger                        # Set the logger
 
@@ -165,6 +167,18 @@ class ControlPanel:
             self.log("Resuming room", "INFO")
             return "Room Resumed"
         
+        @self.flaskapp.route('/start/', defaults={'gameguide': 'None', 'players': 'None'})
+        @self.flaskapp.route('/start/<gameguide>/<players>', methods=['POST'])
+        def start(gameguide, players):
+            # Start the room
+            # Get confirmation from the user, then start the room
+            # This will likely require a hard reboot
+            toggle()
+            self.log("ROOM START", "INFO")
+            self.log("GAME GUIDE: " + gameguide, "INFO")
+            self.log("PLAYERS: " + players, "INFO")
+            return "Room Started", 200
+        
         @self.flaskapp.route('/reset', methods=['POST'])
         def reset():
             # Reset the room after the user confirms
@@ -252,7 +266,8 @@ class ControlPanel:
                                column1=clients_column1,
                                column2=clients_column2,
                                script_html=script_html,
-                               override_html=override_html)
+                               override_html=override_html,
+                               crew=self.crew)
     
     def clients_by_location(self, location):
         clients = []
@@ -374,6 +389,17 @@ class ControlPanel:
         # self.client_controller.print_all_data()
         self.flaskapp.run(host=self.host, port=self.port)
         return
+    
+    def convert_to_list(self, data):
+        # Read file, turn each word into a list
+        data_list = []
+        with open(data, 'r') as f:
+            data_list = f.read().split()
+        
+        return data_list
+        
+
+        
     
     def log(self, message, level=None):
         if self.logger == None: 

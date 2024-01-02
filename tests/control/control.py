@@ -29,6 +29,7 @@ def main():
     control_info = find_file_or_dir("control_info.ew")       # Load Control Settings
     script = find_file_or_dir("script.ew")                   # Load Script
     overrides = find_file_or_dir("overrides.ew")             # Load Overrides
+    crew = find_file_or_dir("cr.ew")                         # Load Crew
     info = ew_to_dict(control_info)                          # Load Info Settings
 
     logger = set_logger(info)                                # Set the logger, if logging is enabled
@@ -45,7 +46,7 @@ def main():
 
     # Create the client controller and control panel
     c_ctrl = EscapiClientController(clients, logger)
-    control_panel = ControlPanel(name, script, overrides, column1, column2, c_ctrl, site_dir, logger)
+    control_panel = ControlPanel(name, script, overrides, crew, column1, column2, c_ctrl, site_dir, logger)
 
     # Log the start of the control panel
     if logger is not None:

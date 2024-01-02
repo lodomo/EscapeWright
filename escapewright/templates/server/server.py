@@ -40,9 +40,11 @@ def main():
     control_ip = None                    # Set Server Control IP
     if info['control_ip'] != "None":
         control_ip = info['control_ip']
+    
+    ip = info['ip']                      # Set Server IP
 
     # Create the server
-    server = EscapiServer(name, role, site_dir, logger, location, control_ip, port)
+    server = EscapiServer(name, ip, role, site_dir, logger, location, control_ip, port)
 
     # Start of the server
     server.run()
@@ -142,10 +144,10 @@ def update_logger_file(logger):
         return
     
     while True:
-        logger.log(logging.INFO, "A welcome start to a new day")
         sleep_time = seconds_to_midnight()
+        logger.debug(f"Sleeping for {sleep_time} seconds")
         time.sleep(sleep_time)
-        logger.log(logging.INFO, f"N.F.E.T.P.")
+        logger.log(logging.INFO, "Updating log file. N.F.E.T.P.")
 
         # Remove all handlers associated with the logger
         for handler in logger.handlers[:]:
@@ -158,7 +160,7 @@ def update_logger_file(logger):
         year_dir = os.path.join(log_base_dir, str(current_date.year))
         month_dir = os.path.join(year_dir, f"{current_date.month:02d}")
         # Make the file name DDHHMMSS.ewlog
-        day_file = os.path.join(month_dir, f"{current_date.day:02d}.ewlog")
+        day_file = os.path.join(month_dir, f"{current_date.day:02d}-{current_date.second:02d}.ewlog")
 
         # Create a new file handler with the new log file name
         new_handler = logging.FileHandler(day_file)

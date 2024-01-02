@@ -1156,6 +1156,7 @@ html {
     width: 100vw;
     height: 100vh;
     z-index: 10000;
+    display: none;
 }
 
 .info-modal-moving-page {
@@ -1169,6 +1170,10 @@ html {
     background-color: var(--dark);
 }
 
+.slide-out-to-bottom {
+    animation: slideOutToBottom 0.75s ease-in-out forwards;
+}
+
 /* Animations*/
 @keyframes slideInFromBottom {
     0% {
@@ -1180,6 +1185,21 @@ html {
     }
     100% {
         transform:translateY(0vh);
+    }
+}
+
+/* Animations*/
+@keyframes slideOutToBottom{
+    0% {
+        display: block;
+        transform: translateY(0vh); /* Start in the original position */
+    }
+    50% {
+        transform:translateY(25vh);
+    }
+    100% {
+        transform:translateY(100vh);
+        display: none;
     }
 }
 

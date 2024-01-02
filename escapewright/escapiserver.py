@@ -17,6 +17,7 @@ import socket                      # For getting the local IP
 import subprocess                  # For rebooting
 import os                          # For getting the path to the site folder
 import datetime                    # For getting the uptime
+import logging
 
 # Internal Imports
 from .escapiclient import EscapiClient
@@ -24,14 +25,14 @@ from .role import Role
 from .escapitransmitter import EscapiTransmitter
 
 class EscapiServer:
-    def __init__(self, name, role: Type[Role], site_folder_path, logger=None, location="N/A", control_ip=None, port=12413, ):
+    def __init__(self, name, ip, role: Type[Role], site_folder_path, logger=None, location="N/A", control_ip=None, port=12413, ):
         self.name = name                 # Name of the Pi
         self.location = location         # Location of the Pi
         self.port = port                 # Port of the Pi, ETA uses 12413
         self.role = role                 # This is the class that is the pi's purpose
         self.logger = logger             # Logger
         self.role.set_observer(self)     # Add this server as an observer to the role
-        self.ip = self.get_local_ip()    # IP of the Pi
+        self.ip = ip                     # IP of the Pi
         self.transmitter = EscapiTransmitter(self.name, control_ip, logger, self.port)
         self.last_relay = "N/A"          # Last relayed message
         self.last_reset = "N/A"          # Last reset
@@ -52,20 +53,20 @@ class EscapiServer:
         self.show_curtain = True
         return
     
-    def get_local_ip(self):
-        # UDP Connection, No data sent
-        s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM) 
-        try:
-            s.connect(('10.255.255.255', 1)) # Connect to the broadcast address
-            ip = s.getsockname()[0]          # Get the IP
-            self.log(f"Local IP set to: {ip}", "DEBUG")
-        except Exception:
-            ip = '127.0.0.1'                 # If it fails, use localhost
-            self.log(f"Local IP failed to set, using localhost { ip }", "ERROR")
-        finally:
-            s.close()                        # Close the socket
+    # def get_local_ip(self):
+    #     # UDP Connection, No data sent
+    #     s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM) 
+    #     try:
+    #         s.connect(('10.255.255.255', 1)) # Connect to the broadcast address
+    #         ip = s.getsockname()[0]          # Get the IP
+    #         self.log(f"Local IP set to: {ip}", "DEBUG")
+    #     except Exception:
+    #         ip = '127.0.0.1'                 # If it fails, use localhost
+    #         self.log(f"Local IP failed to set, using localhost { ip }", "ERROR")
+    #     finally:
+    #         s.close()                        # Close the socket
         
-        return ip                            # Return the ip
+    #     return ip                            # Return the ip
     
     def define_routes(self):
         self.log(f"Defining Routes:", "DEBUG")
@@ -256,24 +257,38 @@ class EscapiServer:
                                is_error = is_error)
                             
     def generate_logs(self):
-        # open todays log file
-        parent = os.path.dirname(self.site_folder_path)
-        log_base_dir = os.path.join("EW.Logs")
-        current_date = datetime.datetime.now()
-        year_dir = os.path.join(log_base_dir, str(current_date.year))
-        month_dir = os.path.join(year_dir, f"{current_date.month:02d}")
-        day_file = os.path.join(month_dir, f"{current_date.day:02d}.ewlog") 
-        # Put every single line into a long string with a <br> between each line
+        root_logger = logging.getLogger()
+        # Get root logger file name
+        log_file = root_logger.handlers[0].baseFilename
         log = [] 
 
-        # If that file doesn't exist, create it.
-        if not os.path.exists(day_file):
-            subprocess.run(['touch', day_file])
-
-        with open(day_file, 'r') as f:
+        with open(log_file, 'r') as f:
             for line in f:
                 log.insert(0, line)
         return log
+
+       
+        
+
+    # def generate_logs(self):
+    #     # open todays log file
+    #     parent = os.path.dirname(self.site_folder_path)
+    #     log_base_dir = os.path.join("EW.Logs")
+    #     current_date = datetime.datetime.now()
+    #     year_dir = os.path.join(log_base_dir, str(current_date.year))
+    #     month_dir = os.path.join(year_dir, f"{current_date.month:02d}")
+    #     day_file = os.path.join(month_dir, f"{current_date.day:02d}.ewlog") 
+    #     # Put every single line into a long string with a <br> between each line
+    #     log = [] 
+
+    #     # If that file doesn't exist, create it.
+    #     if not os.path.exists(day_file):
+    #         subprocess.run(['touch', day_file])
+
+    #     with open(day_file, 'r') as f:
+    #         for line in f:
+    #             log.insert(0, line)
+    #     return log
 
     def run(self):
         self.load_role()
