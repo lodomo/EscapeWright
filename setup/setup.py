@@ -129,6 +129,9 @@ def create_control():
     if not clone_directory(CONTROL): return
     create_control_info()
     create_client_list()
+    create_crew()
+    create_overrides()
+    create_script()
 
     # Todo add in creating the client list 
 
@@ -223,6 +226,41 @@ def create_control_info():
     print(f"Log level: {log_level}")
 
     return True
+
+def create_crew():
+    member = None
+    crew = []
+
+    while member != "":
+        member = input("Enter the name of a crew member (or press enter to skip): ")
+
+        if member == "":
+            return
+        
+        member = member.strip()
+        member = member.toupper()
+
+        crew.append(member)
+        print(f"Added crew member. {member}")
+    
+    crew_file = relative_path(__file__, "control/cr.ew")
+    for member in crew:
+        with open(crew_file, "a") as f:
+            f.write(f"{member}\n")
+    return
+
+def create_overrides():
+    # TODO
+    print("OVERRIDES LOCATED AT overrides.ew")
+    print("FUTURE UPDATES WILL HAVE THIS PART OF THE SETUP WIZARD")
+    print("FOR NOW, COPY THE GITHUB REPO AND EDIT THE FILE MANUALLY")
+    return
+
+def create_script():
+    # TODO
+    print("SCRIPT TO BE CREATED USING MARKDOWN")
+    print("SEE SAMPLE SCRIPT IN GITHUB REPO")
+    return
 
 def create_client():
     # name: sample_client
