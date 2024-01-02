@@ -1,8 +1,5 @@
-# SETTINGS INFO:
-# name: name of the room for the control panel
-# logging: True or False (if True, log file will be created)
-# log_level: DEBUG, INFO, WARNING, ERROR, CRITICAL
-
-name: sample_control
+name: ROOM NAME 
+column1: COLUMN1 
+column2: COLUMN2
 logging: True
-log_level: DEBUG
+log_level: INFO 
