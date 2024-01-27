@@ -152,6 +152,7 @@ class ControlPanel:
                 self.room_timer.start()
                 self.room_status = "RUNNING"
                 self.log("Starting room", "INFO")
+                self.broadcast("room_start")
                 return "Room Started"
 
             # if the room is running, pause it.
@@ -159,12 +160,14 @@ class ControlPanel:
                 self.room_timer.pause()
                 self.room_status = "PAUSED"
                 self.log("Pausing room", "INFO")
+                self.broadcast("pause")
                 return "Room Paused"
             
             # else, resume it.
             self.room_timer.resume()
             self.room_status = "RUNNING"
             self.log("Resuming room", "INFO")
+            self.broadcast("resume")
             return "Room Resumed"
         
         @self.flaskapp.route('/start/', defaults={'gameguide': 'None', 'players': 'None'})
@@ -217,8 +220,12 @@ class ControlPanel:
             self.client_controller.broadcast(message)
             return
         
+        @self.flaskapp.route('/update_status/', defaults={'name': None, 'message': None})
         @self.flaskapp.route('/update_status/<name>/<message>')
         def update_status(name, message):
+            if name == None or message == None:
+                return "No name or message provided", 400
+
             self.client_controller.update_status(name, message)
             self.set_change_flags()
             # print("Status Updated")
@@ -246,6 +253,11 @@ class ControlPanel:
                     except Exception as e:
                         yield f"data: ERROR: {str(e)}\n\n"
             return Response(display_status_js(), mimetype='text/event-stream')
+    
+    def broadcast(self, message):
+        # Broadcast a message to all the clients
+        self.client_controller.broadcast(message)
+        return
         
     def render_index(self, loading = True):
         # Render the index page
@@ -398,9 +410,6 @@ class ControlPanel:
         
         return data_list
         
-
-        
-    
     def log(self, message, level=None):
         if self.logger == None: 
             print(message)
