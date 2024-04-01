@@ -2,12 +2,15 @@
 #
 #      Author: Lodomo.dev (Lorenzo D. Moon)
 #     Purpose: Install EscapeWright and all of it's dependencies 
-#     Updated: December 13th 2023 
+#     Updated: April 1st 2024 
 # Description: This file will get everything prepped for the Escape Wright Pis.
 #              It will install the necessary packages, create the necessary
 #              directories, and set up the necessary services.
 #
 ################################################################################
+
+# This needs to be updated to turn the script into a service that runs on boot,
+# but also inside a python virtual environment.
 
 # Create a variable for the current user name
 USER=$(whoami)
