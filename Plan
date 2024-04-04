@@ -1,0 +1,105 @@
+Planning the Hierarchy:
+
+Logging:
+    A special class that has a logger with the configuration that I like.
+    This logger needs to do this:
+
+    Log in this format:
+    [ YYYY-MM-DD hh:mm:ss ] [ LEVEL ] MESSAGE [ SCRIPT ] 
+
+    Log files are logs/YYYY-MM-DD.ewlog
+    
+    First it needs to make a new log at midnight or at launch.
+    If launch is not at midnight, check if that log file already exists.
+
+    At midnight, close the current log and make a new one. 
+
+Control Panel:
+    Control panel needs a whole mess of stuff.
+    1) A "main" file that runs the script to start up.
+    2) A "control panel" file that delivers the game guide front end.
+       Control the room, control the timer, this will be a very large class.
+       Talk to all the raspberry pis.
+    3) A "client" script that handles all the information for a client pi.
+       This is meant to be a part of "Control Panel".
+    4) Client Controller that handles all the "clients". The control panel
+       will have a client controller inside of it.
+    5) Timer: a 1 hour timer program. It does not need to announce anything
+       Javascript will interface with the timer to see how much time is left
+       and deliver the time to the game guide. This will just have a "start",
+       "stop", "pause", "resume", "reset"
+
+Client:
+    This client is DIFFERENT than the control panel client. This client is what
+    will be running on each Node computer. IDK what else to call it, time to 
+    do a bunch more planning.
+
+    1) A main file to run the client and activate the role.
+    2) A "client" file that delivers the gameguide front end.
+    3) A derived "Role" class that handles the input from the players to solve
+       the puzzle.
+
+Maestro:
+    Maestro will probably be it's own thing instead of a client, but it will be
+    very similar. It needs to control all the lighting and sound.
+
+
+Control Panel Class:
+    Data Members:
+        Private:
+        Protected:
+        Public:
+    Methods:
+        Private:
+        Protected:
+        Public:
+
+Client Class: Derived from Observer Class
+    Data Members:
+        Private:
+        Protected:
+        Public
+    Methods:
+        Private:
+        Protected:
+        Public
+
+Observer Class:
+    Data Members:
+        Private:
+        Protected:
+        Public
+    Methods:
+        Private:
+        Protected:
+        Public
+
+Observed Class:
+    Data Members:
+        Private:
+        Protected:
+        Public
+    Methods:
+        Private:
+        Protected:
+        Public
+
+Role Class: Derived From Observed Class
+    Data Members:
+        Private:
+        Protected:
+        Public
+    Methods:
+        Private:
+        Protected:
+        Public
+
+Timer Class:
+    Data Members:
+        Private:
+        Protected:
+        Public
+    Methods:
+        Private:
+        Protected:
+        Public

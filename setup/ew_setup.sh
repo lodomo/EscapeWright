@@ -2,7 +2,7 @@
 #
 #      Author: Lodomo.dev (Lorenzo D. Moon)
 #     Purpose: Install EscapeWright and all of it's dependencies 
-#     Updated: April 1st 2024 
+#     Updated: April 3rd 2024
 # Description: This file will get everything prepped for the Escape Wright Pis.
 #              It will install the necessary packages, create the necessary
 #              directories, and set up the necessary services.
@@ -13,7 +13,7 @@
 # but also inside a python virtual environment.
 
 # Create a variable for the current user name
-USER=$(whoami)
+USER=$(whoami) # THIS SHOULD PROBABLY BE THE LOGIN ONE! FML
 
 # Install packages
 echo "[ESCAPEWRIGHT] Preparing to install packages"
@@ -32,6 +32,8 @@ sudo apt install git -y
 echo "[ESCAPEWRIGHT] Installing vim"
 sudo apt install vim -y
 
+# TODO GET RID OF THIS WHOLE FUCKING MESS. CREATE A PIPENV INSTEAD.
+#
 # If the EscapeWright directory already exists, run a fetch and pull on it.
 # Otherwise, clone the repository.
 if [ -d "/home/${USER}/EscapeWright" ]; then

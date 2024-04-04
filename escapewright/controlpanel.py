@@ -1,26 +1,24 @@
-################################################################################
+###############################################################################
 #
 #      Author: Lodomo.dev (Lorenzo D. Moon)
 #     Purpose: Create a control panel server
 #     Updated: 25 OCT 2023
 # Description: This class is intended to use in a script to create a control
-#              panel server. The server will be used to control the raspberry pi
+#              panel server. The server will be used to control the rpi
 #              and the game. The server will be used to send commands to the
 #              raspberry pi, and to receive data from the raspberry pi.
 #              This is not a runnable script.
 #
-################################################################################
+###############################################################################
 
-import os                                # Used to get the path to the templates
+import os                                # Used to get the path to the template
 from flask import Flask                  # Used to create the flask app
 from flask import render_template        # Used to render the HTML
 from flask import Response               # Used to send the status updates
-from flask import jsonify                # Used to send JSON data
 import socket                            # Used to get the local IP address
 from .timer import Timer                 # Used to create the timers
 import datetime                          # Used to get the current time
 import subprocess                        # Used to run the shell commands
-import logging                           # Used to log the program
 import time                              # Used to sleep the program
 import threading                         # Used to run some tasks in a thread
 import markdown
@@ -41,6 +39,7 @@ import json
 #   trigger - Trigger a message
 #   update_status - Update the status of a specific client
 #   generate_css - Generate the CSS for the pages
+
 
 class ControlPanel:
     def __init__(self, room, script, overrides, crew, column1, column2, client_controller, site_folder_path, logger, room_length=60, reset_time=2.5, port=12413):
