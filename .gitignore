@@ -4,3 +4,4 @@ FROM LODOMODEV/
 **/EW.Logs/
 setups/control/
 escapewright/code_samurai
+**/*egg-info/**
