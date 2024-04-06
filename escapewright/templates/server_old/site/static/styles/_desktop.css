@@ -1,0 +1,92 @@
+/* Styles that apply to devices that are 768px wide or wider (typically tablets and desktops) */
+@media (min-width: 768px) {
+    body {
+        background-image: url('../images/dots-landscape.png');
+        background-size: auto 100%;
+    }
+
+    /* Disable Mobile Content */
+    /* Altered from _mobile.css */
+    .mobile-container {
+        display: none;
+    }
+
+    /* Enable Desktop Content */
+    /* Original to _desktop.css */
+    .desktop-container {
+        display: block;
+        height: 80vh; 
+        width: 100%;
+    }
+
+    /* Original to _desktop.css */
+    .desktop-content{
+        display: flex;
+        flex-direction: row;
+        height: 100%;
+    }
+
+    .pi-name {
+        display: block;
+        margin: auto;
+        margin-top: -50px;
+    }
+
+    .pi-name h1 {
+        font-size: 30px;
+        border: 3px solid var(--dark);
+        box-shadow: 5px 5px 0px var(--dark);
+    }
+
+    .controls {
+        display: flex;
+        flex-direction: column;
+        padding: 10px;
+        z-index: 0;
+        height: 100%;
+    }
+
+    .recent-activity {
+        display: block;
+        margin: 20px 75px 40px 0px;
+        border: 10px solid var(--dark);
+        border-bottom-left-radius: 50px;
+        width: 100%;
+        box-shadow: 20px 20px 0px var(--dark);
+        background-color: var(--light);
+        overflow-y: scroll;
+    }
+
+    .recent-activity h2 {
+        font-family: 'prime-bold';
+        font-size: 50px;
+        line-height: 0px;
+        padding-left: 10px;
+    }
+
+    .recent-activity p {
+        font-family: 'prime-regular';
+        font-size: 20px;
+    }
+
+    /* Altered from _mobile.css */
+    .status {
+        position: fixed;
+        top: 10px;
+        right: 20px;
+        font-size: 20px;
+    }
+
+    .desktop-footer {
+        position: absolute;
+        display: block;
+        width: 200px;
+        bottom: 10px;
+        right: 10px;
+    }
+
+    /* Modal Content/Box */
+    .modal-content {
+        scale: 1; 
+    }
+}

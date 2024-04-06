@@ -8,3 +8,4 @@
 
 # Still Testing
 from .log_manager import LogManager
+from .file_reader import FileReader

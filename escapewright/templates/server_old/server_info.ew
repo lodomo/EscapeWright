@@ -5,10 +5,10 @@
 # logging: True or False (if True, log file will be created)
 # log_level: DEBUG, INFO, WARNING, ERROR, CRITICAL
 
-name: SERVERNAME 
-role: rolefile 
-class: RoleClass 
-location: whereisit 
+name: Fake Maze 
+role: locknswitch 
+class: LockNSwitch 
+location: garage 
 port: 12413
 logging: True
 log_level: INFO 

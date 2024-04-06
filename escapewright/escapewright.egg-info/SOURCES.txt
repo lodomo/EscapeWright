@@ -1,0 +1,5 @@
+setup.py
+escapewright.egg-info/PKG-INFO
+escapewright.egg-info/SOURCES.txt
+escapewright.egg-info/dependency_links.txt
+escapewright.egg-info/top_level.txt

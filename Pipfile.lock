@@ -1,0 +1,25 @@
+{
+    "_meta": {
+        "hash": {
+            "sha256": "9d9dc882ab0164513aa8cce29aad429944646b7d5d3201110e3d3d9b735a0331"
+        },
+        "pipfile-spec": 6,
+        "requires": {
+            "python_version": "3.10"
+        },
+        "sources": [
+            {
+                "name": "pypi",
+                "url": "https://pypi.org/simple",
+                "verify_ssl": true
+            }
+        ]
+    },
+    "default": {},
+    "develop": {
+        "escapewright": {
+            "editable": true,
+            "path": "./escapewright"
+        }
+    }
+}
