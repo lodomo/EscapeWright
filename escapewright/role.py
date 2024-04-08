@@ -23,6 +23,7 @@
 
 import logging
 import threading
+import time
 
 from .enums import Status
 
@@ -57,10 +58,12 @@ from .enums import Status
 #       can_reset(): Checks if the role can be reset
 #       can_start(): Checks if the role can be started
 #       can_bypass(): Checks if the role can be bypassed
-#   Protected: (For the derived class to implement) ( _ prefix)
+#   Protected:  ( _ prefix)
 #       relay_trigger(event): Tells the listeners to relay a trigger
 #       add_triggers(triggers): Adds triggers to the role from derived class
 #       update_status(status): Updates the status of the role
+#
+#       (For the derived class to implement)
 #       load(): The load function for the role
 #       logic(): The main logic function for the role
 #       start(): The start function for the role
@@ -139,6 +142,7 @@ class Role:
         self.__running = True
         while self.running:
             self._logic()
+            time.sleep(1/60)  # 60Hz
         return
 
     def __start(self):
@@ -268,6 +272,13 @@ class Role:
     def _reset(self):
         raise NotImplementedError(
             "Reset function not implemented by derived class")
+
+    def _finish(self, event: str = None):
+        self.__running = False
+        self._update_status(Status.COMPLETE)
+        if event is not None:
+            self._relay_trigger(event)
+        return
 
     # Public Methods
     def sub_to_triggers(self, listener_function):

@@ -25,3 +25,4 @@ from .client import Client
 from .file_reader import FileReader
 from .log_manager import LogManager
 from .role import Role
+from .role_template import RoleTemplate
