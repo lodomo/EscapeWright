@@ -13,25 +13,12 @@
 # ------------------------------------------------------------------------------
 #
 # Author: Lorenzo D. Moon (Lodomo.Dev)
-# Date: April 6th 2023
-# Purpose: a Python Library for creating Escape Room / Immersive Experiences
-# Description: This library is designed to be used in creating escape room and
-#              immersive experiences.
+# Date:
+# Purpose:
+# Description:
 #
 ###############################################################################
 
-# Ignore warning for no import
-from .client import Client  # pylint: disable=unused-import
-from .file_reader import FileReader
-from .log_manager import LogManager
-from .role import Role
-
-if __name__ == "__main__":
-    print("This is a library for creating Escape Room / Immersive Experiences")
-    print("Please import this library into your project to use it.")
-    print("For more information, please visit the GitHub repository at:")
-    print("https://github.com/lodomo/EscapeWright")
-    print("Thank you for using this library!")
-    print("Good luck with your project!")
-    print("Happy Coding!")
-    print("-Lodomo")
+class Observer:
+    def __init__(self, data):
+        pass

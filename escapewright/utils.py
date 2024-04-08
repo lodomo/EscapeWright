@@ -13,25 +13,29 @@
 # ------------------------------------------------------------------------------
 #
 # Author: Lorenzo D. Moon (Lodomo.Dev)
-# Date: April 6th 2023
-# Purpose: a Python Library for creating Escape Room / Immersive Experiences
-# Description: This library is designed to be used in creating escape room and
-#              immersive experiences.
+# Date: 05 April 2024
+# Purpose: Utility functions for escape wright that didn't merit their own
+#          class/module.
+# Description: This file contains utility functions that are used throughout
+#              the EscapeWright package. These functions are not specific to
+#              any one class or module, and are used in multiple places.
+#
+#              Functions:
+#              is_valid_ip(ip: str) -> bool
+#
 #
 ###############################################################################
 
-# Ignore warning for no import
-from .client import Client  # pylint: disable=unused-import
-from .file_reader import FileReader
-from .log_manager import LogManager
-from .role import Role
+import ipaddress
 
-if __name__ == "__main__":
-    print("This is a library for creating Escape Room / Immersive Experiences")
-    print("Please import this library into your project to use it.")
-    print("For more information, please visit the GitHub repository at:")
-    print("https://github.com/lodomo/EscapeWright")
-    print("Thank you for using this library!")
-    print("Good luck with your project!")
-    print("Happy Coding!")
-    print("-Lodomo")
+
+def is_valid_ip(ip: str) -> bool:
+    try:
+        ipaddress.IPv4Address(ip)  # Check if it's a valid IPv4 address
+        return True
+    except ipaddress.AddressValueError:
+        try:
+            ipaddress.IPv6Address(ip)  # Check if it's a valid IPv6 address
+            return True
+        except ipaddress.AddressValueError:
+            return False

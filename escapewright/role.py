@@ -1,224 +1,294 @@
 ###############################################################################
 #
-#      Author: Lodomo.dev (Lorenzo D. Moon)
+#        ███████████ ████████    ████████████
+#        ██     ██      ██       ██   ██   ██ █
+#        ███████████ ██      ██  ██████████
+#        ██          ██ ██     ██████ ██     ██
+#        ███████████ █████    ██     ███████
+#                   █        █████████████████   ████████
+#                    █    █ ██   ██   ██  ██     ██   ██   ██
+#                     ████  ██████   ██  ██  █████████   ██
+#                      ████   ██  █   ██  ██   ████   ██   ██
+#                             ██   ████████████   ██   ██
+# -----------------------------------------------------------------------------
+#
+#      Author: Lorenzo D. Moon (Lodomo.Dev)
+#        Date:
 #     Purpose: Abstract Base Class for all roles in the experience.
-#     Updated: April 1st, 2024
 # Description: This serves as the base class for all the roles. It helps to
 #              ensure that all roles have the same structure and can be
 #              easily integrated into the experience.
 #
 ###############################################################################
 
+import logging
+import threading
+
+from .enums import Status
+
 # *** DO NOT CHANGE THIS FILE ***
 # Derive this class with the "role_template"
 # This class ensures that the role_template is implemented correctly
 
-# List of functions to implement
-# _load() - Unique load function for the role
-# _logic() - Unique logic function for the role
-# _stop() - Unique stop function for the role
-# _bypass() - Unique bypass function for the role
-
-# List of inherited functions
-# trigger_event(event)    - Trigger an event
-# update_status(status)   - Update the status of the role
-# log(message, level)     - Log a message to the logger
-
-# List of 'hidden' functions
-# set_observer(observer) - Set the observer for this role
-# process_message(message) - Process a message from the control panel
-# load()     - Load the pi's role
-# start()    - Start the pi's role
-# reset()    - Reset the pi's role
-# stop()     - Stop the pi's role
-# bypass()   - Bypass the pi's current taskrole
-# can_start(status)    - Check if the role is startable
-# can_bypass(status)   - Check if the role is bypassable
-# join_thread()           - Join the thread
-
-import datetime
-import threading
+#  Data Members:
+#   Private:
+#       status (str): The current status of the role
+#       role_thread (threading.Thread): The thread that the role runs on
+#       triggers (dict): The triggers that the role can respond to
+#       trigger_listeners (list): Outside that listen for sending triggers
+#       status_listeners (list): Outside that listen for status updates
+#       running (bool): Whether the role is running or not
+#
+#   Public:
+#       status (property): The current status of the role
+#       running (property): Whether the role is running or not
+#
+#  Methods:
+#   Private: (All Private methods have __ prefix)
+#       default_triggers(): Returns the default triggers for the role
+#       force_join_thread(): Forces the role thread to join and stop
+#       relay_status(status): Tells the listeners to relay a status
+#       load(): The load trigger function
+#       logic(): Keep a logic loop running ran as a thread from "start"
+#       start(): The start trigger function
+#       reset(): The reset trigger function
+#       stop(): The stop trigger function
+#       bypass(): The bypass trigger function
+#       can_reset(): Checks if the role can be reset
+#       can_start(): Checks if the role can be started
+#       can_bypass(): Checks if the role can be bypassed
+#   Protected: (For the derived class to implement) ( _ prefix)
+#       relay_trigger(event): Tells the listeners to relay a trigger
+#       add_triggers(triggers): Adds triggers to the role from derived class
+#       update_status(status): Updates the status of the role
+#       load(): The load function for the role
+#       logic(): The main logic function for the role
+#       start(): The start function for the role
+#       logic(): The main logic function for the role
+#       reset(): The reset function for the role
+#       stop(): The stop function for the role
+#       bypass(): The bypass function for the role
+#   Public: (For the client to use) (No prefix)
+#       sub_to_triggers(listener_function):
+#           Functions can subscribe to know when a trigger should be sent
+#           to the control panel. But it's not the role's responsibility.
+#       sub_to_status(listener_function):
+#           Functions can subscribe to know when the status changes
+#       process_message(message): Match functions to triggers and run them
+#
 
 
 class Role:
-    def __init__(self, data):
-        self.__status = None  # Property exists for status
+    # Data Members
+    def __init__(self):
+        self.__status = Status.INIT
         self.__role_thread = None
-        self.__triggers = self.__set_default_triggers()
+        self.__triggers = self.__default_triggers()
+        self.__trigger_listeners = None
+        self.__status_listeners = None
+        self.__running = False
 
     # Properties
     @property
     def status(self):
         return self.__status
 
-    # Public Functions
-    def trigger_event(self, event):
-        # Event is a string. This tells the control panel what event
-        # has been triggered
-        if self.observer:
-            self.observer.trigger(event)
-            return True
+    @property
+    def running(self):
+        return self.__running
 
-        self.log("No observer set for role", "ERROR")
-        return False
-
-    # Protected Functions
-
-    # Private Functions
-    def __set_triggers(self):
+    # Private Methods
+    def __default_triggers(self):
         triggers = {
-            "load": self.load,
-            "start": self.start,
-            "reset": self.reset,
-            "stop": self.stop,
+            "load": self.__load,
+            "start": self.__start,
+            "reset": self.__reset,
+            "stop": self.__stop,
+            "bypass": self.__bypass,
         }
-
-        # Run the _set_triggers function that should get overridden
-        # By the derived class (If there's unique triggers)
         return triggers
 
-    def __add_triggers(self, triggers: dict):
-        # TODO join "self.__triggers" with incoming "triggers"
-        # Check if the key is a string, and the data is a ref to a function
-        return True
-
-    def process_message(self, message):
-        # Process a message from the control panel
-        trigger_activated = False
-        for trigger in self.triggers:
-            if trigger in message:
-                self.triggers[trigger]()
-                trigger_activated = True
-        return trigger_activated
-
-    def force_join_thread(self):
-        if self.running:
-            self.running = False
-            if self.role_thread:
-                self.role_thread.join()
-                self.log("Role Thread Joined", "INFO")
+    def __force_join_thread(self):
+        if self.__running:
+            self.__running = False
+            if self.__role_thread:
+                self.__role_thread.join()
+                logging.info("Role Thread Joined")
             return True
         return False
 
-    def update_status(self, status):
-        # Update the status of the role.
-        self.status = status
-        self.log(f"Status Updated: {self.status}", "INFO")
-        if self.observer:
-            self.observer.update_status()
+    def __relay_status(self, status: Status) -> int:
+        if self.__status_listeners is None:
+            return 0
+
+        for listener in self.__status_listeners:
+            listener(status)
+
+        return len(self.__status_listeners)
+
+    def __load(self):
+        if not self.__can_load():
+            return False
+
+        # Load the puzzle
+        self._load()  # This should be a derived class function
+        self._update_status(Status.READY)
+        return True
+
+    def __logic(self):
+        self.__running = True
+        while self.running:
+            self._logic()
         return
 
-    def load(self):
-        # Load the puzzle
-        self.update_status("READY")
-        self.is_resetting = False
-        self._load()
+    def __start(self):
+        if not self.__can_start():
+            return False
+
+        self._start()  # Run the derived class start function
+        self.role_thread = threading.Thread(target=self.logic)
+        self._update_status(Status.ACTIVE)
         return True
+
+    def __reset(self):
+        if not self.__can_reset():
+            return False
+
+        self.__force_join_thread()
+        self._reset()  # Run the derived class reset function
+        self._update_status(Status.RESET)
+        return True
+
+    def __stop(self):
+        self.__force_join_thread()
+        self._stop()  # Run the derived class stop function
+        self._update_status(Status.STOPPED)
+        return True
+
+    def __bypass(self):
+        if not self.__can_bypass():
+            return False
+
+        self._bypass()  # Run the derived class bypass function
+        # Derived function to handle closing the thread, and updating status
+        # This is incase a role has multiple bypasses
+        return True
+
+    def __can_load(self):
+        if self.running:
+            logging.error("Role Thread already running")
+            return False
+        return True
+
+    def __can_start(self):
+        if self.running:
+            logging.error("Role Thread already running")
+            return False
+
+        if self.status != Status.READY:
+            logging.error(
+                "Cannot Start Role Thread from this status. Reset Required")
+            return False
+        return True
+
+    def __can_reset(self):
+        CAN_RESET_STATUSES = [
+            Status.READY,
+            Status.COMPLETE,
+            Status.STOPPED,
+            Status.BYPASSED,
+        ]
+        logging.debug("Reset Requested")
+
+        if self.status in CAN_RESET_STATUSES:
+            return True
+
+        return False
+
+    def __can_bypass(self):
+        if self.status == Status.BYPASSED:
+            return False
+
+        if self.status == Status.COMPLETE:
+            return False
+        return True
+
+    # Protected Methods
+    def _relay_trigger(self, event: str):
+        if self.__trigger_listeners is None:
+            return 0
+
+        for listener in self.__trigger_listeners:
+            listener(event)
+        return len(self.__trigger_listeners)
+
+    def _add_triggers(self, triggers: dict):
+        if not isinstance(triggers, dict):
+            raise TypeError("Triggers must be a dictionary")
+        # self._update_status(Status.BYPASSED) The derived bypass function handles this
+
+        # Make sure every key is a string, and every value is a function
+        for key in triggers:
+            if not isinstance(key, str):
+                raise TypeError("Trigger keys must be strings")
+            if not callable(triggers[key]):
+                raise TypeError("Trigger values must be functions")
+
+        self.__triggers.update(triggers)
+        return
+
+    def _update_status(self, status: Status) -> str:
+        # Update the status of the role.
+        # Send it to any listeners that are subscribed
+        self.__status = status
+        logging.info(f"Status Updated: {self.status}")
+        self.__relay_status(self.status)
+        return self.status
 
     def _load(self):
-        # This is the unique load function for the role
-        # This is where the unique load logic goes
-        self.log("No unique load function defined for empty role", "ERROR")
-        return False
-
-    def start(self):
-        if not self.can_start():
-            return False
-
-        self.update_status("ACTIVE")
-        self.log("Role Thread Started", "INFO")
-        self._start()
-        self.role_thread = threading.Thread(target=self.logic)
-        self.role_thread.start()
-        return True
-
-    def _start(self):
-        # This is the unique start function for the role
-        # This is where the unique start logic goes
-        self.log("No unique start function defined for empty role", "WARNING")
-        return False
-
-    def logic(self):
-        self.running = True
-        while self.running:
-            self.u_logic()
-        return
+        raise NotImplementedError(
+            "Load function not implemented by derived class")
 
     def _logic(self):
-        # This is the unique logic function for the role
-        # This is where the unique logic goes
-        self.log("No unique logic function defined for empty role", "ERROR")
-        self.running = False  # This is to prevent an infinite loop
-        return False
+        raise NotImplementedError(
+            "Logic function not implemented by derived class")
 
-    def reset(self):
-        CAN_RESET_STATUSES = ["COMPLETE", "STOPPED", "BYPASSED"]
-        self.log(f"Reset Requested", "DEBUG")
-
-        # If the role is already ready, then no reset is needed
-        if self.status == "READY":
-            self.log("Already ready, if need to trouble shoot, use Reboot", "INFO")
-            return True
-
-        # Tell the observer that the role is resetting
-        if self.observer != None:
-            self.observer.last_reset = datetime.datetime.now()
-
-        # If the role is already resetting, then no reset is needed
-        if self.status in CAN_RESET_STATUSES:
-            return self.load()
-
-        # If the role is active, then we need to stop the thread
-        if self.force_join_thread():
-            return self.load()
-        return False
-
-    def stop(self):
-        if self.status == "STOPPED":
-            self.log("Role already stopped", "WARNING")
-            return False
-
-        self.update_status("STOPPED")
-        self.force_join_thread()
-        self.u_stop()
-        return True
+    def _start(self):
+        raise NotImplementedError(
+            "Start function not implemented by derived class")
 
     def _stop(self):
-        # This is the unique stop function for the role
-        # This is where the unique stop logic goes
-        self.log("No unique stop function defined for this role", "WARNING")
-        return False
-
-    def bypass(self):
-        if not self.can_bypass():
-            return False
-
-        self.update_status("BYPASSED")
-        self.force_join_thread()
-        self._bypass()
-        return True
+        raise NotImplementedError(
+            "Stop function not implemented by derived class")
 
     def _bypass(self):
-        # TODO RAISE ERROR THIS HASNT BEEN IMPLEMENTED
+        raise NotImplementedError(
+            "Bypass function not implemented by derived class")
+
+    def _reset(self):
+        raise NotImplementedError(
+            "Reset function not implemented by derived class")
+
+    # Public Methods
+    def sub_to_triggers(self, listener_function):
+        if self.__trigger_listeners is None:
+            self.__trigger_listeners = []
+
+        self.__trigger_listeners.append(listener_function)
         return
 
-    def can_start(self):
-        if self.running:
-            self.log("Role Thread already running", "ERROR")
-            return False
+    def sub_to_status(self, listener_function):
+        if self.__status_listeners is None:
+            self.__status_listeners = []
 
-        if self.status != "READY":
-            # Log "Cannot Start Role Thread from this status. Reset Required", "ERROR"
-            return False
-        return True
+        self.__status_listeners.append(listener_function)
+        return
 
-    def can_bypass(self):
-        if self.status == "BYPASSED":
-            self.log("Role already bypassed", "ERROR")
-            return False
-
-        if self.status == "COMPLETE":
-            self.log("Role already complete.", "ERROR")
-            return False
-
-        return True
+    def process_message(self, message) -> bool:
+        # Get sent a message and check if it matches one of the triggers
+        trigger_activated = False
+        for trigger in self.__triggers:
+            if trigger in message:
+                self.__triggers[trigger]()
+                trigger_activated = True
+        return trigger_activated
