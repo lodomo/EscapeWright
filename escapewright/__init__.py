@@ -21,17 +21,7 @@
 ###############################################################################
 
 # Ignore warning for no import
-from .client import Client  # pylint: disable=unused-import
+from .client import Client
 from .file_reader import FileReader
 from .log_manager import LogManager
 from .role import Role
-
-if __name__ == "__main__":
-    print("This is a library for creating Escape Room / Immersive Experiences")
-    print("Please import this library into your project to use it.")
-    print("For more information, please visit the GitHub repository at:")
-    print("https://github.com/lodomo/EscapeWright")
-    print("Thank you for using this library!")
-    print("Good luck with your project!")
-    print("Happy Coding!")
-    print("-Lodomo")
