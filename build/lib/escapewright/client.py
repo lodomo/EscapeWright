@@ -27,7 +27,6 @@ import logging
 import os
 import subprocess
 from threading import Timer as ThreadTimer
-import sys
 
 from flask import Flask  # Flask is the web server
 from flask import render_template  # Render HTML templates
@@ -58,13 +57,13 @@ class Client(Observer):
 
         self.__last_relay = None
         self.__last_reset = None
-        self.__last_reboot = datetime.datetime.now() 
+        self.__last_reboot = None
         self.__last_visit = None
 
-        self.flaskapp = Flask(__name__)  # Flask app
-        self.flaskapp.static_folder = os.path.join(
+        self.__flaskapp = Flask(__name__)  # Flask app
+        self.__flaskapp.static_folder = os.path.join(
             data["site_path"], "static")
-        self.flaskapp.template_folder = os.path.join(
+        self.__flaskapp.template_folder = os.path.join(
             data["site_path"], "templates")
         return
 
@@ -264,7 +263,7 @@ class Client(Observer):
         subprocess.run(["sudo", "reboot", "now"])
 
     def __transmit_status(self):
-        logging.info(f"Transmitting Status: {self.role.status}")
+        self.log(f"Status Transmit: {self.role.status}", "INFO")
         self.transmitter.update_status(self.role.status)
         return
 
@@ -274,12 +273,12 @@ class Client(Observer):
         hours, remainder = divmod(uptime.seconds, 3600)
         minutes, seconds = divmod(remainder, 60)
         formatted_uptime = f"{days}d {hours}h {minutes}m {seconds}s"
-        logging.debug(f"Uptime Calculated: {formatted_uptime}")
+        self.log(f"Uptime Calculated: {formatted_uptime}", "DEBUG")
         return formatted_uptime
 
     def __trigger(self, event):
         self.transmitter.trigger(event)
-        logging.info(f"Triggered event: {event}")
+        self.log(f"Triggered event: {event}", "INFO")
         return
 
     def __task_responses(self, request, option):

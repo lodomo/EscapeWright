@@ -27,11 +27,6 @@
 ###############################################################################
 
 import ipaddress
-import os
-
-# from pynput.keyboard import Key, Controller
-
-# keyboard = Controller()
 
 
 def is_valid_ip(ip: str) -> bool:
@@ -44,25 +39,3 @@ def is_valid_ip(ip: str) -> bool:
             return True
         except ipaddress.AddressValueError:
             return False
-
-
-def relative_path(script, file_or_directory):
-    # Return the path to a file or directory relative to the script
-    # script should be __file__
-    # Generate the absolute path
-    abs_path = os.path.join(os.path.dirname(
-        os.path.abspath(script)), file_or_directory)
-
-    # Check if the path exists
-    if os.path.exists(abs_path):
-        return abs_path
-    else:
-        raise FileNotFoundError(f"The path {abs_path} does not exist.")
-
-
-# [def simulate_input(text: str):
-# TESTING NEEDS TO HAPPEN FOR THIS FUNCTION
-#   keyboard = Controller()
-#   keyboard.type(text)
-#   keyboard.press(Key.enter)
-#   return

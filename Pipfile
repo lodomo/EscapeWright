@@ -4,13 +4,8 @@ verify_ssl = true
 name = "pypi"
 
 [packages]
-# "flask" = "*"
-# "requests" = "*"
 
 [dev-packages]
-# "pytest" = "*"
-"escapewright" = {path = "./escapewright", editable = true}
 
 [requires]
 python_version = "3.10"
-

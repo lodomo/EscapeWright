@@ -38,7 +38,6 @@
 #
 ###############################################################################
 
-import importlib
 import logging
 
 
@@ -84,7 +83,7 @@ class FileReader:
 
         return data
 
-    def to_list(self, strip=True) -> list:
+    def to_list(self):
         if self.file_name is None:
             logging.error("No file loaded.")
             raise FileNotFoundError("No file loaded.")
@@ -93,8 +92,7 @@ class FileReader:
 
         with open(self.__file_name, "r") as file:
             for line in file:
-                if strip:
-                    line = line.strip()
+                line = line.strip()
                 if line.startswith("#"):
                     continue
                 elif line != "":

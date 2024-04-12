@@ -129,9 +129,6 @@ class Role:
 
         return len(self.__status_listeners)
 
-    def load(self):
-        return self.__load()
-
     def __load(self):
         if not self.__can_load():
             return False
@@ -145,7 +142,7 @@ class Role:
         self.__running = True
         while self.running:
             self._logic()
-            time.sleep(1 / 60)  # 60Hz
+            time.sleep(1/60)  # 60Hz
         return
 
     def __start(self):

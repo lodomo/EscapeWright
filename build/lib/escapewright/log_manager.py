@@ -45,9 +45,17 @@ class LogManager:
         self.__default_folder = "EWLogs"
         self.__start_day = "A new day begins."
         self.__close_log = "N.F.E.T.P."
+
+        self.__log_file_path = self.__create_log_file()
         self.__level = level
+        self.__configure_logger()
         self.__auto_refresh = auto_refresh
-        self.__log_file_path = None
+
+        logging.info("Logging service started.")
+
+        # If auto_refresh is set, then schedule the next log to be created.
+        if auto_refresh:
+            self.__prep_tomorrows_logs()
         return
 
     def __del__(self):
@@ -55,15 +63,6 @@ class LogManager:
         self.__level = None
         self.__auto_refresh = None
         pass
-
-    def run(self):
-        self.__log_file_path = self.__create_log_file()
-        self.__configure_logger()
-        logging.info("Logging service started.")
-
-        # If auto_refresh is set, then schedule the next log to be created.
-        if self.__auto_refresh:
-            self.__prep_tomorrows_logs()
 
     def override_log_file(self, file_name):
         # This method allows the user to override the log file name
