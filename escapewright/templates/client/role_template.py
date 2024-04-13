@@ -51,7 +51,7 @@ class RoleTemplate(Role):
 
         self._add_triggers(unique_triggers)
 
-    def __str__(self):
+    def __str__(self): 
         return "RoleTemplate"
 
     def __repr__(self):

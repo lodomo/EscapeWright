@@ -14,25 +14,28 @@
 #
 #      Author: Lorenzo D. Moon (Lodomo.Dev)
 #        Date: 11 April 2024
-#     Purpose: Sample (And most likely the used) Client Server
-# Description:
+#     Purpose: Sample Client Server Setup
+# Description: Settings for this server are defined in "client_info.ew"
 #
 ###############################################################################
 import importlib
 import logging
+import sys
 
 from escapewright import Client, FileReader, LogManager
+from escapewright.utils import relative_path
 
 
 def main():
-    log_manager = LogManager()        # Create the log manager
-    log_manager.run()                 # Run the logger
-    file_reader = FileReader("server_info.ew") # Load the settings file
-    data = file_reader.to_dict()      # Push that to a dictionary
-    data["role"] = create_role(data)  # Turn role into a role obj
-    disable_flask_log()               # Flask logs are too much
-    client = Client(data)             # Create the client to run
-    client.run()                      # Run the client
+    log_manager = LogManager()
+    log_manager.run()
+    file_reader = FileReader("client_info.ew")
+    data = file_reader.to_dict()
+    data["role"] = create_role(data)
+    data["site_path"] = find_file_or_dir("site")
+    disable_flask_log()
+    client = Client(data)
+    client.run()
     return
 
 
@@ -58,6 +61,20 @@ def disable_flask_log():
     flask_log = logging.getLogger("werkzeug")
     flask_log.disabled = True
     return
+
+
+def find_file_or_dir(filename):
+    # Load the file, and return it
+    # If the file is not found, log the error and exit:
+    try:
+        file = relative_path(__file__, filename)
+        logging.debug(f"Found {filename}")
+        return file
+    except FileNotFoundError as e:
+        logging.critical(f"{e}")
+        print(f"EW:CRITICAL: {e}")
+        print("Exiting...")
+        sys.exit(1)
 
 
 if __name__ == "__main__":

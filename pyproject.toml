@@ -32,6 +32,7 @@ dependencies = [
     "flask>=3.0.2", # For the web server
     "pynput>=1.7.6", # For the keyboard and mouse input
     "termcolor>=2.4.0", # For simulating terminal colors
+    "keyboard>=0.13.5", # For the keyboard input
 ]
 
 [tool.setuptools]

@@ -183,14 +183,14 @@ class Client(Observer):
             return self.__reboot(option)
 
     def __show_curtain(self):
-        delay = 5  # Minutes
+        delay = 5 * 60  # Seconds 
 
         # If it's the first visit, show the curtain
         if self.__last_visit is None:
             return True
 
         # If it's been >5 mins since the last visit, show the curtain
-        if (datetime.datetime.now() - self.__last_visit).minutes > delay:
+        if (datetime.datetime.now() - self.__last_visit).seconds > delay:
             return True
 
         return False

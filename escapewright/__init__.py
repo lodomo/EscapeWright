@@ -22,7 +22,7 @@
 
 # Ignore warning for no import
 from .client import Client
-from .enums import Status
+from .enums import Status, ResetKey
 from .file_reader import FileReader
 from .log_manager import LogManager
 from .role import Role
