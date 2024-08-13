@@ -1,5 +1,0 @@
-name: ROOM NAME 
-column1: COLUMN1 
-column2: COLUMN2
-logging: True
-log_level: INFO 

@@ -1,8 +1,0 @@
-# SETTINGS INFO:
-# name: name of the room for the control panel
-# logging: True or False (if True, log file will be created)
-# log_level: DEBUG, INFO, WARNING, ERROR, CRITICAL
-
-name: test name
-logging: True
-log_level: DEBUG

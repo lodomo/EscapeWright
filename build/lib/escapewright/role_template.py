@@ -31,7 +31,7 @@
 # import logging
 
 # from .enums import Status
-from escapewright import Role
+from .role import Role
 
 # FUNCTIONS YOU MIGHT NEED FROM THE ROLE CLASS:
 # --------------------------------------------
@@ -50,12 +50,6 @@ class RoleTemplate(Role):
         }
 
         self._add_triggers(unique_triggers)
-
-    def __str__(self):
-        return "RoleTemplate"
-
-    def __repr__(self):
-        return "RoleTemplate"
 
     def _load(self):
         return

@@ -78,21 +78,18 @@ from .enums import Status
 #       sub_to_status(listener_function):
 #           Functions can subscribe to know when the status changes
 #       process_message(message): Match functions to triggers and run them
+#
 
 
 class Role:
     # Data Members
     def __init__(self):
-        self.__status = Status.INIT.value
+        self.__status = Status.INIT
         self.__role_thread = None
         self.__triggers = self.__default_triggers()
         self.__trigger_listeners = None
         self.__status_listeners = None
         self.__running = False
-
-    def __str__(self):
-        # Name of the class : status
-        return f"{self.__class__.__name__}:{self.status}"
 
     # Properties
     @property
@@ -117,7 +114,6 @@ class Role:
     def __force_join_thread(self):
         if self.__running:
             self.__running = False
-            print("Reset in Progress. If you see this message, Press Enter")
             if self.__role_thread:
                 self.__role_thread.join()
                 logging.info("Role Thread Joined")
@@ -133,9 +129,6 @@ class Role:
 
         return len(self.__status_listeners)
 
-    def load(self):
-        return self.__load()
-
     def __load(self):
         if not self.__can_load():
             return False
@@ -149,7 +142,7 @@ class Role:
         self.__running = True
         while self.running:
             self._logic()
-            time.sleep(1 / 60)  # 60Hz
+            time.sleep(1/60)  # 60Hz
         return
 
     def __start(self):
@@ -157,19 +150,18 @@ class Role:
             return False
 
         self._start()  # Run the derived class start function
-        self.__role_thread = threading.Thread(target=self.__logic)
+        self.role_thread = threading.Thread(target=self.__logic)
         self._update_status(Status.ACTIVE)
-        self.__role_thread.start()
+        self.role_thread.start()
         return True
 
     def __reset(self):
-        self._update_status(Status.RESET)
         if not self.__can_reset():
             return False
-        
-        self.__running = False
+
+        self.__force_join_thread()
         self._reset()  # Run the derived class reset function
-        self.__load()
+        self._update_status(Status.RESET)
         return True
 
     def __stop(self):
@@ -182,7 +174,6 @@ class Role:
         if not self.__can_bypass():
             return False
 
-        self._update_status(Status.BYPASSED)
         self._bypass()  # Run the derived class bypass function
         # Derived function to handle closing the thread, and updating status
         # This is incase a role has multiple bypasses
@@ -206,10 +197,22 @@ class Role:
         return True
 
     def __can_reset(self):
+        CAN_RESET_STATUSES = [
+            Status.READY,
+            Status.COMPLETE,
+            Status.STOPPED,
+            Status.BYPASSED,
+        ]
         logging.debug("Reset Requested")
-        return True
+
+        if self.status in CAN_RESET_STATUSES:
+            return True
+
+        return False
 
     def __can_bypass(self):
+        if self.status == Status.BYPASSED:
+            return False
 
         if self.status == Status.COMPLETE:
             return False
@@ -276,7 +279,6 @@ class Role:
         self._update_status(Status.COMPLETE)
         if event is not None:
             self._relay_trigger(event)
-        self.__role_thread = None
         return
 
     # Public Methods
