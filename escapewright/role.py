@@ -90,6 +90,10 @@ class Role:
         self.__status_listeners = None
         self.__running = False
 
+    def __str__(self):
+        # Name of the class : status
+        return f"{self.__class__.__name__}:{self.status}"
+
     # Properties
     @property
     def status(self):
