@@ -1,7 +1,0 @@
-name: name 
-module: escapewright 
-role: RoleTemplate
-location: beaverton 
-port: 12413
-ip: 0.0.0.0
-control_ip: None

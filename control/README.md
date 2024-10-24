@@ -1,0 +1,2 @@
+- First you need to make a pipenv shell.
+- Dependancies 
