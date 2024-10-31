@@ -5,3 +5,4 @@ FROM LODOMODEV/
 setups/control/
 **/*egg-info/**
 /OLD/
+localpi.md
