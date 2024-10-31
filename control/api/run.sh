@@ -9,4 +9,5 @@ THREADS=4
 HOST=0.0.0.0
 PORT=12413
 
-pipenv run gunicorn --workers $WORKERS --threads $THREADS --bind $HOST:$PORT app:app
+# pipenv run gunicorn --workers $WORKERS --threads $THREADS --bind $HOST:$PORT app:app
+pipenv run gunicorn --worker-class gevent --workers 1 --threads 4 --bind $HOST:$PORT app:app

@@ -9,7 +9,6 @@
 
 import datetime
 import ipaddress
-import logging
 import subprocess
 
 import requests
@@ -36,6 +35,7 @@ class PiNode:
     -clear_status: Clears the status of the pi.
     -reach: Pings the pi to see if it is reachable.
     -get_status: Gets the status of the pi.
+    -relay: Sends a message to the pi.
     -soft_reset: Resets the pi without powering down.
     -to_dict: Returns the information of the pi in a dictionary.
     """
@@ -49,6 +49,9 @@ class PiNode:
         self.__status = ["OFFLINE"]
         self.__status_was = "OFFLINE"
         self.__status_time = [datetime.datetime.now()]
+
+    def __str__(self):
+        return f"PiNode: {self.name} | {self.status} | {self.location} | {self.address}"
 
     @property
     def port(self) -> str:
@@ -64,7 +67,7 @@ class PiNode:
         Returns the address of the pi. This is the IP address and the port
         number.
         """
-        self.address = f"http://{self.__ip}:{self.port}"
+        return f"http://{self.__ip}:{self.port}"
 
     @property
     def name(self) -> str:
@@ -210,12 +213,19 @@ class PiNode:
         """
         self.__status_was = self.__status
         self.__status = "RESETTING"
+        return self.relay("reset")
+
+    def relay(self, message) -> bool:
+        """
+        This sends a relay to the pi so it knows what is happening in the room.
+        Each pi module decides if it's important or not, this is NOT a command
+        this is purely sending a message.
+        """
         try:
-            response = requests.get(self.address + "/reset", timeout=5)
+            response = requests.get(self.address + "/relay/" + message, timeout=5)
             if response.status_code == 200:
                 return True
         except requests.exceptions.RequestException:
-            self.__status = "ERROR"
             return False
 
     def to_dict(self):
@@ -230,94 +240,3 @@ class PiNode:
         info["location"] = self.__location
         info["status"] = self.__status[-1]
         return info
-
-
-class PiNodeController:
-    """
-    TODO: Add a description of the class
-    """
-
-    def __init__(self, PiNodes: list):
-        self.__pi_nodes = PiNodes
-        self.__pi_nodes_dict = {pi.name: pi for pi in self.__pi_nodes}
-
-    @property
-    def all_ready(self) -> bool:
-        ready = True
-        for pi in self.__pi_nodes:
-            if pi.status != "READY":
-                logging.info(f"{pi.name: <15} - {pi.status: <10}")
-                ready = False
-        return ready
-
-    def __log_deltatime(self, time_start, message) -> None:
-        """
-        Logs the time taken to complete a task.
-        """
-        log_message = f"{
-            message} - Time taken: {datetime.datetime.now() - time_start}"
-        logging.info(log_message)
-        return
-
-    def get_statuses(self):
-        start = datetime.datetime.now()
-        for pi in self.__pi_nodes:
-            if pi.get_status():
-                print(f"{pi.name: <11} | {pi.status}")
-            else:
-                print(f"Failed to get status of {pi.name}")
-                print(f"Reaching out to {pi.name} at {pi.ip}...")
-                pi.reach()
-            logging.info(f"{pi.name: <15} - {pi.status: <10} - {pi.status_was: <10}")
-
-        self.__log_deltatime(start, "Refresh Statuses")
-
-    def soft_reset(self, name):
-        try:
-            pi = self.__pi_nodes_dict[name]
-        except KeyError:
-            self.if_print(f"Could not find {name} in PiNodes")
-            return None
-        return pi.soft_reset()
-
-    def full_soft_reset(self):
-        start = datetime.datetime.now()
-        for pi in self.__pi_nodes:
-            self.if_print(f"Soft resetting {pi.name}...")
-            success = pi.soft_reset()
-
-            if success:
-                logging.info(f"{pi.name: <15} - Soft Reset In Progress")
-            else:
-                logging.error(f"{pi.name: <15} - Failed to Soft Reset")
-
-        self.__log_deltatime(start, "Soft Reset")
-
-    def get_serializable_pis(self):
-        """
-        Returns a list of dictionaries that contain the information of the
-        Raspberry Pi Servers. This is used to send the information to the
-        Control Console for Javascript to use.
-        """
-        return [pi.to_dict() for pi in self.__pi_nodes]
-
-    def find_by_name(self, name) -> PiNode:
-        try:
-            return self.__pi_nodes_dict[name]
-        except KeyError:
-            self.if_print(f"Could not find {name} in PiNodes")
-            return None
-
-    def clear_statuses(self):
-        for pi in self.__pi_nodes:
-            pi.clear_status()
-
-
-class PiNodeCreator:
-    """
-    TODO
-    """
-
-    def __init__(self, pi_list_ew):
-        # TODO
-        pass

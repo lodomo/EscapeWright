@@ -25,3 +25,17 @@ It's easiest to let the installer do the work for you, download a little too muc
 and then clean up the junk you don't need.
 
 ////// TODO
+
+## Server Types
+
+### Control Panel
+The control panel runs two servers. A frontend and a backend. The frontend
+is purely to talk to the backend, and backend will be in communication with
+the raspberry pis throughout the room. The sub-pis are called "Modules"
+
+### Modules
+These modules are what actually are functioning in the room. They could be
+a puzzle, they could just be a screen somewhere. Most of them should need to
+"start, stop, and reset" and have a series of commands that do things directly.
+
+
