@@ -1,0 +1,11 @@
+{
+  "name": "controlpanel",
+  "version": "1.0.0",
+  "description": "Control Panel for the EscapeWright developed Simulated Reality",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Lorenzo D. Moon",
+  "license": "ISC"
+}
