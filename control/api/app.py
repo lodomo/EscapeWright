@@ -73,7 +73,7 @@ def toggle():
     global status
 
     # if the room is not running, start it.
-    if room_timer.start_time is None:
+    if room_timer.__start_time is None:
         room_timer.start()
         status = "RUNNING"
         logging.info("Starting room")
@@ -81,7 +81,7 @@ def toggle():
         return "Room Started"
 
     # if the room is running, pause it.
-    if not room_timer.is_paused:
+    if not room_timer.__is_paused:
         room_timer.pause()
         status = "PAUSED"
         logging.info("Pausing room")
