@@ -8,12 +8,21 @@
 #              Key Functions: Start, Pause, Resume, Stop, Reset, Get Time.
 #
 ###############################################################################
+
+import time
 from datetime import datetime, timedelta
+
+import redis
 
 
 class Timer:
     def __init__(self, length: int = 60):
         """
+        The timer class is tricky since it needs to be able to communicate
+        with any of the instances of the gunicorn server. Since this is shared
+        memory it needs to log and get all it's states from redis, not from
+        itself.
+
         Keep track of the room time for the Game Guide.
         Length - The length of the timer in minutes, defaults to 60 minutes.
 
@@ -37,53 +46,151 @@ class Timer:
         calc_time_remaining() - Calculate the time remaining.
         format_time() - Format the time for easy reading.
         """
+        self.r = redis.Redis(host="localhost", port=6379, db=0)
+        self.redis_key = "APIRoomTimer"
         self.__length = length
-        self.__start_time = None
-        self.__end_time = None
-        self.__paused_time = None
+        self.__start_time = 0
+        self.__end_time = 0
+        self.__paused_time = 0
+        self.__has_started = False
         self.__is_paused = False
         self.__is_stopped = False
 
+    def format_for_redis(self) -> str:
+        """
+        Format the data for saving to redis.
+        """
+        redis_format = f"{self.__length}:"
+        redis_format += f"{self.__start_time}:"
+        redis_format += f"{self.__end_time}:"
+        redis_format += f"{self.__paused_time}:"
+        redis_format += f"{self.__has_started}:"
+        redis_format += f"{self.__is_paused}:"
+        redis_format += f"{self.__is_stopped}"
+        return redis_format
+
+    def save_to_redis(self):
+        """
+        Save the timer data to the redis key
+        """
+        try:
+            self.r.set(self.redis_key, self.format_for_redis())
+        except Exception as e:
+            print(f"Error saving to redis: {str(e)}")
+            return False
+        return True
+
+    def load_from_redis(self):
+        """
+        Load the timer data from the redis key. This should be done
+        when the timer is doing anything to change states incase it already
+        did change a state.
+        """
+        try:
+            data = self.r.get(self.redis_key)
+        except Exception as e:
+            print(f"Error loading from redis: {str(e)}")
+            return False
+
+        if data is None:
+            print("No timer data found in redis.")
+            return False
+
+        data = data.decode("utf-8").split(":")
+        self.__start_time = int(data[1])
+        self.__end_time = int(data[2])
+        self.__paused_time = int(data[3])
+        self.__has_started = self.string_to_bool(data[4])
+        self.__is_paused = self.string_to_bool(data[5])
+        self.__is_stopped = self.string_to_bool(data[6])
+        return True
+
+    def string_to_bool(self, string: str) -> bool:
+        """
+        Convert a string to a boolean.
+        """
+        if string == "True":
+            return True
+        elif string == "False":
+            return False
+        raise ValueError("String is not a boolean.")
+
     @property
-    def length(self):
+    def length(self) -> int:
+        """
+        Returns the length of the timer. This is set at the start
+        of runtime and cannot be dynamically changed.
+        """
         return self.__length
 
     @property
-    def start_time(self):
+    def start_time(self) -> int:
+        """
+        Returns an ugly int start time, this is purely for debugging
+        """
+        self.load_from_redis()
         return self.__start_time
 
     @property
     def end_time(self):
+        """
+        Returns an ugly int end time, this is purely for debugging
+        """
+        self.load_from_redis()
         return self.__end_time
 
     @property
     def paused_time(self):
+        """
+        Returns an ugly int paused time, this is purely for debugging
+        """
+        self.load_from_redis()
         return self.__paused_time
 
     @property
+    def has_started(self):
+        """
+        Check if the timer has started.
+        """
+        self.load_from_redis()
+        return self.__has_started
+
+    @property
     def is_paused(self):
+        """
+        Check if the timer is paused.
+        """
+        self.load_from_redis()
         return self.__is_paused
 
     @property
     def is_stopped(self):
+        """
+        Check if the timer is stopped
+        """
+        self.load_from_redis()
         return self.__is_stopped
 
     # Start the timer
-    def start(self) -> datetime:
+    def start(self) -> bool:
         """
         Starts the timer.
         If the time is already running, raise a ValueError.
         Sets start time to now, and sets endtime based on "self.length".
         """
-        if self.__start_time is not None:
-            raise ValueError("Timer is already running.")
+        self.load_from_redis()
+
+        if self.__has_started:
+            return False
 
         if self.__is_stopped:
             raise ValueError("Timer is stopped. Reset the timer to start.")
 
-        self.__start_time = datetime.now()
-        self.__end_time = self.__start_time + timedelta(minutes=self.__length)
-        return self.start_time
+        self.__has_started = True
+        self.__start_time = int(time.time())
+        self.__end_time = int(time.time()) + (self.__length * 60)
+        self.save_to_redis()
+        return True
 
     def pause(self):
         """
@@ -91,11 +198,13 @@ class Timer:
         On resume, the time will be adjusted to account for the pause.
         Raises an error if the timer is already paused.
         """
+        self.load_from_redis()
         if self.__is_paused:
             raise ValueError("Timer is already paused.")
 
-        self.__paused_time = datetime.now()
+        self.__paused_time = int(time.time())
         self.__is_paused = True
+        self.save_to_redis()
         return
 
     def resume(self):
@@ -103,12 +212,14 @@ class Timer:
         Resumes the timer accounting for the time paused.
         Raises an error if the timer is not paused.
         """
+        self.load_from_redis()
         if not self.__is_paused:
             raise ValueError("Timer can't resume if it's not paused.")
 
         delta = datetime.now() - self.__paused_time
         self.__end_time += delta
         self.__is_paused = False
+        self.save_to_redis()
         return
 
     def stop(self):
@@ -117,7 +228,9 @@ class Timer:
         The timer can't be resumed after being stopped!
         You must reset the timer to start it again.
         """
+        self.load_from_redis()
         self.__is_stopped = True
+        self.save_to_redis()
         return
 
     def reset(self) -> None:
@@ -127,9 +240,10 @@ class Timer:
         If you call reset, it resets.
         Always succeeds.
         """
-        self.__start_time = None
-        self.__end_time = None
-        self.__paused_time = None
+        self.__start_time = 0
+        self.__end_time = 0
+        self.__paused_time = 0
+        self.__has_started = False
         self.__is_paused = False
         self.__is_stopped = False
         return
@@ -141,6 +255,7 @@ class Timer:
         If the timer is stopped, return "STOPPED".
         Format is "HH:MM:SS"
         """
+        self.load_from_redis()
         if self.__is_paused:
             return "PAUSED"
 
@@ -149,26 +264,29 @@ class Timer:
 
         return self.__format_time()
 
-    def __calc_time_remaining(self) -> timedelta:
+    def __calc_time_remaining(self) -> int:
         """
         Calculate the time remaining on the timer. Returns a timedelta object.
         This should be only ran internally, and not called by the user.
         """
+        self.load_from_redis()
         time_remaining = None
 
-        if self.__start_time is None:
-            time_remaining = timedelta(minutes=self.__length)
+        if not self.__has_started:
+            time_remaining = self.__length * 60
         else:
-            time_remaining = self.__end_time - datetime.now()
-        if time_remaining.total_seconds() <= 0:
-            return timedelta(seconds=0)
+            time_remaining = int(self.__end_time) - int(time.time())
+
+        if time_remaining <= 0:
+            return 0
         return time_remaining
 
     def __format_time(self) -> str:
         """
         Format the time in a string of "HH:MM:SS"
         """
+        self.load_from_redis()
         remaining = self.__calc_time_remaining()
-        hrs, remainder = divmod(remaining.total_seconds(), 3600)
+        hrs, remainder = divmod(remaining, 3600)
         mins, secs = divmod(remainder, 60)
         return "{:02}:{:02}:{:02}".format(int(hrs), int(mins), int(secs))

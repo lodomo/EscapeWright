@@ -9,39 +9,88 @@
 #
 ###############################################################################
 
-import redis
 from flask import Flask
+from src.redis_funcs import get_unique_id
+from src.timer import Timer
 
 app = Flask(__name__)
+worker_key = get_unique_id("APIWorkerID")
+timer = Timer()
 
-
-def increment_worker_key():
-    r = redis.Redis(host='localhost', port=6379, db=0)
-    redis_key = "APIWorkerID"
-    lock = r.lock("worker_lock", timeout=5)
-
-    try:
-        if lock.acquire(blocking=True):
-            if not r.exists(redis_key):
-                r.set(redis_key, 0)
-            cur = r.get(redis_key)
-            r.incr(redis_key)
-            return int(cur)
-        else:
-            print("Could not acquire lock.")
-            exit(1)
-    finally:
-        # Release the lock
-        lock.release()
-
-
-worker_key = increment_worker_key()
-print(f"I am worker {worker_key}")
+# First worker kinda shit
+if worker_key == 0:
+    timer.save_to_redis()
 
 
 @app.route("/")
 def home():
-    return f"You're talking to worker {worker_key}"
+    return f"Worker {worker_key}, reporting for duty!"
+
+
+@app.route("/start/", defaults={"gameguide": "None", "players": "None"})
+@app.route("/start/<gameguide>/<players>", methods=["POST"])
+def start(gameguide, players):
+    """
+    Start the room!
+    Get the gameguide name and number of players
+    This will eventually log the room running in a database
+    """
+    toggle()
+    return "Room Started", 200
+
+
+@app.route("/time_remaining", methods=["GET"])
+def time_remaining():
+    return timer.get_time()
+
+
+@app.route("/toggle", methods=["POST"])
+def toggle():
+
+    if not timer.has_started:
+        timer.start()
+        broadcast("room_start")
+        return "Room Started"
+
+    if not timer.is_paused:
+        timer.pause()
+        broadcast("pause")
+        return "Room Paused"
+
+    timer.resume()
+    broadcast("resume")
+    return "Room Resumed"
+
+
+@app.route("/trigger/<message>", methods=["POST"])
+def trigger(self, message):
+    broadcast(message)
+    return
+
+
+def broadcast(message: str):
+    """
+    TODO
+    """
+    print("TODO")
+    return
+
+
+def get_pi_statuses():
+    """
+    Get the statuses of all the pi nodes.
+    """
+    print("TODO")
+    return
+
+
+def aggressively_get_pi_statuses():
+    """
+    Get the statuses of all the pi nodes.
+    Do not stop until all the statuses are received as Ready.
+    """
+    print("TODO")
+    return
 
 
 """
@@ -58,12 +107,6 @@ status = "idle"
 # from src.pi_node import PiNode
 from src.pi_node_controller import PiNodeController
 from src.pi_node_generator import PiNodeGenerator
-from src.timer import Timer
-
-@app.route("/")
-def home():
-    return "There is no reason to be here."
-
 
 @app.route("/time_remaining", methods=["GET"])
 def time_remaining():
