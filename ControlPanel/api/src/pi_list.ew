@@ -1,4 +1,5 @@
 #NAME:IP:ROOMNAME
 #Example: if the pi is named Pi, the IP is 192.168.1.138, and the room is Living Room
 #Pi:192.168.1.138:LR
-Pi_Test:192.168.1.138:LR
+callisto:192.168.254.201:LivingRoom
+aoede:192.168.254.200:LivingRoom

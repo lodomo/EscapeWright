@@ -16,6 +16,7 @@ import ipaddress
 import subprocess
 import time
 
+import redis
 import requests
 
 
@@ -25,6 +26,9 @@ class PiNode:
     It takes in a name, The last 3 digits of the IP address, and the location
     of the pi. The location is to differetiate between the different rooms in
     the simulated reality experience.
+
+    The PiNodes load themselves into Redis, or retrieve themselves from Redis.
+    No other class should need to know this happened.
 
     Public Properties:
     -port: The port number of the pi. This is hardcoded to be 12413.
@@ -47,6 +51,7 @@ class PiNode:
 
     def __init__(self, name, ip_address, location=None):
         self.redis_key = f"PiNode:{name}"
+        self.r = redis.Redis(host="localhost", port=6379, db=0)
         self.__name = name
         self.__ip = self.__validate_ip(ip_address)
         self.__location = location
@@ -54,6 +59,7 @@ class PiNode:
         self.__status_was = "OFFLINE"
         self.__status_time = time.time()
         self.__reachable = False
+        self.__init_to_redis()
 
     def __str__(self):
         redis_format = f"{self.name}:{self.ip}:{self.location}"
@@ -61,7 +67,21 @@ class PiNode:
         redis_format += f":{self.reachable}"
         return redis_format
 
-    def save_to_redis(self):
+    def __init_to_redis(self):
+        """
+        Initialize the PiNode to redis.
+        If the key already exists, load the data.
+        """
+        data = self.r.get(self.redis_key)
+
+        if data is None:
+            self.__save_to_redis()
+            return
+        else:
+            self.__load_from_redis()
+        return
+
+    def __save_to_redis(self):
         """
         Save the timer data to the redis key
         """
@@ -72,25 +92,23 @@ class PiNode:
             return False
         return True
 
-    def load_from_redis(self):
+    def __load_from_redis(self):
         """
         Load the PiNode from redis.
         """
-        try:
-            data = self.r.get(self.redis_key)
-        except Exception as e:
-            print(f"Error loading from redis: {str(e)}")
-            return False
+        data = self.r.get(self.redis_key)
 
         if data is None:
-            print(f"Could not find {self.redis_key} in redis.")
+            # This should be redundant, but could protect in the case
+            # of a redis reset.
+            self.__save_to_redis()
             return False
 
         data = data.decode("utf-8").split(":")
         self.__location = data[2]
         self.__status = data[3]
         self.__status_was = data[4]
-        self.__status_time = int(data[5])
+        self.__status_time = int(float(data[5]))
         self.__reachable = self.string_to_bool(data[6])
         return True
 
@@ -121,6 +139,13 @@ class PiNode:
         return f"http://{self.__ip}:{self.port}"
 
     @property
+    def ip(self) -> str:
+        """
+        Returns the IP address of the pi.
+        """
+        return str(self.__ip)
+
+    @property
     def name(self) -> str:
         """
         Returns the name of the pi.
@@ -149,6 +174,13 @@ class PiNode:
         return self.__status_was
 
     @property
+    def status_time(self) -> int:
+        """
+        Returns the time the status was last updated.
+        """
+        return self.__status_time
+
+    @property
     def reachable(self) -> bool:
         """
         Returns if the pi is reachable.
@@ -163,15 +195,13 @@ class PiNode:
         """
         This updates the status of the pi. This is useful when the pi is
         resetting, and the status is not immediately available.
-
-        This adds the status to the end of the list of the statuses so there
-        is a stack of the statuses to look at.
         """
+        self.__status_was = self.__status
         self.__status = status
         self.__status_time = time.time()
         return
 
-    def __validate_ip(self, ipid) -> ipaddress.IPv4Address:
+    def __validate_ip(self, ipid) -> str:
         """
         Check if the ip address is valid. If it is, return the ip address.
         If it is not, this is an unrecoverable error, and the program will
@@ -179,7 +209,7 @@ class PiNode:
         """
         try:
             ip = ipaddress.ip_address(ipid)
-            return ip
+            return str(ip)
         except ValueError:
             print(f"Invalid IP address: {ipid}")
             exit(1)
@@ -189,11 +219,12 @@ class PiNode:
         This clears the current status of the pi. This is useful when
         resetting a room.
         """
-        self.load_from_redis()
+        self.__load_from_redis()
         self.__status = "OFFLINE"
         self.__status_was = "OFFLINE"
+        self.__status_time = int(time.time())
         self.__reachable = False
-        self.save_to_redis()
+        self.__save_to_redis()
         return
 
     def reach(self) -> bool:
@@ -207,10 +238,7 @@ class PiNode:
         This WILL NOT catch if the pi has failed without being cleared first,
         or if the "get_status" fails then the "reachable" will be set to False.
         """
-        self.load_from_redis()
-        if self.__reachable:
-            return True
-
+        self.__load_from_redis()
         try:
             response = subprocess.run(
                 ["ping", "-c", "1", self.__ip],
@@ -224,7 +252,7 @@ class PiNode:
         except Exception as e:
             print(f"An error occurred: {e}")
             self.__reachable = False
-        self.save_to_redis()
+        self.__save_to_redis()
         return self.__reachable
 
     def get_status(self) -> bool:
@@ -235,7 +263,7 @@ class PiNode:
 
         The actual status needs to be pulled from the status variable.
         """
-        self.load_from_redis()
+        self.__load_from_redis()
         self.__status_was = self.__status.copy()
         try:
             response = requests.get(self.address + "/status", timeout=10)
@@ -248,7 +276,7 @@ class PiNode:
             print(f"An error occurred: {e}")
             self.__status = "ERROR"
             self.__reachable = False
-        self.save_to_redis()
+        self.__save_to_redis()
         return self.__reachable
 
     def soft_reset(self) -> bool:
@@ -261,10 +289,10 @@ class PiNode:
         A soft reset means "software reset" the raspberry pi should not
         power down.
         """
-        self.load_from_redis()
+        self.__load_from_redis()
         self.__status_was = self.__status
         self.__status = "RESETTING"
-        self.save_to_redis()
+        self.__save_to_redis()
         return self.relay("reset")
 
     def relay(self, message) -> bool:
@@ -287,7 +315,7 @@ class PiNode:
         It includes "name", "ip", "location", and "status" as keys
         and the corresponding values as strings.
         """
-        self.load_from_redis()
+        self.__load_from_redis()
         info = {}
         info["name"] = self.__name
         info["ip"] = self.address
@@ -312,6 +340,15 @@ class PiNodeController:
             if pi.status != "READY":
                 ready = False
         return ready
+
+    def reach_all(self):
+        """
+        Purely just checks if the pis are reachable.
+        Does not check if their servers are online
+        Used for testing network and not for production.
+        """
+        for pi in self.__pi_nodes:
+            pi.reach()
 
     def print_all(self):
         for pi in self.__pi_nodes:
@@ -359,14 +396,13 @@ class PiNodeController:
         for pi in self.__pi_nodes:
             pi.relay(message)
 
-    def clear_statuses(self):
+    def clear_all_statuses(self):
         for pi in self.__pi_nodes:
             pi.clear_status()
 
 
 class PiNodeGenerator:
     """
-    TODO
     """
 
     def __init__(self, pi_list_ew):

@@ -12,14 +12,15 @@
 from flask import Flask
 from src.redis_funcs import get_unique_id
 from src.timer import Timer
+from src.pi_node import PiNodeGenerator, PiNodeController
 
 app = Flask(__name__)
 worker_key = get_unique_id("APIWorkerID")
-timer = Timer()
+timer = Timer()  # Timer shared in redis database
 
-# First worker kinda shit
-if worker_key == 0:
-    timer.save_to_redis()
+pi_list_file = "./src/pi_list.ew"
+pi_node_generator = PiNodeGenerator(pi_list_file)
+pi_node_controller = PiNodeController(pi_node_generator.generate())
 
 
 @app.route("/")

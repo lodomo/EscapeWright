@@ -15,7 +15,7 @@ import redis
 
 
 class Timer:
-    def __init__(self, length: int = 60):
+    def __init__(self, length: int = 60, redis_key: str = "APIRoomTimer"):
         """
         The timer class is tricky since it needs to be able to communicate
         with any of the instances of the gunicorn server. Since this is shared
@@ -46,7 +46,7 @@ class Timer:
         format_time() - Format the time for easy reading.
         """
         self.r = redis.Redis(host="localhost", port=6379, db=0)
-        self.redis_key = "APIRoomTimer"
+        self.redis_key = redis_key
         self.__length = length
         self.__start_time = 0
         self.__end_time = 0
