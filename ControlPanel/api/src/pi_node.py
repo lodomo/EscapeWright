@@ -4,12 +4,17 @@
 #     Purpose: Everything a Raspberry Pi Server Needs
 #     Version: 1.10.22 - Updated from Code Samurai
 # Description: PiNode, PiNodeController, and PiNodeCreator
+#              PiNode - The information needed to talk to a Raspberry Pi
+#                       It maintains all it's information on redis.
+#              PiNodeController - Controls all the PiNodes.
+#              PiNodeCreator - Creates PiNodes from a file.
 #
 ###############################################################################
 
 import datetime
 import ipaddress
 import subprocess
+import time
 
 import requests
 
@@ -41,17 +46,63 @@ class PiNode:
     """
 
     def __init__(self, name, ip_address, location=None):
+        self.redis_key = f"PiNode:{name}"
         self.__name = name
         self.__ip = self.__validate_ip(ip_address)
         self.__location = location
-
-        self.__reachable = False  # Is the Pi reachable?
-        self.__status = ["OFFLINE"]
+        self.__status = "OFFLINE"
         self.__status_was = "OFFLINE"
-        self.__status_time = [datetime.datetime.now()]
+        self.__status_time = time.time()
+        self.__reachable = False
 
     def __str__(self):
-        return f"PiNode: {self.name} | {self.status} | {self.location} | {self.address}"
+        redis_format = f"{self.name}:{self.ip}:{self.location}"
+        redis_format += f":{self.status}:{self.status_was}:{self.status_time}"
+        redis_format += f":{self.reachable}"
+        return redis_format
+
+    def save_to_redis(self):
+        """
+        Save the timer data to the redis key
+        """
+        try:
+            self.r.set(self.redis_key, self.__str__())
+        except Exception as e:
+            print(f"Error saving to redis: {str(e)}")
+            return False
+        return True
+
+    def load_from_redis(self):
+        """
+        Load the PiNode from redis.
+        """
+        try:
+            data = self.r.get(self.redis_key)
+        except Exception as e:
+            print(f"Error loading from redis: {str(e)}")
+            return False
+
+        if data is None:
+            print(f"Could not find {self.redis_key} in redis.")
+            return False
+
+        data = data.decode("utf-8").split(":")
+        self.__location = data[2]
+        self.__status = data[3]
+        self.__status_was = data[4]
+        self.__status_time = int(data[5])
+        self.__reachable = self.string_to_bool(data[6])
+        return True
+
+    def string_to_bool(self, string: str) -> bool:
+        """
+        Convert a string to a boolean.
+        """
+        if string == "True":
+            return True
+        elif string == "False":
+            return False
+        raise ValueError("String is not a boolean.")
 
     @property
     def port(self) -> str:
@@ -88,7 +139,7 @@ class PiNode:
         """
         Returns the status of the pi.
         """
-        return self.__status[-1]
+        return self.__status
 
     @property
     def status_was(self) -> str:
@@ -96,13 +147,6 @@ class PiNode:
         Returns the status of the pi before the last update.
         """
         return self.__status_was
-
-    @property
-    def statuses(self) -> list:
-        """
-        Returns all the statuses of the pi since the last reboot.
-        """
-        return self.__status
 
     @property
     def reachable(self) -> bool:
@@ -113,7 +157,7 @@ class PiNode:
 
     @property
     def changed(self) -> bool:
-        return self.__status[-1] != self.__status_was
+        return self.__status != self.__status_was
 
     def __update_status(self, status) -> None:
         """
@@ -123,8 +167,8 @@ class PiNode:
         This adds the status to the end of the list of the statuses so there
         is a stack of the statuses to look at.
         """
-        self.__status.append(status)
-        self.__status_time.append(datetime.datetime.now())
+        self.__status = status
+        self.__status_time = time.time()
         return
 
     def __validate_ip(self, ipid) -> ipaddress.IPv4Address:
@@ -145,8 +189,11 @@ class PiNode:
         This clears the current status of the pi. This is useful when
         resetting a room.
         """
+        self.load_from_redis()
         self.__status = "OFFLINE"
+        self.__status_was = "OFFLINE"
         self.__reachable = False
+        self.save_to_redis()
         return
 
     def reach(self) -> bool:
@@ -160,6 +207,7 @@ class PiNode:
         This WILL NOT catch if the pi has failed without being cleared first,
         or if the "get_status" fails then the "reachable" will be set to False.
         """
+        self.load_from_redis()
         if self.__reachable:
             return True
 
@@ -176,6 +224,7 @@ class PiNode:
         except Exception as e:
             print(f"An error occurred: {e}")
             self.__reachable = False
+        self.save_to_redis()
         return self.__reachable
 
     def get_status(self) -> bool:
@@ -186,7 +235,8 @@ class PiNode:
 
         The actual status needs to be pulled from the status variable.
         """
-        self.__status_was = self.__status[-1].copy()
+        self.load_from_redis()
+        self.__status_was = self.__status.copy()
         try:
             response = requests.get(self.address + "/status", timeout=10)
             if response.status_code == 200:
@@ -198,7 +248,7 @@ class PiNode:
             print(f"An error occurred: {e}")
             self.__status = "ERROR"
             self.__reachable = False
-
+        self.save_to_redis()
         return self.__reachable
 
     def soft_reset(self) -> bool:
@@ -211,8 +261,10 @@ class PiNode:
         A soft reset means "software reset" the raspberry pi should not
         power down.
         """
+        self.load_from_redis()
         self.__status_was = self.__status
         self.__status = "RESETTING"
+        self.save_to_redis()
         return self.relay("reset")
 
     def relay(self, message) -> bool:
@@ -222,7 +274,8 @@ class PiNode:
         this is purely sending a message.
         """
         try:
-            response = requests.get(self.address + "/relay/" + message, timeout=5)
+            response = requests.get(
+                self.address + "/relay/" + message, timeout=5)
             if response.status_code == 200:
                 return True
         except requests.exceptions.RequestException:
@@ -234,9 +287,125 @@ class PiNode:
         It includes "name", "ip", "location", and "status" as keys
         and the corresponding values as strings.
         """
+        self.load_from_redis()
         info = {}
         info["name"] = self.__name
         info["ip"] = self.address
         info["location"] = self.__location
-        info["status"] = self.__status[-1]
+        info["status"] = self.__status
         return info
+
+
+class PiNodeController:
+    """
+    TODO: Add a description of the class
+    """
+
+    def __init__(self, pi_nodes: list):
+        self.__pi_nodes = pi_nodes
+        self.__pi_nodes_dict = {pi.name: pi for pi in self.__pi_nodes}
+
+    @property
+    def all_ready(self) -> bool:
+        ready = True
+        for pi in self.__pi_nodes:
+            if pi.status != "READY":
+                ready = False
+        return ready
+
+    def print_all(self):
+        for pi in self.__pi_nodes:
+            print(pi)
+
+    def get_statuses(self):
+        start = datetime.datetime.now()
+        for pi in self.__pi_nodes:
+            if pi.get_status():
+                print(f"{pi.name: <11} | {pi.status}")
+            else:
+                print(f"Failed to get status of {pi.name}")
+                print(f"Reaching out to {pi.name} at {pi.ip}...")
+                pi.reach()
+
+        self.__log_deltatime(start, "Refresh Statuses")
+
+    def soft_reset(self, name):
+        pi = self.find_by_name(name)
+        return pi.soft_reset()
+
+    def full_soft_reset(self):
+        for pi in self.__pi_nodes:
+            pi.soft_reset()
+
+    def get_serializable_pis(self):
+        """
+        Returns a list of dictionaries that contain the information of the
+        Raspberry Pi Servers. This is used to send the information to the
+        Control Console for Javascript to use.
+        """
+        return [pi.to_dict() for pi in self.__pi_nodes]
+
+    def find_by_name(self, name) -> PiNode:
+        try:
+            return self.__pi_nodes_dict[name]
+        except KeyError:
+            print(f"This should never happen, but {name} was not found.")
+            return None
+
+    def relay(self, message):
+        """
+        Relay a message to all the pi nodes.
+        """
+        for pi in self.__pi_nodes:
+            pi.relay(message)
+
+    def clear_statuses(self):
+        for pi in self.__pi_nodes:
+            pi.clear_status()
+
+
+class PiNodeGenerator:
+    """
+    TODO
+    """
+
+    def __init__(self, pi_list_ew):
+        self.pi_list_ew = pi_list_ew
+        return
+
+    def generate(self):
+        return self.__parse_pi_list()
+
+    def __parse_pi_list(self) -> list:
+        """
+        Parses the pi_list_ew and returns a list of PiNode objects.
+        Format of pi_list_ew:
+        name:ip:location\n
+        """
+
+        pi_list_ew = self.pi_list_ew
+        pi_nodes = []
+
+        # Open file and read the lines
+        try:
+            with open(pi_list_ew, "r") as file:
+                lines = file.readlines()
+        except FileNotFoundError:
+            print(f"Critical Error: Could not find file {pi_list_ew}")
+            exit(1)
+
+        # Parse the lines
+        for line in lines:
+            line = line.strip()
+            # If line starts with #, it is a comment, ignore it
+            if line.startswith("#"):
+                continue
+            if line:
+                pi = line.split(":")
+                if len(pi) == 3:
+                    name, ip, location = pi
+                    pi_node = PiNode(name, ip, location)
+                    pi_nodes.append(pi_node)
+                else:
+                    print(f"Error: Could not parse line {line})")
+        return pi_nodes

@@ -10,8 +10,7 @@
 ###############################################################################
 
 import time
-from datetime import datetime, timedelta
-
+from datetime import datetime
 import redis
 
 
@@ -56,7 +55,7 @@ class Timer:
         self.__is_paused = False
         self.__is_stopped = False
 
-    def format_for_redis(self) -> str:
+    def __str__(self) -> str:
         """
         Format the data for saving to redis.
         """
@@ -74,7 +73,7 @@ class Timer:
         Save the timer data to the redis key
         """
         try:
-            self.r.set(self.redis_key, self.format_for_redis())
+            self.r.set(self.redis_key, self.__str__())
         except Exception as e:
             print(f"Error saving to redis: {str(e)}")
             return False
