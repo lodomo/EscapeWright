@@ -1,4 +1,4 @@
-###############################################################################
+#############################################################################
 #
 #      Author: Lorenzo D. Moon
 #     Purpose: Control the A Simulated Reality Experience
@@ -9,14 +9,43 @@
 #
 ###############################################################################
 
-import logging
-import time
+import redis
+from flask import Flask
 
-from flask import Flask, Response
-# from src.pi_node import PiNode
-from src.pi_node_controller import PiNodeController
-from src.pi_node_generator import PiNodeGenerator
-from src.timer import Timer
+app = Flask(__name__)
+
+
+def increment_worker_key():
+    r = redis.Redis(host='localhost', port=6379, db=0)
+    redis_key = "APIWorkerID"
+    lock = r.lock("worker_lock", timeout=5)
+
+    try:
+        if lock.acquire(blocking=True):
+            if not r.exists(redis_key):
+                r.set(redis_key, 0)
+            cur = r.get(redis_key)
+            r.incr(redis_key)
+            return int(cur)
+        else:
+            print("Could not acquire lock.")
+            exit(1)
+    finally:
+        # Release the lock
+        lock.release()
+
+
+worker_key = increment_worker_key()
+print(f"I am worker {worker_key}")
+
+
+@app.route("/")
+def home():
+    return f"You're talking to worker {worker_key}"
+
+
+"""
+OLD GARBAGE
 
 # Create the a controller for all the pi nodes.
 pi_list_file = "pi_list.ew"
@@ -26,8 +55,10 @@ pi_node_controller.print_all()
 room_timer = Timer()
 status = "idle"
 
-app = Flask(__name__)
-
+# from src.pi_node import PiNode
+from src.pi_node_controller import PiNodeController
+from src.pi_node_generator import PiNodeGenerator
+from src.timer import Timer
 
 @app.route("/")
 def home():
@@ -120,9 +151,8 @@ def reset():
 def trigger(self, message):
         self.client_controller.broadcast(message)
         return
+"""
 
 
 if __name__ == "__main__":
-    PORT = 12413
-    HOST = "0.0.0.0"
     app.run(host=HOST, port=PORT, debug=True, threaded=True)

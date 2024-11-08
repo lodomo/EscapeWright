@@ -1,0 +1,14 @@
+[Unit]
+Description=Your Daemon Service
+After=redis.service
+Requires=redis.service
+
+[Service]
+ExecStart=/path/to/your/daemon
+Restart=always
+
+[Install]
+WantedBy=multi-user.target
+
+
+*** THIS IS JUST AN EXAMPLE ****
