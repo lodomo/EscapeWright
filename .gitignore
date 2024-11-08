@@ -6,3 +6,4 @@ setups/control/
 **/*egg-info/**
 /OLD/
 localpi.md
+**/node_modules/
