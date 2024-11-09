@@ -12,18 +12,39 @@
 import redis
 from flask import Flask
 from flask_cors import CORS
-from src.pi_node import PiNodeController, PiNodeGenerator
+from src.pi_node import PiNodeController
 from src.redis_funcs import RedisKeys, get_unique_id
 from src.timer import Timer
+from src.yaml_reader import open_yaml_as_dict
 
 app = Flask(__name__)
 CORS(app)
 worker_key = get_unique_id(RedisKeys().API_WORKER_ID)
 timer = Timer()  # Timer shared in redis database
+config = open_yaml_as_dict("../config.yaml")
+pi_node_controller = PiNodeController(config["pi_nodes"])
 
-pi_list_file = "../config/pi_list.ew"
-pi_node_generator = PiNodeGenerator(pi_list_file)
-pi_node_controller = PiNodeController(pi_node_generator.generate())
+
+@app.route("/control_panel_title", methods=["GET"])
+def control_panel_title():
+    """
+    Return the title of the control panel.
+    Useful for the front end to know what the control panel is doing.
+    """
+    title = "Control Panel for " + config["room_info"]["name"]
+    return title
+
+
+@app.route("/room_name", methods=["GET"])
+def room_name():
+    """
+    Return the title of the room.
+    Useful for the front end to know what the room is doing.
+    """
+    temp_config = open_yaml_as_dict("../config.yaml")
+    text = temp_config["room_info"]["name"]
+    text = text.upper()
+    return text
 
 
 @app.route("/room_status", methods=["GET"])

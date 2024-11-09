@@ -4,6 +4,7 @@ from src.timer import Timer
 from src.pi_node import PiNodeGenerator, PiNodeController
 from src.redis_funcs import RedisKeys
 from src.room_status import RoomStatus
+from src.yaml_reader import open_yaml_as_dict
 
 port = "12413"  # The EscapeWright port
 bind = f"0.0.0.0:{port}"  # Bind to all interfaces on port 12413
@@ -48,9 +49,8 @@ def create_timer():
 
 
 def create_pis():
-    pi_list = "../config/pi_list.ew"
-    pi_node_generator = PiNodeGenerator(pi_list)
-    pi_node_controller = PiNodeController(pi_node_generator.generate())
+    config = open_yaml_as_dict("../config.yaml")
+    pi_node_controller = PiNodeController(config["pi_nodes"])
     pi_node_controller.clear_all_statuses()
     pi_node_controller.print_all()
 

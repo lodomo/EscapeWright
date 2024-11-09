@@ -18,6 +18,7 @@ import time
 
 import redis
 import requests
+from src.yaml_reader import open_yaml_as_dict
 
 
 class PiNode:
@@ -302,8 +303,7 @@ class PiNode:
         this is purely sending a message.
         """
         try:
-            response = requests.get(
-                self.address + "/relay/" + message, timeout=5)
+            response = requests.get(self.address + "/relay/" + message, timeout=5)
             if response.status_code == 200:
                 return True
         except requests.exceptions.RequestException:
@@ -329,8 +329,9 @@ class PiNodeController:
     TODO: Add a description of the class
     """
 
-    def __init__(self, pi_nodes: list):
-        self.__pi_nodes = pi_nodes
+    def __init__(self, pi_nodes_data: dict):
+        generator = PiNodeGenerator(pi_nodes_data)
+        self.__pi_nodes = generator.generate()
         self.__pi_nodes_dict = {pi.name: pi for pi in self.__pi_nodes}
 
     @property
@@ -403,45 +404,23 @@ class PiNodeController:
 
 class PiNodeGenerator:
     """
+    Generates PiNodes from the YAML Config file.
     """
 
-    def __init__(self, pi_list_ew):
-        self.pi_list_ew = pi_list_ew
+    def __init__(self, pi_node_yaml_dict):
+        self.pi_dicts = pi_node_yaml_dict
         return
 
     def generate(self):
-        return self.__parse_pi_list()
-
-    def __parse_pi_list(self) -> list:
         """
-        Parses the pi_list_ew and returns a list of PiNode objects.
-        Format of pi_list_ew:
-        name:ip:location\n
+        Parses the pi_list from the YAML and returns a list of PiNode objects.
         """
-
-        pi_list_ew = self.pi_list_ew
         pi_nodes = []
 
-        # Open file and read the lines
-        try:
-            with open(pi_list_ew, "r") as file:
-                lines = file.readlines()
-        except FileNotFoundError:
-            print(f"Critical Error: Could not find file {pi_list_ew}")
-            exit(1)
-
-        # Parse the lines
-        for line in lines:
-            line = line.strip()
-            # If line starts with #, it is a comment, ignore it
-            if line.startswith("#"):
-                continue
-            if line:
-                pi = line.split(":")
-                if len(pi) == 3:
-                    name, ip, location = pi
-                    pi_node = PiNode(name, ip, location)
-                    pi_nodes.append(pi_node)
-                else:
-                    print(f"Error: Could not parse line {line})")
+        for pi in self.pi_dicts:
+            name = pi["name"]
+            ip = pi["ip"]
+            location = pi["location"]
+            pi_node = PiNode(name, ip, location)
+            pi_nodes.append(pi_node)
         return pi_nodes

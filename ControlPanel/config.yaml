@@ -1,0 +1,24 @@
+room_info:
+  name: "Test Room"
+  description: "This is a test room."
+  subroom_1: "Subroom 1"
+  subroom_2: "Subroom 2"
+
+api:
+  host: "0.0.0.0"
+  port: 12413
+
+client:
+  host: "0.0.0.0"
+  port: 80
+
+pi_nodes:
+  - name: "callisto"
+    ip: "192.168.254.201"
+    location: "Living Room"
+  - name: "aoede"
+    ip: "192.168.254.200"
+    location: "Living Room"
+
+room_overrides: "TODO"
+
