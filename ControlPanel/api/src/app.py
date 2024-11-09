@@ -9,22 +9,42 @@
 #
 ###############################################################################
 
+import redis
 from flask import Flask
-from src.redis_funcs import get_unique_id
+from flask_cors import CORS
+from src.pi_node import PiNodeController, PiNodeGenerator
+from src.redis_funcs import RedisKeys, get_unique_id
 from src.timer import Timer
-from src.pi_node import PiNodeGenerator, PiNodeController
 
 app = Flask(__name__)
-worker_key = get_unique_id("APIWorkerID")
+CORS(app)
+worker_key = get_unique_id(RedisKeys().API_WORKER_ID)
 timer = Timer()  # Timer shared in redis database
 
-pi_list_file = "./src/pi_list.ew"
+pi_list_file = "../config/pi_list.ew"
 pi_node_generator = PiNodeGenerator(pi_list_file)
 pi_node_controller = PiNodeController(pi_node_generator.generate())
 
 
+@app.route("/room_status", methods=["GET"])
+def room_status():
+    """
+    Return the status of the room.
+    Useful for the front end to know what the room is doing.
+    """
+
+    r = redis.Redis(host="localhost", port=6379, db=0)
+    return r.get(RedisKeys().API_ROOM_STATUS)
+
+
 @app.route("/")
 def home():
+    """
+    This should never really be used. It will tell you which worker
+    you're talking to, but that's not useful for anything but making
+    sure that the program is running on multiple cores like it's supposed
+    to.
+    """
     return f"Worker {worker_key}, reporting for duty!"
 
 
@@ -42,12 +62,20 @@ def start(gameguide, players):
 
 @app.route("/time_remaining", methods=["GET"])
 def time_remaining():
+    if not timer.has_started:
+        return "READY"
+
+    if timer.is_paused:
+        return "PAUSED"
+
+    if timer.is_stopped:
+        return "STOPPED"
+
     return timer.get_time()
 
 
-@app.route("/toggle", methods=["POST"])
+@app.route("/toggle", methods=["GET"])
 def toggle():
-
     if not timer.has_started:
         timer.start()
         broadcast("room_start")
@@ -67,6 +95,14 @@ def toggle():
 def trigger(self, message):
     broadcast(message)
     return
+
+
+@app.route("/reset/", methods=["GET"])
+def reset():
+    print("SIMULATING RESET SINCE NO PIS ARE CONNECTED")
+    # pi_node_controller.reset_all()
+    timer.reset()
+    return "Room Reset"
 
 
 def broadcast(message: str):
@@ -127,20 +163,20 @@ def time_remaining():
 @app.route("/room_status", methods=["GET"])
 def room_status():
     def room_status_js():
-        status_was = None
-        while True:
+        status_was = none
+        while true:
             if status != status_was:
                 try:
                     status_was = status
                     yield f"data: {status}\n\n"
-                except GeneratorExit:
+                except generatorexit:
                     break
-                except Exception as e:
-                    yield f"data: ERROR: {str(e)}\n\n"
+                except exception as e:
+                    yield f"data: error: {str(e)}\n\n"
             else:
                 time.sleep(1)
 
-    return Response(room_status_js(), mimetype="text/event-stream")
+    return response(room_status_js(), mimetype="text/event-stream")
 
 
 @app.route("/toggle", methods=["POST"])

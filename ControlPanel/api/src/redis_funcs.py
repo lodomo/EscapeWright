@@ -11,6 +11,20 @@
 import redis
 
 
+class RedisKeys():
+    def __init__(self):
+        self.__API_WORKER_ID = "APIWorkerID"
+        self.__API_ROOM_STATUS = "APIRoomStatus"
+
+    @property
+    def API_WORKER_ID(self):
+        return self.__API_WORKER_ID
+
+    @property
+    def API_ROOM_STATUS(self):
+        return self.__API_ROOM_STATUS
+
+
 def get_unique_id(keyname: str) -> int:
     """
     Reaches out to Redis and gets a unique ID for the keyname.

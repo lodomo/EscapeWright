@@ -1,7 +1,9 @@
 # gunicorn.conf.py
 import redis
 from src.timer import Timer
-from src.pi_node import PiNodeGenerator, PiNodeController, PiNode
+from src.pi_node import PiNodeGenerator, PiNodeController
+from src.redis_funcs import RedisKeys
+from src.room_status import RoomStatus
 
 port = "12413"  # The EscapeWright port
 bind = f"0.0.0.0:{port}"  # Bind to all interfaces on port 12413
@@ -19,6 +21,7 @@ def on_starting(server):
     set_redis_workers()
     create_timer()
     create_pis()
+    create_room_status()
     print(f"Workers: {workers}, Threads: {threads}")
     print(f"Worker class: {worker_class}, Timeout: {timeout}")
     print(f"Keepalive: {keepalive} Max requests: {max_requests}")
@@ -28,8 +31,7 @@ def on_starting(server):
 def set_redis_workers():
     try:
         r = redis.Redis(host="localhost", port=6379, db=0)
-        r.set("APIWorkerID", 0)
-        print("APIWorkerID set to 0 in Redis")
+        r.set(RedisKeys().API_WORKER_ID, 0)
     except Exception as e:
         print(f"Error setting APIWorkerID in Redis: {e}")
         exit(1)
@@ -46,8 +48,18 @@ def create_timer():
 
 
 def create_pis():
-    pi_list = "./src/pi_list.ew"
+    pi_list = "../config/pi_list.ew"
     pi_node_generator = PiNodeGenerator(pi_list)
     pi_node_controller = PiNodeController(pi_node_generator.generate())
     pi_node_controller.clear_all_statuses()
     pi_node_controller.print_all()
+
+
+def create_room_status():
+    try:
+        r = redis.Redis(host="localhost", port=6379, db=0)
+        r.set(RedisKeys().API_ROOM_STATUS, RoomStatus().LOADING)
+        print(f"Room status set to {RoomStatus().LOADING}")
+    except Exception as e:
+        print(f"Error setting room status in Redis: {e}")
+        exit(1)

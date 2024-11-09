@@ -370,7 +370,7 @@ class PiNodeController:
         pi = self.find_by_name(name)
         return pi.soft_reset()
 
-    def full_soft_reset(self):
+    def reset_all(self):
         for pi in self.__pi_nodes:
             pi.soft_reset()
 

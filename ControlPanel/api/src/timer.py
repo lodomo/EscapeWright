@@ -215,7 +215,7 @@ class Timer:
         if not self.__is_paused:
             raise ValueError("Timer can't resume if it's not paused.")
 
-        delta = datetime.now() - self.__paused_time
+        delta = int(time.time()) - self.__paused_time
         self.__end_time += delta
         self.__is_paused = False
         self.save_to_redis()
@@ -239,12 +239,14 @@ class Timer:
         If you call reset, it resets.
         Always succeeds.
         """
+        self.load_from_redis()
         self.__start_time = 0
         self.__end_time = 0
         self.__paused_time = 0
         self.__has_started = False
         self.__is_paused = False
         self.__is_stopped = False
+        self.save_to_redis()
         return
 
     def get_time(self) -> str:

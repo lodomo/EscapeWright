@@ -1,0 +1,289 @@
+@font-face {
+    font-family: 'prime-bold';
+    src: url('/fonts/courierprime-bold-webfont.woff2') format('woff2'),
+         url('/fonts/courierprime-bold-webfont.woff') format('woff');
+    font-weight: normal;
+    font-style: normal;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'prime-regular';
+    src: url('/fonts/courierprime-regular-webfont.woff2') format('woff2'),
+         url('/fonts/courierprime-regular-webfont.woff') format('woff');
+    font-weight: normal;
+    font-style: normal;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'made-infinity';
+    src: url('/fonts/made-infinity-webfont.woff2') format('woff2'),
+         url('/fonts/made-infinity-webfont.woff') format('woff');
+    font-weight: normal;
+    font-style: normal;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'chivo-mono';
+    src: url('/fonts/ChivoMono-VariableFont_wght.ttf') format('truetype');
+    font-weight: 700;
+    font-style: normal;
+}
+
+:root {
+    /* Colors for backgrounds */
+    --red:      #DD3353;
+    --orange:   #EC844A;
+    --yellow:   #E8CD46;
+    --green:    #8EB897;
+    --blue:     #639FAB;
+    --purple:   #463087;
+    --dark:     #222222;
+    --light:    #F9F4E9;
+
+    /* Backgrounds */
+    --bg-color: var(--light);
+    --mobile-content-color: var(--blue);
+    --header-bg: var(--light);
+    --content-bg: var(--green);
+
+    /* Borders */
+    --mobile-content-border: var(--dark);
+
+    /* Fonts */
+    --h1-color: var(--dark);
+    --kana-color: var(--purple);
+
+    /* padding constants */
+    --header-h: 100px;
+    --nav-w: 200px;
+    --nav-h: 100px;
+    --loadtime: 5s;
+}
+
+body {
+    width: 100%;
+    height: 100%;
+    font-family: 'prime-regular', 'courier', monospace;
+    font-size: 1.5rem;
+    color: var(--dark);
+    margin: 0;
+    padding: 0;
+}
+
+a {
+    text-decoration: none;
+    color: var(--dark);
+    padding: 0px;
+    margin: 0px;
+}
+
+::-webkit-scrollbar {
+    width: 10px; /* for vertical scrollbars */
+    height: 10px; /* for horizontal scrollbars */
+    transition: all 0.5s ease-in-out;
+}
+
+::-webkit-scrollbar-thumb {
+    background: var(--dark); /* thumb color */
+    border-radius: 10px;
+}
+
+html {
+    scrollbar-width: thin;
+    scrollbar-color: #888 #f0f0f0; /* thumb and track color */
+}
+
+.hide {
+    display: none;
+}
+
+#page_blocker {
+    /* TODO */
+}
+
+#app_container {
+    /* TODO */
+}
+
+#app {
+    /* TODO */
+}
+
+#header {
+    display: flex;
+    flex-direction: row;
+    justify-content: flex-start;
+    align-items: center;
+    height: var(--header-h);
+    min-height: var(--header-h);
+    background-color: var(--header-bg);
+    position: fixed;
+    top: 0;
+    width: 100%;
+    z-index: 1000; 
+}
+
+#content_container {
+    /* TODO */
+}
+
+#content {
+    /* TODO */
+}
+
+#navigation {
+    /* TODO */
+}
+
+#page_title {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    box-sizing: border-box;
+    max-height: 100%;
+    height: 100%;
+    min-height: 100%;
+    align-content: center;
+    margin: 0px;
+    padding: 10px;
+}
+
+#page_title h1 {
+    font-family: 'made-infinity';
+    font-size: 40px;
+    color: var(--h1-color);
+    padding: 0px;
+    margin: 0px 0px -5px 0px;
+}
+
+.kana {
+    display: flex;
+    width: 100px;
+    height: 13px;
+    opacity: 1;
+    margin: 0px 0px -9px 200px;
+}
+
+.line {
+    height: 5px;
+    width: 100%;
+    margin-left: -30px;
+    margin-bottom: 5px;
+    border-top-right-radius: 5px;
+    border-bottom-right-radius: 5px;
+}
+
+.line.purple {
+    background-color: var(--purple);
+    width: 220px;
+}
+
+.line.red {
+    background-color: var(--red);
+    width: 148px;
+}
+
+.line.orange {
+    background-color: var(--orange);
+    width: 115px;
+}
+
+#timer {
+    /* TODO */
+}
+
+.status-or-timer {
+    display: flex;
+    width: 90%;
+    border: 5px solid var(--dark);
+    border-top: 0;
+    box-shadow: 5px 5px 0px 0px var(--dark);
+    font-family: 'chivo-mono';
+    font-size: 60px;
+    margin: -35px 10px 0px 10px;
+    border-bottom-left-radius: 30px;
+    border-bottom-right-radius: 30px;
+    justify-content: center;
+    align-items: center;
+    align-self: center;
+    margin-left: auto;
+    margin-right: auto;
+    transition: all 0.5s ease-in-out;
+    color: var(--light);
+}
+
+.status-or-timer.ready {
+    background-color: var(--green);
+}
+
+.status-or-timer.paused {
+    background-color: var(--orange);
+}
+
+.status-or-timer.error {
+    background-color: var(--red);
+}
+
+.status-or-timer.mtquart {
+    background-color: var(--blue);
+}
+
+.status-or-timer.ltquart {
+    background-color: var(--orange);
+}
+
+.status-or-timer.ltfive {
+    background-color: var(--red);
+}
+
+#game_control {
+    /* TODO */
+}
+
+#logo {
+    /* TODO */
+}
+
+#status_panel {
+    /* TODO */
+}
+
+#script_panel {
+    /* TODO */
+}
+
+#override_panel {
+    /* TODO */
+}
+    
+#reset_panel {
+    /* TODO */
+}
+
+#stop_panel{
+    /* TODO */
+}
+
+#nav_control {
+    /* TODO */
+}
+
+#nav_script {
+    /* TODO */
+}
+
+#nav_override {
+    /* TODO */
+}
+
+#nav_reset {
+    /* TODO */
+}
+
+#nav_stop {
+    /* TODO */
+}
+
