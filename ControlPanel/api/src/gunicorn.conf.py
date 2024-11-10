@@ -49,7 +49,7 @@ def create_timer():
 
 
 def create_pis():
-    config = open_yaml_as_dict("../config.yaml")
+    config = open_yaml_as_dict("./src/config.yaml")
     pi_node_controller = PiNodeController(config["pi_nodes"])
     pi_node_controller.clear_all_statuses()
     pi_node_controller.print_all()

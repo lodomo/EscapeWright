@@ -21,7 +21,7 @@ app = Flask(__name__)
 CORS(app)
 worker_key = get_unique_id(RedisKeys().API_WORKER_ID)
 timer = Timer()  # Timer shared in redis database
-config = open_yaml_as_dict("../config.yaml")
+config = open_yaml_as_dict("./src/config.yaml")
 pi_node_controller = PiNodeController(config["pi_nodes"])
 
 

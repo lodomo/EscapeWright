@@ -1,4 +1,4 @@
-const API_URL: string = "http://localhost:12413";
+const API_URL: string = api_url;
 
 document.querySelector<HTMLDivElement>("title")!.innerText = await fetch_string_from_api("control_panel_title");
 
@@ -84,27 +84,17 @@ async function fetch_string_from_api(endpoint: string): Promise<string> {
  * It times out after 10 seconds of errors, this allows for only real errors to be shown
  * and not just skipping a beat in the API.
  */
-let TimerErrorCount = 0;
+let timerText: string = "";
 
 async function updateTimer(): Promise<void> {
-  const TimerErrorMax = 10;
-  let timerText: string;
+  let updatedTimerText: string = await fetch_string_from_api("time_remaining");
 
-  // Get the text from the API
-  try {
-    const response = await fetch(`${API_URL}/time_remaining`);
-    timerText = await response.text();
-    TimerErrorCount = 0;
-  } catch (error) {
-    console.error("Error fetching time remaining:", error);
-    TimerErrorCount++;
-
-    if (TimerErrorCount > TimerErrorMax) {
-      timerText = "ERROR";
-    } else {
-      return;
-    }
+  if (updatedTimerText === timerText) {
+    return;
+  } else {
+    timerText = updatedTimerText;
   }
+
 
   // Update the timer element
   const timerElement = document.getElementById("timer");
