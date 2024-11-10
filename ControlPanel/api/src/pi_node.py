@@ -50,7 +50,7 @@ class PiNode:
     -to_dict: Returns the information of the pi in a dictionary.
     """
 
-    def __init__(self, name, ip_address, location=None):
+    def __init__(self, name, ip_address, location=None, force_update=False):
         self.redis_key = f"PiNode:{name}"
         self.r = redis.Redis(host="localhost", port=6379, db=0)
         self.__name = name
@@ -60,7 +60,11 @@ class PiNode:
         self.__status_was = "OFFLINE"
         self.__status_time = time.time()
         self.__reachable = False
-        self.__init_to_redis()
+
+        if force_update:
+            self.force_save_to_redis()
+        else:
+            self.__init_to_redis()
 
     def __str__(self):
         redis_format = f"{self.name}:{self.ip}:{self.location}"
@@ -92,6 +96,16 @@ class PiNode:
             print(f"Error saving to redis: {str(e)}")
             return False
         return True
+
+    def force_save_to_redis(self):
+        """
+        Save the timer data to the redis key
+        """
+        try:
+            self.r.set(self.redis_key, self.__str__())
+        except Exception as e:
+            print(f"Error saving to redis: {str(e)}")
+            return False
 
     def __load_from_redis(self):
         """
@@ -329,8 +343,8 @@ class PiNodeController:
     TODO: Add a description of the class
     """
 
-    def __init__(self, pi_nodes_data: dict):
-        generator = PiNodeGenerator(pi_nodes_data)
+    def __init__(self, pi_nodes_data: dict, initial=False):
+        generator = PiNodeGenerator(pi_nodes_data, initial)
         self.__pi_nodes = generator.generate()
         self.__pi_nodes_dict = {pi.name: pi for pi in self.__pi_nodes}
 
@@ -407,8 +421,9 @@ class PiNodeGenerator:
     Generates PiNodes from the YAML Config file.
     """
 
-    def __init__(self, pi_node_yaml_dict):
+    def __init__(self, pi_node_yaml_dict, do_force_update=False):
         self.pi_dicts = pi_node_yaml_dict
+        self.do_force_update = do_force_update
         return
 
     def generate(self):
@@ -421,6 +436,6 @@ class PiNodeGenerator:
             name = pi["name"]
             ip = pi["ip"]
             location = pi["location"]
-            pi_node = PiNode(name, ip, location)
+            pi_node = PiNode(name, ip, location, self.do_force_update)
             pi_nodes.append(pi_node)
         return pi_nodes

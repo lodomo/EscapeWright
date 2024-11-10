@@ -26,6 +26,6 @@ def on_starting(server):
 
 def create_pis():
     config = open_yaml_as_dict(RedisKeys().API_YAML_CONFIG_DATA())
-    pi_node_controller = PiNodeController(config["pi_nodes"])
+    pi_node_controller = PiNodeController(config["pi_nodes"], initial=True)
     pi_node_controller.clear_all_statuses()
     pi_node_controller.print_all()
