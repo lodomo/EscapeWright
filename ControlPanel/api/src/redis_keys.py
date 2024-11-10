@@ -9,10 +9,9 @@
 ###############################################################################
 
 import redis
-from src.timer import Timer
 
 
-class RedisKeys():
+class RedisKeys:
     """
     RedisKeys is a class that holds all the keys for the API to use.
     This is NOT a good class to use for other stuff. This is very specific
@@ -29,12 +28,14 @@ class RedisKeys():
     everything running smooth when a key changes slightly, or there needs
     to be a new addition.
 
+    Some keys do not init themselves. If the key is an object, it will
+    take care of itself at some point.
+
     Keys:
     API_WORKER_ID - The ID for the worker.
     API_ROOM_STATUS - The status of the room.
     API_LOAD_PERCENTAGE - The load percentage of the room.
     API_YAML_CONFIG - The path to the YAML config file.
-    API_ROOM_TIMER - The timer for the room.
     """
 
     def __init__(self):
@@ -55,8 +56,8 @@ class RedisKeys():
         self.init_redis_key(self.API_LOAD_PERCENTAGE, 0)
         self.init_redis_key(self.API_YAML_CONFIG, "./src/config.yaml")
         self.init_redis_key(self.API_WORKER_ID, 0)
-        Timer(redis_key=self.API_ROOM_TIMER).save_to_redis()
         # Pi's are created by gunicorn.conf.py
+        # Timer is created by gunicorn.conf.py
 
     @property
     def API_WORKER_ID(self):
@@ -98,6 +99,9 @@ class RedisKeys():
     @property
     def API_ROOM_TIMER(self):
         return self.__API_ROOM_TIMER
+
+    def API_ROOM_TIMER_DATA(self) -> int:
+        return self.__get_key(self.API_ROOM_TIMER)
 
     def get_unique_id(self, keyname: str) -> int:
         """
@@ -146,7 +150,7 @@ class RedisKeys():
         """
         try:
             value = self.__redis.get(keyname)
-            return value.decode('utf-8') if value else None
+            return value.decode("utf-8") if value else None
         except Exception as e:
             print(f"Error getting {keyname} in Redis: {e}")
         return None

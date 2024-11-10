@@ -10,12 +10,17 @@
 ###############################################################################
 
 import time
-from datetime import datetime
-import redis
+
+from src.redis_keys import RedisKeys
 
 
 class Timer:
-    def __init__(self, length: int = 60, redis_key: str = "APIRoomTimer"):
+    def __init__(
+        self,
+        length: int = 60,
+        redis_key: str = RedisKeys().API_ROOM_TIMER,
+        new_timer: bool = False,
+    ):
         """
         The timer class is tricky since it needs to be able to communicate
         with any of the instances of the gunicorn server. Since this is shared
@@ -44,8 +49,11 @@ class Timer:
         Private Functions:
         calc_time_remaining() - Calculate the time remaining.
         format_time() - Format the time for easy reading.
+
+
+        TREAT Timer() like a global!! It's shared memory if you don't
+        define a new redis_key
         """
-        self.r = redis.Redis(host="localhost", port=6379, db=0)
         self.redis_key = redis_key
         self.__length = length
         self.__start_time = 0
@@ -54,6 +62,11 @@ class Timer:
         self.__has_started = False
         self.__is_paused = False
         self.__is_stopped = False
+
+        if new_timer:
+            self.reset()
+        else:
+            self.load_from_redis()
 
     def __str__(self) -> str:
         """
@@ -72,12 +85,8 @@ class Timer:
         """
         Save the timer data to the redis key
         """
-        try:
-            self.r.set(self.redis_key, self.__str__())
-        except Exception as e:
-            print(f"Error saving to redis: {str(e)}")
-            return False
-        return True
+        RedisKeys().update_key(self.redis_key, self.__str__())
+        return
 
     def load_from_redis(self):
         """
@@ -85,17 +94,13 @@ class Timer:
         when the timer is doing anything to change states incase it already
         did change a state.
         """
-        try:
-            data = self.r.get(self.redis_key)
-        except Exception as e:
-            print(f"Error loading from redis: {str(e)}")
-            return False
+        data = RedisKeys().API_ROOM_TIMER_DATA()
 
         if data is None:
             print("No timer data found in redis.")
             return False
 
-        data = data.decode("utf-8").split(":")
+        data = data.split(":")
         self.__start_time = int(data[1])
         self.__end_time = int(data[2])
         self.__paused_time = int(data[3])

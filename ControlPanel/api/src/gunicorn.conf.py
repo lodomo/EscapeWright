@@ -2,6 +2,7 @@
 from src.pi_node import PiNodeController
 from src.redis_keys import RedisKeys
 from src.yaml_reader import open_yaml_as_dict
+from src.timer import Timer
 
 port = "12413"  # The EscapeWright port
 bind = f"0.0.0.0:{port}"  # Bind to all interfaces on port 12413
@@ -17,6 +18,7 @@ max_requests_jitter = 50  # Random jitter to prevent simultaneous restarts
 def on_starting(server):
     print("Starting server...")
     RedisKeys().init_keys()
+    Timer(new_timer=True)
     create_pis()
     print(f"Workers: {workers}, Threads: {threads}")
     print(f"Worker class: {worker_class}, Timeout: {timeout}")

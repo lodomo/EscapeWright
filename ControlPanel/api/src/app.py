@@ -2,7 +2,7 @@
 #
 #      Author: Lorenzo D. Moon
 #     Purpose: Control the A Simulated Reality Experience
-#     Version: 0.0.1 - Derived from Code Samurai Version 2.X
+#     Version: 0.0.1 - Derived from Code Samurai Version 2.X, Vastly Different
 # Description: Backend API for communicating with the pi nodes.
 #              This should not be ran directly, instead through a gunicorn
 #              server.
@@ -14,13 +14,12 @@ from flask import Flask
 from flask_cors import CORS
 from src.pi_node import PiNodeController
 from src.redis_keys import RedisKeys
-from src.timer import Timer
+from src.timer import Timer  # Treated as a global Timer()
 from src.yaml_reader import open_yaml_as_dict
 
 app = Flask(__name__)
 CORS(app)
 worker_key = RedisKeys().get_unique_id(RedisKeys().API_WORKER_ID)
-timer = Timer()  # Timer shared in redis database
 config = open_yaml_as_dict(RedisKeys().API_YAML_CONFIG_DATA())
 pi_node_controller = PiNodeController(config["pi_nodes"])
 REDIS = redis.Redis(host="localhost", port=6379, db=0)
@@ -32,11 +31,10 @@ def status():
     Return the status of the room.
     Useful for the front end to know what the room is doing.
     """
-    print(RedisKeys().API_ROOM_STATUS_DATA())
     if RedisKeys().API_ROOM_STATUS_DATA() == "LOADING":
         load()
 
-    return RedisKeys().API_ROOM_STATUS_DATA()
+    return RedisKeys().API_ROOM_STATUS_DATA(), 200
 
 
 def load() -> int:
@@ -53,7 +51,6 @@ def load() -> int:
     RedisKeys().update_key(RedisKeys().API_LOAD_PERCENTAGE, str(new_percent))
     if new_percent == 100:
         RedisKeys().update_key(RedisKeys().API_ROOM_STATUS, "READY")
-    print(new_percent)
     return new_percent
 
 
@@ -64,7 +61,7 @@ def control_panel_title():
     Useful for the front end to know what the control panel is doing.
     """
     title = "Control Panel for " + config["room_info"]["name"]
-    return title
+    return title, 200
 
 
 @app.route("/room_name", methods=["GET"])
@@ -76,7 +73,7 @@ def room_name():
     temp_config = open_yaml_as_dict(RedisKeys().API_YAML_CONFIG_DATA())
     text = temp_config["room_info"]["name"]
     text = text.upper()
-    return text
+    return text, 200
 
 
 @app.route("/")
@@ -86,7 +83,7 @@ def home():
     In the future it should be a mini front end where I can type
     in commands that I want to do.
     """
-    return f"Worker {worker_key}, reporting for duty!"
+    return f"Worker {worker_key}, reporting for duty!", 200
 
 
 @app.route("/start/", defaults={"gameguide": "None", "players": "None"})
@@ -97,26 +94,24 @@ def start(gameguide, players):
     Get the gameguide name and number of players
     This will eventually log the room running in a database
     """
+    if Timer().has_started:
+        return "Error: Room Already Started", 400
+
     toggle()
     return "Room Started", 200
 
 
 @app.route("/time_remaining", methods=["GET"])
 def time_remaining():
-    if not timer.has_started:
-        return "READY"
+    if Timer().has_started:
+        return Timer().get_time(), 200
 
-    if timer.is_paused:
-        return "PAUSED"
-
-    if timer.is_stopped:
-        return "STOPPED"
-
-    return timer.get_time()
+    return status()
 
 
 @app.route("/toggle", methods=["GET"])
 def toggle():
+    timer = Timer()
     if not timer.has_started:
         timer.start()
         broadcast("room_start")
@@ -132,18 +127,28 @@ def toggle():
     return "Room Resumed"
 
 
+@app.route("/trigger/", defaults={"message": "None"})
 @app.route("/trigger/<message>", methods=["POST"])
-def trigger(self, message):
+def trigger(message):
     broadcast(message)
-    return
+    return "Not Implemented", 501
+
+
+@app.route("/relay/", defaults={"message": "None", "pi_node": "None"})
+@app.route("/relay/<message>/<pi_node>", methods=["POST"])
+def relay(message, pi_node):
+    """
+    TODO
+    """
+    return "Not Implemented", 501
 
 
 @app.route("/reset/", methods=["GET"])
 def reset():
     print("SIMULATING RESET SINCE NO PIS ARE CONNECTED")
     # pi_node_controller.reset_all()
-    timer.reset()
-    RedisKeys().update_key(RedisKeys().API_ROOM_STATUS, "Resetting")
+    Timer().reset()
+    RedisKeys().update_key(RedisKeys().API_ROOM_STATUS, "LOADING")
     RedisKeys().update_key(RedisKeys().API_LOAD_PERCENTAGE, "0")
     return "Room Reset"
 
@@ -161,14 +166,14 @@ def script():
         for line in file:
             text += line
             text += "\n"
-    return text
+    return text, 200
 
 
 def broadcast(message: str):
     """
     TODO
     """
-    print("TODO")
+    print("TODO BROADCAST")
     return
 
 
@@ -176,7 +181,7 @@ def get_pi_statuses():
     """
     Get the statuses of all the pi nodes.
     """
-    print("TODO")
+    print("TODO GET PI STATUSES")
     return
 
 
@@ -185,7 +190,7 @@ def aggressively_get_pi_statuses():
     Get the statuses of all the pi nodes.
     Do not stop until all the statuses are received as Ready.
     """
-    print("TODO")
+    print("TODO AGGRESSIVELY GET PI STATUSES")
     return
 
 
@@ -294,4 +299,4 @@ def trigger(self, message):
 
 
 if __name__ == "__main__":
-    app.run(host=HOST, port=PORT, debug=True, threaded=True)
+    app.run()
