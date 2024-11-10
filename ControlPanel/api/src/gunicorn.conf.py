@@ -1,9 +1,6 @@
 # gunicorn.conf.py
-import redis
-from src.timer import Timer
-from src.pi_node import PiNodeGenerator, PiNodeController
-from src.redis_funcs import RedisKeys
-from src.room_status import RoomStatus
+from src.pi_node import PiNodeController
+from src.redis_keys import RedisKeys
 from src.yaml_reader import open_yaml_as_dict
 
 port = "12413"  # The EscapeWright port
@@ -19,48 +16,16 @@ max_requests_jitter = 50  # Random jitter to prevent simultaneous restarts
 
 def on_starting(server):
     print("Starting server...")
-    set_redis_workers()
-    create_timer()
+    RedisKeys().init_keys()
     create_pis()
-    init_redis_key(RedisKeys().API_ROOM_STATUS, RoomStatus().LOADING)
-    init_redis_key(RedisKeys().API_LOAD_PERCENTAGE, 0)
     print(f"Workers: {workers}, Threads: {threads}")
     print(f"Worker class: {worker_class}, Timeout: {timeout}")
     print(f"Keepalive: {keepalive} Max requests: {max_requests}")
     print(f"Jitter: {max_requests_jitter}")
 
 
-def set_redis_workers():
-    try:
-        r = redis.Redis(host="localhost", port=6379, db=0)
-        r.set(RedisKeys().API_WORKER_ID, 0)
-    except Exception as e:
-        print(f"Error setting APIWorkerID in Redis: {e}")
-        exit(1)
-
-
-def create_timer():
-    try:
-        timer = Timer()
-        timer.save_to_redis()
-        print("New Timer created and saved to Redis")
-    except Exception as e:
-        print(f"Error setting Timer in Redis: {e}")
-        exit(1)
-
-
 def create_pis():
-    config = open_yaml_as_dict("./src/config.yaml")
+    config = open_yaml_as_dict(RedisKeys().API_YAML_CONFIG_DATA())
     pi_node_controller = PiNodeController(config["pi_nodes"])
     pi_node_controller.clear_all_statuses()
     pi_node_controller.print_all()
-
-
-def init_redis_key(keyname: str, value: str):
-    try:
-        r = redis.Redis(host="localhost", port=6379, db=0)
-        r.set(keyname, value)
-        print(f"{keyname} set to {value}")
-    except Exception as e:
-        print(f"Error setting {keyname} in Redis: {e}")
-        exit(1)

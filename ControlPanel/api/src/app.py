@@ -13,33 +13,48 @@ import redis
 from flask import Flask
 from flask_cors import CORS
 from src.pi_node import PiNodeController
-from src.redis_funcs import RedisKeys, get_unique_id, update_redis_key, get_redis_key
+from src.redis_keys import RedisKeys
 from src.timer import Timer
 from src.yaml_reader import open_yaml_as_dict
 
 app = Flask(__name__)
 CORS(app)
-worker_key = get_unique_id(RedisKeys().API_WORKER_ID)
+worker_key = RedisKeys().get_unique_id(RedisKeys().API_WORKER_ID)
 timer = Timer()  # Timer shared in redis database
-config = open_yaml_as_dict("./src/config.yaml")
+config = open_yaml_as_dict(RedisKeys().API_YAML_CONFIG_DATA())
 pi_node_controller = PiNodeController(config["pi_nodes"])
 REDIS = redis.Redis(host="localhost", port=6379, db=0)
 
 
-@app.route("/load", methods=["GET"])
-def load():
+@app.route("/status", methods=["GET"])
+def status():
+    """
+    Return the status of the room.
+    Useful for the front end to know what the room is doing.
+    """
+    print(RedisKeys().API_ROOM_STATUS_DATA())
+    if RedisKeys().API_ROOM_STATUS_DATA() == "LOADING":
+        load()
+
+    return RedisKeys().API_ROOM_STATUS_DATA()
+
+
+def load() -> int:
     """
     Return the load percentage of the room.
     This will be for letting the front end to know it can open up.
     Right now this is just phony data, TODO real loading.
     """
-    percentage = get_redis_key(RedisKeys().API_LOAD_PERCENTAGE)
-    percentage = int(percentage)
-    new_percentage = percentage + 10
-    if new_percentage > 100:
-        new_percentage = 100
-    update_redis_key(RedisKeys().API_LOAD_PERCENTAGE, str(new_percentage))
-    return str(percentage)
+    percent = RedisKeys().API_LOAD_PERCENTAGE_DATA()
+    percent = int(percent)
+    new_percent = percent + 10
+    if new_percent > 100:
+        new_percent = 100
+    RedisKeys().update_key(RedisKeys().API_LOAD_PERCENTAGE, str(new_percent))
+    if new_percent == 100:
+        RedisKeys().update_key(RedisKeys().API_ROOM_STATUS, "READY")
+    print(new_percent)
+    return new_percent
 
 
 @app.route("/control_panel_title", methods=["GET"])
@@ -58,30 +73,18 @@ def room_name():
     Return the title of the room.
     Useful for the front end to know what the room is doing.
     """
-    temp_config = open_yaml_as_dict("../config.yaml")
+    temp_config = open_yaml_as_dict(RedisKeys().API_YAML_CONFIG_DATA())
     text = temp_config["room_info"]["name"]
     text = text.upper()
     return text
 
 
-@app.route("/room_status", methods=["GET"])
-def room_status():
-    """
-    Return the status of the room.
-    Useful for the front end to know what the room is doing.
-    """
-
-    r = redis.Redis(host="localhost", port=6379, db=0)
-    return r.get(RedisKeys().API_ROOM_STATUS)
-
-
 @app.route("/")
 def home():
     """
-    This should never really be used. It will tell you which worker
-    you're talking to, but that's not useful for anything but making
-    sure that the program is running on multiple cores like it's supposed
-    to.
+    Currently this shows just the worker ID.
+    In the future it should be a mini front end where I can type
+    in commands that I want to do.
     """
     return f"Worker {worker_key}, reporting for duty!"
 
@@ -140,8 +143,8 @@ def reset():
     print("SIMULATING RESET SINCE NO PIS ARE CONNECTED")
     # pi_node_controller.reset_all()
     timer.reset()
-    update_redis_key(RedisKeys().API_ROOM_STATUS, "Resetting")
-    update_redis_key(RedisKeys().API_LOAD_PERCENTAGE, "0")
+    RedisKeys().update_key(RedisKeys().API_ROOM_STATUS, "Resetting")
+    RedisKeys().update_key(RedisKeys().API_LOAD_PERCENTAGE, "0")
     return "Room Reset"
 
 

@@ -1,5 +1,14 @@
 const API_URL: string = import.meta.env.VITE_API_URL; 
 
+const Routes: { [key: string]: string } = {
+  status: "status",
+};
+
+const RoomStatus: { [key: string]: string } = {
+  loading: "LOADING",
+};
+
+
 document.querySelector<HTMLDivElement>("title")!.innerText = await fetch_string_from_api("control_panel_title");
 
 document.querySelector<HTMLDivElement>("#app")!.innerHTML = `
@@ -13,23 +22,35 @@ document.querySelector<HTMLDivElement>("#app")!.innerHTML = `
   </div>
 `;
 
-async function load_api(): Promise<void> {
-  let load_percentage = "0";
-  
-  let page_block_element = document.querySelector<HTMLDivElement>("#page_blocker")!;
+/*
+ * THIS IS JUST A TEST FOR NOW, THIS NEEDS TO BE CHANGED TO DO LOTS OF BLOCKING
+ * THIS IS JUST PROOF OF CONCEPT
+ *
+ * FINAL VERSION WILL NEED TO:
+ * BLOCK IF THE ROOM IS RUNNING
+ * BLOCK IF THE ROOM IS STOPPED
+ * BLOCK IF THE ROOM IS LOADING
+ * Only will go away if the user clicks a close button OR the page loads.
+ */
+async function load_from_api(): Promise<void> {
+  let room_status = await fetch_string_from_api(Routes.status);
+  console.log(room_status);
 
-  while (load_percentage != "100") {
-    load_percentage = await fetch_string_from_api("load");
-    console.log(load_percentage);
-    // Wait 1 second before checking again
+  // Check if It's Loading
+  while (room_status === RoomStatus.loading) {
     await new Promise((resolve) => setTimeout(resolve, 1000));
+    room_status = await fetch_string_from_api(Routes.status);
+    console.log(room_status);
   }
 
-  page_block_element.classList.add("hide");
+  // Then Check if it's Running.
+  // Then Check if it's Stopped.
+  // Then Load the rest of the page.
+
   console.log("API Loaded");
 }
 
-load_api();
+load_from_api();
 
 
 
@@ -146,5 +167,11 @@ async function updateTimer(): Promise<void> {
   return;
 }
 
-// Call updateTimer every second
+// Get the timer initialized, then set it to update every second
+updateTimer();
 setInterval(updateTimer, 1000);
+
+// Wait a moment and then reveal the page once everything is loaded
+await new Promise((resolve) => setTimeout(resolve, 250));
+let page_block_element = document.querySelector<HTMLDivElement>("#page_blocker")!;
+page_block_element.classList.add("hide");

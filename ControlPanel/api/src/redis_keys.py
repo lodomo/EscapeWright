@@ -9,31 +9,95 @@
 ###############################################################################
 
 import redis
+from src.timer import Timer
 
 
 class RedisKeys():
+    """
+    RedisKeys is a class that holds all the keys for the API to use.
+    This is NOT a good class to use for other stuff. This is very specific
+    to the API for the Control Panel.
+
+    It's a good idea to not instantiate this class to a variable.
+    It ensures that the keys are always the same.
+
+    Example:
+    Use RedisKeys().API_WORKER_ID to get the key for the Worker ID.
+    Use RedisKeys().API_WORKER_DATA() to get the data for the Worker ID.
+
+    It's a little convoluted to add a new key, but it's worth it to keep
+    everything running smooth when a key changes slightly, or there needs
+    to be a new addition.
+
+    Keys:
+    API_WORKER_ID - The ID for the worker.
+    API_ROOM_STATUS - The status of the room.
+    API_LOAD_PERCENTAGE - The load percentage of the room.
+    API_YAML_CONFIG - The path to the YAML config file.
+    API_ROOM_TIMER - The timer for the room.
+    """
+
     def __init__(self):
         self.__API_WORKER_ID = "APIWorkerID"
         self.__API_ROOM_STATUS = "APIRoomStatus"
         self.__API_LOAD_PERCENTAGE = "APILoadPercentage"
         self.__API_YAML_CONFIG = "APIYAMLConfig"
+        self.__API_ROOM_TIMER = "APIRoomTimer"
         self.__redis = redis.Redis(host="localhost", port=6379, db=0)
+
+    def init_keys(self):
+        """
+        Initialize the keys to their default values.
+        Very handy for starting the server.
+        NOT handy for restarting the room.
+        """
+        self.init_redis_key(self.API_ROOM_STATUS, "LOADING")
+        self.init_redis_key(self.API_LOAD_PERCENTAGE, 0)
+        self.init_redis_key(self.API_YAML_CONFIG, "./src/config.yaml")
+        self.init_redis_key(self.API_WORKER_ID, 0)
+        Timer(redis_key=self.API_ROOM_TIMER).save_to_redis()
+        # Pi's are created by gunicorn.conf.py
 
     @property
     def API_WORKER_ID(self):
+        """
+        Get the key for the Worker ID.
+        """
         return self.__API_WORKER_ID
+
+    def API_WORKER_DATA(self) -> int:
+        """
+        Get the data for the Worker ID.
+        """
+        return int(self.__get_key(self.API_WORKER_ID))
 
     @property
     def API_ROOM_STATUS(self):
+        """
+        Get the key for the Room Status.
+        """
         return self.__API_ROOM_STATUS
+
+    def API_ROOM_STATUS_DATA(self) -> str:
+        return self.__get_key(self.API_ROOM_STATUS)
 
     @property
     def API_LOAD_PERCENTAGE(self):
         return self.__API_LOAD_PERCENTAGE
 
+    def API_LOAD_PERCENTAGE_DATA(self) -> int:
+        return int(self.__get_key(self.API_LOAD_PERCENTAGE))
+
     @property
     def API_YAML_CONFIG(self):
         return self.__API_YAML_CONFIG
+
+    def API_YAML_CONFIG_DATA(self) -> str:
+        return self.__get_key(self.API_YAML_CONFIG)
+
+    @property
+    def API_ROOM_TIMER(self):
+        return self.__API_ROOM_TIMER
 
     def get_unique_id(self, keyname: str) -> int:
         """
@@ -57,7 +121,7 @@ class RedisKeys():
             # Release the lock
             lock.release()
 
-    def update_redis_key(self, keyname: str, value: str) -> None:
+    def update_key(self, keyname: str, value: str) -> None:
         """
         Update a key in Redis with a new value.
         """
@@ -76,12 +140,13 @@ class RedisKeys():
             print(f"Error setting {keyname} in Redis: {e}")
             exit(1)
 
-    def get_redis_key(self, keyname: str) -> str:
+    def __get_key(self, keyname: str) -> str:
         """
         Get a key in Redis with a new value.
         """
         try:
-            return self.__redis.get(keyname)
+            value = self.__redis.get(keyname)
+            return value.decode('utf-8') if value else None
         except Exception as e:
             print(f"Error getting {keyname} in Redis: {e}")
         return None
