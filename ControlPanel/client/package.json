@@ -4,8 +4,9 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "dev": "vite --host",
-    "build": "tsc && vite build",
+    "build-env": "node config/generateDotEnv.js",
+    "dev": "npm run build-env && vite --host",
+    "build": "npm run build-env && tsc && vite build",
     "preview": "vite preview",
     "stable": "serve -s dist -l 52319"
   },
@@ -16,7 +17,9 @@
     "vite": "^5.4.9"
   },
   "dependencies": {
+    "@types/js-yaml": "^4.0.9",
     "fs": "^0.0.1-security",
+    "js-yaml": "^4.1.0",
     "os": "^0.1.2",
     "serve": "^14.2.4",
     "yaml": "^2.6.0"

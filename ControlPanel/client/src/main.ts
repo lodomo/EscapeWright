@@ -1,4 +1,4 @@
-const API_URL: string = api_url;
+const API_URL: string = import.meta.env.VITE_API_URL; 
 
 document.querySelector<HTMLDivElement>("title")!.innerText = await fetch_string_from_api("control_panel_title");
 
