@@ -22,7 +22,8 @@ def on_starting(server):
     set_redis_workers()
     create_timer()
     create_pis()
-    create_room_status()
+    init_redis_key(RedisKeys().API_ROOM_STATUS, RoomStatus().LOADING)
+    init_redis_key(RedisKeys().API_LOAD_PERCENTAGE, 0)
     print(f"Workers: {workers}, Threads: {threads}")
     print(f"Worker class: {worker_class}, Timeout: {timeout}")
     print(f"Keepalive: {keepalive} Max requests: {max_requests}")
@@ -55,11 +56,11 @@ def create_pis():
     pi_node_controller.print_all()
 
 
-def create_room_status():
+def init_redis_key(keyname: str, value: str):
     try:
         r = redis.Redis(host="localhost", port=6379, db=0)
-        r.set(RedisKeys().API_ROOM_STATUS, RoomStatus().LOADING)
-        print(f"Room status set to {RoomStatus().LOADING}")
+        r.set(keyname, value)
+        print(f"{keyname} set to {value}")
     except Exception as e:
-        print(f"Error setting room status in Redis: {e}")
+        print(f"Error setting {keyname} in Redis: {e}")
         exit(1)

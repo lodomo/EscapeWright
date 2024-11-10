@@ -13,7 +13,7 @@ import redis
 from flask import Flask
 from flask_cors import CORS
 from src.pi_node import PiNodeController
-from src.redis_funcs import RedisKeys, get_unique_id
+from src.redis_funcs import RedisKeys, get_unique_id, update_redis_key, get_redis_key
 from src.timer import Timer
 from src.yaml_reader import open_yaml_as_dict
 
@@ -23,6 +23,23 @@ worker_key = get_unique_id(RedisKeys().API_WORKER_ID)
 timer = Timer()  # Timer shared in redis database
 config = open_yaml_as_dict("./src/config.yaml")
 pi_node_controller = PiNodeController(config["pi_nodes"])
+REDIS = redis.Redis(host="localhost", port=6379, db=0)
+
+
+@app.route("/load", methods=["GET"])
+def load():
+    """
+    Return the load percentage of the room.
+    This will be for letting the front end to know it can open up.
+    Right now this is just phony data, TODO real loading.
+    """
+    percentage = get_redis_key(RedisKeys().API_LOAD_PERCENTAGE)
+    percentage = int(percentage)
+    new_percentage = percentage + 10
+    if new_percentage > 100:
+        new_percentage = 100
+    update_redis_key(RedisKeys().API_LOAD_PERCENTAGE, str(new_percentage))
+    return str(percentage)
 
 
 @app.route("/control_panel_title", methods=["GET"])
@@ -123,6 +140,8 @@ def reset():
     print("SIMULATING RESET SINCE NO PIS ARE CONNECTED")
     # pi_node_controller.reset_all()
     timer.reset()
+    update_redis_key(RedisKeys().API_ROOM_STATUS, "Resetting")
+    update_redis_key(RedisKeys().API_LOAD_PERCENTAGE, "0")
     return "Room Reset"
 
 

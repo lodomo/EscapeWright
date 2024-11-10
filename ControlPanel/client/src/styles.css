@@ -97,11 +97,17 @@ html {
 }
 
 .hide {
-    display: none;
+    animation: slideOutToBottom 0.75s ease-in-out forwards;
 }
 
 #page_blocker {
-    /* TODO */
+  position: fixed;         /* Makes it cover the entire viewport */
+  top: 0;
+  left: 0;
+  width: 100vw;            /* Full width of the viewport */
+  height: 100vh;           /* Full height of the viewport */
+  background-color: black;
+  z-index: 100000;           /* Ensure it’s above other content */
 }
 
 #app_container {
@@ -287,3 +293,87 @@ html {
     /* TODO */
 }
 
+
+/* Animations*/
+@keyframes slideInFromRight {
+    0% {
+        display: block;
+        transform: translateX(100vw); /* Start in the original position */
+    }
+    50% {
+        transform:translateX(75vw);
+    }
+    100% {
+        transform:translateX(0vw);
+    }
+}
+
+@keyframes slideOutToRight {
+    0% {
+        display: block;
+        transform:translateX(0vw);
+    }
+    30%{
+        transform:translateX(15vw);
+    }
+    50% {
+        transform:translateX(16vw);
+    }
+    100% {
+        display: none;
+        height: 0;
+        transform: translateX(100vw); /* Move it off the screen */
+    }
+}
+
+
+@keyframes slideOutToLeft {
+    0% {
+        display: block;
+        transform:translateX(0vw);
+    }
+    30%{
+        transform:translateX(-25vw);
+    }
+    50% {
+        transform:translateX(-26vw);
+    }
+    100% {
+        display: none;
+        transform: translateX(-100vw); /* Move it off the screen */
+    }
+}
+
+@keyframes slideOutToTop {
+    0% {
+        display: block;
+        transform:translateY(0vh);
+    }
+    30%{
+        transform:translateY(-25vh);
+    }
+    50% {
+        transform:translateY(-40vh);
+    }
+    100% {
+        display: none;
+        transform: translateY(-100vh); /* Move it off the screen */
+    }
+}
+
+@keyframes slideOutToBottom {
+    0% {
+        display: block;
+        transform:translateY(0vh);
+    }
+    30% {
+        transform:translateY(10vh);
+    }
+    50% {
+        transform:translateY(11vh);
+    }
+    100% {
+        display: none;
+        transform: translateY(100vh); /* Move it off the screen */
+    }
+}

@@ -15,6 +15,7 @@ class RedisKeys():
     def __init__(self):
         self.__API_WORKER_ID = "APIWorkerID"
         self.__API_ROOM_STATUS = "APIRoomStatus"
+        self.__API_LOAD_PERCENTAGE = "APILoadPercentage"
 
     @property
     def API_WORKER_ID(self):
@@ -23,6 +24,10 @@ class RedisKeys():
     @property
     def API_ROOM_STATUS(self):
         return self.__API_ROOM_STATUS
+
+    @property
+    def API_LOAD_PERCENTAGE(self):
+        return self.__API_LOAD_PERCENTAGE
 
 
 def get_unique_id(keyname: str) -> int:
@@ -47,3 +52,28 @@ def get_unique_id(keyname: str) -> int:
     finally:
         # Release the lock
         lock.release()
+
+
+def update_redis_key(keyname: str, value: str) -> None:
+    """
+    Update a key in Redis with a new value.
+    """
+    try:
+        r = redis.Redis(host="localhost", port=6379, db=0)
+        r.set(keyname, value)
+        print(f"{keyname} set to {value}")
+    except Exception as e:
+        print(f"Error setting {keyname} in Redis: {e}")
+    return None
+
+
+def get_redis_key(keyname: str) -> str:
+    """
+    Get a key in Redis with a new value.
+    """
+    try:
+        r = redis.Redis(host="localhost", port=6379, db=0)
+        return r.get(keyname)
+    except Exception as e:
+        print(f"Error getting {keyname} in Redis: {e}")
+    return None

@@ -3,7 +3,7 @@ const API_URL: string = import.meta.env.VITE_API_URL;
 document.querySelector<HTMLDivElement>("title")!.innerText = await fetch_string_from_api("control_panel_title");
 
 document.querySelector<HTMLDivElement>("#app")!.innerHTML = `
-  <div id="page_blocker" class="hide"></div>
+  <div id="page_blocker"></div>
   <div id="app_container">
     <div id="header"></div>
     <div id="content_container">
@@ -12,6 +12,26 @@ document.querySelector<HTMLDivElement>("#app")!.innerHTML = `
     </div>
   </div>
 `;
+
+async function load_api(): Promise<void> {
+  let load_percentage = "0";
+  
+  let page_block_element = document.querySelector<HTMLDivElement>("#page_blocker")!;
+
+  while (load_percentage != "100") {
+    load_percentage = await fetch_string_from_api("load");
+    console.log(load_percentage);
+    // Wait 1 second before checking again
+    await new Promise((resolve) => setTimeout(resolve, 1000));
+  }
+
+  page_block_element.classList.add("hide");
+  console.log("API Loaded");
+}
+
+load_api();
+
+
 
 document.querySelector<HTMLDivElement>("#page_blocker")!.innerHTML = `
   Page_Blocker
