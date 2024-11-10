@@ -3,6 +3,8 @@
 # There is a symbolic link in "api/src/config.yaml"
 # These are all the same file.
 
+script: "./src/script.md"
+
 room_info:
   name: "Default"
   description: "Default description"
@@ -38,4 +40,3 @@ room_overrides:
   - title: "Default"
     pi_node: "ALL"
     trigger: "Default"
-

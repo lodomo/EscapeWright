@@ -148,6 +148,22 @@ def reset():
     return "Room Reset"
 
 
+@app.route("/script", methods=["GET"])
+def script():
+    """
+    Return the script for the room.
+    This gives the front end the script to display for the gameguide.
+    """
+    # Open file and return the contents.
+    filename = config["script"]
+    with open(filename, "r") as file:
+        text = ""
+        for line in file:
+            text += line
+            text += "\n"
+    return text
+
+
 def broadcast(message: str):
     """
     TODO
