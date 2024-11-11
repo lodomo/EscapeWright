@@ -110,13 +110,18 @@ html {
   z-index: 100000;           /* Ensure it’s above other content */
 }
 
-#app_container {
-    /* TODO */
-}
-
 #app {
     /* TODO */
 }
+
+#app_container {
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    width: 100vw;
+    height: 100vh;
+}
+
 
 #header {
     display: flex;
@@ -133,7 +138,8 @@ html {
 }
 
 #content_container {
-    /* TODO */
+    display: flex;
+    margin-top: var(--header-h);
 }
 
 #content {
@@ -141,7 +147,16 @@ html {
 }
 
 #navigation {
-    /* TODO */
+    display: flex;
+    flex-direction: column;
+    width: var(--nav-w);
+    min-width: var(--nav-w);
+    height: calc(100% - var(--header-h));
+    min-height: calc(100% - var(--header-h));
+    background-color: var(--dark);
+    position: fixed;
+    right: 0;
+    z-index: 1000;
 }
 
 #page_title {
