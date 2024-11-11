@@ -1,0 +1,42 @@
+# This file should be located in "ControlPanel/config.yaml"
+# There is a symbolic link in "client/public/config.yaml"
+# There is a symbolic link in "api/src/config.yaml"
+# These are all the same file.
+
+script: "./src/script.md"
+
+room_info:
+  name: "Default"
+  description: "Default description"
+  subroom_1: &subroom_1 "Default 1"
+  subroom_2: &subroom_2 "Default 2"
+
+api:
+  host: "192.168.254.187"
+  port: 12413
+
+client:
+  host: "192.168.254.187"
+  port: 52319
+
+pi_nodes:
+  # Format for the pi_nodes:
+  # name: "Name of the node to appear in the UI"
+  # ip: "IP address of the node"
+  # location: *subroom_1 or *subroom_2
+  # Future builds might include extra rooms.
+  - name: "callisto"
+    ip: "192.168.254.201"
+    location: *subroom_1
+  - name: "aoede"
+    ip: "192.168.254.200"
+    location: *subroom_2
+
+room_overrides:
+  # Format for each override:
+  # title: "This is what the button says"
+  # pi_node: "Which node is this for? if it's for all nodes use "ALL"
+  # trigger: "This is the word that triggers the event."
+  - title: "Default"
+    pi_node: "ALL"
+    trigger: "Default"
