@@ -7,6 +7,7 @@ import { fetchStringFromApi } from "./funcs.ts";
 import { updateTimer } from "./funcs.ts";
 import { initializeLoadFromAPI } from "./funcs.ts";
 import { unblockPage } from "./funcs.ts";
+import { setActiveDiv } from "./funcs.ts";
 //import { Globals } from "./dicts.ts";
 //import { RoomStatus } from "./dicts.ts";
 //import { ApiRoutes } from "./dicts.ts";
@@ -55,11 +56,11 @@ setInnerHTML("#content_container", `
 
 
 setInnerHTML("#content", `
-  <div id="status_panel"></div>
-  <div id="script_panel"></div>
-  <div id="override_panel"></div>
-  <div id="reset_panel"></div>
-  <div id="stop_panel"></div>
+  <div id="status_panel" class="panel active" ></div>
+  <div id="script_panel" class="panel inactive" ></div>
+  <div id="override_panel" class="panel inactive" ></div>
+  <div id="reset_panel" class="panel inactive" ></div>
+  <div id="stop_panel" class="panel inactive" ></div>
 `);
 
 setInnerHTML("#status_panel", `
@@ -83,19 +84,26 @@ setInnerHTML("#stop_panel", `
 `);
 
 setInnerHTML("#navigation", `
-  <button id="nav_control" class="nav-button nav-act">Status</button>
-  <button id="nav_script" class="nav-button nav-pas">Script</button>
-  <button id="nav_override" class="nav-button nav-pas">Overrides</button>
-  <button id="nav_reset" class="nav-reset">Reset</button>
-  <button id="nav_stop" class="nav-stop">Stop</button>
+  <button data-target="status_panel" id="nav_status" class="nav-btn nav-act">Status</button>
+  <button data-target="script_panel" id="nav_script" class="nav-btn nav-pas">Script</button>
+  <button data-target="override_panel" id="nav_override" class="nav-btn nav-pas">Overrides</button>
+  <button data-target="reset_panel" id="nav_reset" class="nav-btn nav-reset">Reset</button>
+  <button data-target="stop_panel" id="nav_stop" class="nav-btn nav-stop">Stop</button>
 `);
-
-
-
 
 initializeLoadFromAPI();
 setInterval(updateTimer, 1000);
 
+const NAV_BUTTONS: NodeListOf<HTMLButtonElement> = document.querySelectorAll('.nav-btn');
+const NAV_PANELS: NodeListOf<HTMLDivElement> = document.querySelectorAll('.panel');
+function navButtonHandler(event: MouseEvent) {
+    setActiveDiv(event, NAV_PANELS);
+}
+
+// Add click event listeners to each button
+NAV_BUTTONS.forEach(button => {
+    button.addEventListener('click', navButtonHandler);
+});
 
 await new Promise((resolve) => setTimeout(resolve, 250));
 unblockPage();

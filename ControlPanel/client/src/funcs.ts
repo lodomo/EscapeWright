@@ -162,3 +162,34 @@ export function unblockPage(): void {
   let page_block_element = document.querySelector<HTMLDivElement>("#page_blocker")!;
   page_block_element.classList.add("hide");
 };
+
+/*
+ * Handle Button Click and set the active panel
+ * Hide all other panels
+ */
+export function setActiveDiv(event: MouseEvent, divs: NodeListOf<HTMLDivElement>) {
+    // Prevent default action if it's a submit button
+    event.preventDefault();
+
+    // Find the associated div for the clicked button
+    const associatedDivId = (event.target as HTMLElement).getAttribute('data-target');
+    const associatedDiv = document.querySelector(`#${associatedDivId}`);
+
+    // Check if the associated div exists
+    if (associatedDiv) {
+        // Set the associated div to active and adjust size
+        associatedDiv.classList.remove('inactive');
+        associatedDiv.classList.add('active');
+        console.log(associatedDiv);
+
+        // Loop over all divs to reset others
+        divs.forEach(div => {
+            if (div.id !== associatedDivId) {
+                div.classList.remove('active');
+                div.classList.add('inactive');
+            }
+        });
+    } else {
+        console.error(`No div found with ID: ${associatedDivId}`);
+    }
+}
