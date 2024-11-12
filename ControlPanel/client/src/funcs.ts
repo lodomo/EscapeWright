@@ -167,13 +167,30 @@ export function unblockPage(): void {
  * Handle Button Click and set the active panel
  * Hide all other panels
  */
-export function setActiveDiv(event: MouseEvent, divs: NodeListOf<HTMLDivElement>) {
+export function setActiveDiv(event: MouseEvent, buttons: NodeListOf<HTMLButtonElement>, divs: NodeListOf<HTMLDivElement>): void {
     // Prevent default action if it's a submit button
     event.preventDefault();
+
+    // id from the clicked button
+    const clickedButtonId = (event.target as HTMLElement).id;
+
+    if ((event.target as HTMLElement).classList.contains('nav-act')) {
+        return;
+    };
 
     // Find the associated div for the clicked button
     const associatedDivId = (event.target as HTMLElement).getAttribute('data-target');
     const associatedDiv = document.querySelector(`#${associatedDivId}`);
+
+    buttons.forEach(button => {
+      if (button.id === clickedButtonId) {
+        button.classList.add('nav-act');
+        button.classList.remove('nav-pas');
+      } else {
+        button.classList.add('nav-pas');
+        button.classList.remove('nav-act');
+      }
+    });
 
     // Check if the associated div exists
     if (associatedDiv) {
