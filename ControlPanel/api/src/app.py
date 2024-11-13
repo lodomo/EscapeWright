@@ -10,8 +10,9 @@
 ###############################################################################
 
 import redis
-from flask import Flask
+from flask import Flask, jsonify
 from flask_cors import CORS
+import markdown
 from src.pi_node import PiNodeController
 from src.redis_keys import RedisKeys
 from src.timer import Timer  # Treated as a global Timer()
@@ -19,10 +20,9 @@ from src.yaml_reader import open_yaml_as_dict
 
 app = Flask(__name__)
 CORS(app)
-worker_key = RedisKeys().get_unique_id(RedisKeys().API_WORKER_ID)
 config = open_yaml_as_dict(RedisKeys().API_YAML_CONFIG_DATA())
+worker_key = RedisKeys().get_unique_id(RedisKeys().API_WORKER_ID)
 pi_node_controller = PiNodeController(config["pi_nodes"])
-REDIS = redis.Redis(host="localhost", port=6379, db=0)
 
 
 @app.route("/status", methods=["GET"])
@@ -64,7 +64,6 @@ def control_panel_title():
     return title, 200
 
 
-@app.route("/room_name", methods=["GET"])
 def room_name():
     """
     Return the title of the room.
@@ -73,17 +72,19 @@ def room_name():
     temp_config = open_yaml_as_dict(RedisKeys().API_YAML_CONFIG_DATA())
     text = temp_config["room_info"]["name"]
     text = text.upper()
-    return text, 200
+    return text
 
 
 @app.route("/")
 def home():
     """
-    Currently this shows just the worker ID.
-    In the future it should be a mini front end where I can type
-    in commands that I want to do.
+    This should be a mini api interface just to make
+    sure everything works.
     """
-    return f"Worker {worker_key}, reporting for duty!", 200
+    html = "<p>API Interface</p>"
+    html += f"<p>Worker Key: {worker_key}</p>"
+    html += "<p>End points</p>"
+    return html, 200
 
 
 @app.route("/start/", defaults={"gameguide": "None", "players": "None"})
@@ -109,7 +110,7 @@ def time_remaining():
     return status()
 
 
-@app.route("/toggle", methods=["GET"])
+@app.route("/toggle", methods=["POST"])
 def toggle():
     timer = Timer()
     if not timer.has_started:
@@ -143,7 +144,7 @@ def relay(message, pi_node):
     return "Not Implemented", 501
 
 
-@app.route("/reset/", methods=["GET"])
+@app.route("/reset", methods=["POST"])
 def reset():
     print("SIMULATING RESET SINCE NO PIS ARE CONNECTED")
     # pi_node_controller.reset_all()
@@ -151,6 +152,16 @@ def reset():
     RedisKeys().update_key(RedisKeys().API_ROOM_STATUS, "LOADING")
     RedisKeys().update_key(RedisKeys().API_LOAD_PERCENTAGE, "0")
     return "Room Reset"
+
+@app.route("/stop", methods=["POST"])
+def stop():
+    """
+    Stop the room.
+    """
+    Timer().stop()
+    broadcast("stop")
+    RedisKeys().update_key(RedisKeys().API_ROOM_STATUS, "STOPPED")
+    return "Room Stopped", 200
 
 
 @app.route("/script", methods=["GET"])
@@ -160,13 +171,22 @@ def script():
     This gives the front end the script to display for the gameguide.
     """
     # Open file and return the contents.
-    filename = config["script"]
-    with open(filename, "r") as file:
-        text = ""
-        for line in file:
-            text += line
-            text += "\n"
-    return text, 200
+    script_file = config["script"]
+    script_data = ""
+    with open(script_file, "r") as f:
+        script_data = f.read()
+
+    html = markdown.markdown(script_data)
+    return html
+
+
+@app.route("/pi_statuses", methods=["GET"])
+def pi_statuses():
+    """
+    Get the statuses of all the pi nodes.
+    """
+    pi_dicts = pi_node_controller.get_serializable_pis()
+    return jsonify(pi_dicts)
 
 
 def broadcast(message: str):
@@ -192,110 +212,6 @@ def aggressively_get_pi_statuses():
     """
     print("TODO AGGRESSIVELY GET PI STATUSES")
     return
-
-
-"""
-OLD GARBAGE
-
-# Create the a controller for all the pi nodes.
-pi_list_file = "pi_list.ew"
-pi_list = PiNodeGenerator(pi_list_file).generate()
-pi_node_controller = PiNodeController(pi_list)
-pi_node_controller.print_all()
-room_timer = Timer()
-status = "idle"
-
-# from src.pi_node import PiNode
-from src.pi_node_controller import PiNodeController
-from src.pi_node_generator import PiNodeGenerator
-
-@app.route("/time_remaining", methods=["GET"])
-def time_remaining():
-    def time_remaining_js():
-        while True:
-            try:
-                time.sleep(1)
-                yield f"data: {room_timer.get_time()}\n\n"
-            except GeneratorExit:
-                break
-            except Exception as e:
-                yield f"data: ERROR: {str(e)}\n\n"
-
-    return Response(time_remaining_js(), mimetype="text/event-stream")
-
-
-@app.route("/room_status", methods=["GET"])
-def room_status():
-    def room_status_js():
-        status_was = none
-        while true:
-            if status != status_was:
-                try:
-                    status_was = status
-                    yield f"data: {status}\n\n"
-                except generatorexit:
-                    break
-                except exception as e:
-                    yield f"data: error: {str(e)}\n\n"
-            else:
-                time.sleep(1)
-
-    return response(room_status_js(), mimetype="text/event-stream")
-
-
-@app.route("/toggle", methods=["POST"])
-def toggle():
-    global status
-
-    # if the room is not running, start it.
-    if room_timer.__start_time is None:
-        room_timer.start()
-        status = "RUNNING"
-        logging.info("Starting room")
-        broadcast("room_start")
-        return "Room Started"
-
-    # if the room is running, pause it.
-    if not room_timer.__is_paused:
-        room_timer.pause()
-        status = "PAUSED"
-        logging.info("Pausing room")
-        broadcast("pause")
-        return "Room Paused"
-
-    # else, resume it.
-    room_timer.resume()
-    status = "RUNNING"
-    logging.info("Resuming room")
-    broadcast("resume")
-    return "Room Resumed"
-
-
-@app.route("/start/", defaults={"gameguide": "None", "players": "None"})
-@app.route("/start/<gameguide>/<players>", methods=["POST"])
-def start(gameguide, players):
-    # Start the room
-    # Get confirmation from the user, then start the room
-    # This will likely require a hard reboot
-    toggle()
-    logging.info("ROOM START")
-    logging.info("GAME GUIDE: " + gameguide)
-    logging.info("PLAYERS: " + players)
-    return "Room Started", 200
-
-
-@app.route("/reset", methods=["POST"])
-def reset():
-    status = "RESETTING"
-    pi_node_controller.reset_all()
-    room_timer.reset()
-    logging.info("Resetting all nodes")
-
-@app.route("/trigger/<message>", methods=["POST"])
-def trigger(self, message):
-        self.client_controller.broadcast(message)
-        return
-"""
 
 
 if __name__ == "__main__":

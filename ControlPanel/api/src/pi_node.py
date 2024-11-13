@@ -18,7 +18,6 @@ import time
 
 import redis
 import requests
-from src.yaml_reader import open_yaml_as_dict
 
 
 class PiNode:
@@ -331,6 +330,7 @@ class PiNode:
         """
         self.__load_from_redis()
         info = {}
+        info["type"] = "PiNode"
         info["name"] = self.__name
         info["ip"] = self.address
         info["location"] = self.__location

@@ -5,6 +5,7 @@ export const Globals: { [key: string]: string } = {
 
 export const RoomStatus: { [key: string]: string } = {
   loading: "LOADING",
+  ready: "READY",
 };
 
 export const ApiRoutes: { [key: string]: string } = {
