@@ -27,15 +27,35 @@ worker_key = RedisKeys.API_WORKER_ID.get_then_increment()
 pi_node_controller = PiNodeController(config["pi_nodes"])
 
 
+###############################################################################
+#                              Basic Interface                                #
+###############################################################################
+
 @app.route("/")
 def home():
     """
     This should be a mini api interface just to make
     sure everything works.
     """
-    html = "<p>API Interface</p>"
-    html += f"<p>Worker Key: {worker_key}</p>"
-    html += f"<p>Up Time: {uptime()}</p>"
+    html = \
+        """
+        <p>API Interface</p>
+        <a href='/fetch/all'>Fetch All</a><br>
+        <a href='/fetch/dynamic'>Fetch Dynamic</a><br>
+        <a href='/fetch/static'>Fetch Static</a><br>
+
+        <form id="fetchForm" onsubmit="redirectToFetch(); return false;">
+          <input type="text" id="userInput" placeholder="Fetch Specific Data" required>
+          <button type="submit">Submit</button>
+        </form>
+
+        <script>
+          function redirectToFetch() {
+            const input = document.getElementById("userInput").value;
+            window.location.href = `/fetch/${encodeURIComponent(input)}`;
+          }
+        </script>
+        """
     return html, 200
 
 
@@ -168,7 +188,7 @@ def restart_api():
 
 
 ###############################################################################
-#                             Node Endpoints                                  #
+#                               Pi Node Endpoints                             #
 ###############################################################################
 
 
@@ -301,17 +321,17 @@ def uptime() -> str:
     return formatted_time
 
 
-###############################################################################
-#                                   Junk                                      #
-###############################################################################
-
-
 def load() -> int:
     """
     Return the load percentage of the room.
     This will be for letting the front end to know it can open up.
     Right now this is just phony data, TODO real loading.
     """
+    if RedisKeys.API_ROOM_STATUS.get() == "LOADING":
+        # This worker should not force more loading to happen
+        return
+
+    RedisKeys.API_LOADING_STATUS.set("LOADING")
     print("WARNING THIS IS NOT A REAL LOAD PERCENTAGE")
     percent = RedisKeys.API_LOAD_PERCENTAGE.get()
     percent = int(percent)
@@ -322,15 +342,6 @@ def load() -> int:
     if new_percent == 100:
         RedisKeys.API_ROOM_STATUS.set("READY")
     return new_percent
-
-
-
-def broadcast(message: str):
-    """
-    TODO
-    """
-    print("TODO BROADCAST")
-    return
 
 
 if __name__ == "__main__":

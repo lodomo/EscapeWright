@@ -8,6 +8,7 @@ from src.pi_node import PiNodeController
 from src.redis_keys import RedisKeys
 from src.timer import Timer
 from src.yaml_reader import open_yaml_as_dict
+from src.enums import RoomStatus, LoadingStatus, ConfigKeys
 
 # Settings that are used when running gunicorn with the -c flag.
 port = "12413"  # The EscapeWright API Port
@@ -57,16 +58,17 @@ def init_globals():
     Initialize the global variables for the API server.
     """
     RedisKeys.API_WORKER_ID.set(0)
-    RedisKeys.API_ROOM_STATUS.set("LOADING")
+    RedisKeys.API_ROOM_STATUS.set(RoomStatus.BOOTING)
+    RedisKeys.API_LOADING_STATUS.set(LoadingStatus.IDLE)
     RedisKeys.API_LOAD_PERCENTAGE.set(0)
-    RedisKeys.API_YAML_CONFIG.set("./src/config.yaml")
+    RedisKeys.API_YAML_CONFIG.set(ConfigKeys.CONFIG_YAML)
     Timer(new_timer=True)
     RedisKeys.API_LAST_BOOT.set(int(time.time()))
 
 
 def init_pis():
     config = open_yaml_as_dict(RedisKeys.API_YAML_CONFIG.get())
-    pi_node_controller = PiNodeController(config["pi_nodes"], initial=True)
+    pi_node_controller = PiNodeController(config[ConfigKeys.PI_NODES], initial=True)
     pi_node_controller.clear_all_statuses()
     pi_node_controller.print_all()
 

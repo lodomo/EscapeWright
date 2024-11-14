@@ -25,19 +25,23 @@ class RedisKeys(Enum):
     GUNICORN_PID = "GUNICORN_PID"
     API_WORKER_ID = "APIWorkerID"
     API_ROOM_STATUS = "APIRoomStatus"
+    API_LOADING_STATUS = "APILoadingStatus"
     API_LOAD_PERCENTAGE = "APILoadPercentage"
     API_YAML_CONFIG = "APIYAMLConfig"
     API_ROOM_TIMER = "APIRoomTimer"
     API_LAST_BOOT = "APILastBoot"
 
+    def __str__(self):
+        return self.value
+
     def get(self) -> str:
-        string = self.value
+        string = str(self)
         r = RedisKeys.REDIS.value
         value = r.get(string).decode("utf-8")
         return value
 
     def set(self, value) -> None:
-        string = self.value
+        string = str(self)
         r = RedisKeys.REDIS.value
         r.set(string, value)
         return
