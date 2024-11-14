@@ -205,10 +205,9 @@ class PiNode:
     def changed(self) -> bool:
         return self.__status != self.__status_was
 
-    def __update_status(self, status) -> None:
+    def update_status(self, status) -> None:
         """
-        This updates the status of the pi. This is useful when the pi is
-        resetting, and the status is not immediately available.
+        Updates the status of the pi.
         """
         self.__status_was = self.__status
         self.__status = status
@@ -284,7 +283,7 @@ class PiNode:
             if response.status_code == 200:
                 last_word = response.text.split()[-1]
                 status = last_word.upper()
-                self.__update_status(status)
+                self.update_status(status)
                 self.__reachable = True
         except Exception as e:
             print(f"An error occurred: {e}")
@@ -293,34 +292,22 @@ class PiNode:
         self.__save_to_redis()
         return self.__reachable
 
-    def soft_reset(self) -> bool:
-        """
-        This changes the LOCAL status of the pi to "RESETTING" and sends a
-        request to the pi to reset itself. If the pi is reachable, and the
-        request is successful, it will return True. If the pi is not reachable,
-        or the request fails, it will return False.
-
-        A soft reset means "software reset" the raspberry pi should not
-        power down.
-        """
-        self.__load_from_redis()
-        self.__status_was = self.__status
-        self.__status = "RESETTING"
-        self.__save_to_redis()
-        return self.relay("reset")
-
     def relay(self, message) -> bool:
         """
         This sends a relay to the pi so it knows what is happening in the room.
         Each pi module decides if it's important or not, this is NOT a command
         this is purely sending a message.
         """
+        '''
         try:
             response = requests.get(self.address + "/relay/" + message, timeout=5)
             if response.status_code == 200:
                 return True
         except requests.exceptions.RequestException:
             return False
+        '''
+        print(f"Relay not sent to {self.name} - {self.ip} - {message}")
+        print(f"This function is not implemented yet. Pis are not connected.")
 
     def to_dict(self):
         """
@@ -395,7 +382,10 @@ class PiNodeController:
         Raspberry Pi Servers. This is used to send the information to the
         Control Console for Javascript to use.
         """
-        return [pi.to_dict() for pi in self.__pi_nodes]
+        pi_dict = {}
+        for pi in self.__pi_nodes:
+            pi_dict[pi.name] = pi.to_dict()
+        return pi_dict
 
     def find_by_name(self, name) -> PiNode:
         try:
@@ -404,16 +394,28 @@ class PiNodeController:
             print(f"This should never happen, but {name} was not found.")
             return None
 
-    def relay(self, message):
+    def broadcast(self, message):
+        for pi in self.__pi_nodes:
+            pi.relay(message)
+        return
+
+    def relay(self, name, message):
         """
         Relay a message to all the pi nodes.
         """
-        for pi in self.__pi_nodes:
-            pi.relay(message)
+        pi = self.find_by_name(name)
+        pi.relay(message)
+        return
 
     def clear_all_statuses(self):
         for pi in self.__pi_nodes:
             pi.clear_status()
+
+    def update_status(self, name, status):
+        pi = self.find_by_name(name)
+        pi.update_status(status)
+        return
+
 
 
 class PiNodeGenerator:

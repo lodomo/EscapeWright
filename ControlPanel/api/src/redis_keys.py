@@ -28,11 +28,13 @@ class RedisKeys(Enum):
     API_LOAD_PERCENTAGE = "APILoadPercentage"
     API_YAML_CONFIG = "APIYAMLConfig"
     API_ROOM_TIMER = "APIRoomTimer"
+    API_LAST_BOOT = "APILastBoot"
 
     def get(self) -> str:
         string = self.value
         r = RedisKeys.REDIS.value
-        return r.get(string).decode("utf-8")
+        value = r.get(string).decode("utf-8")
+        return value
 
     def set(self, value) -> None:
         string = self.value
@@ -55,7 +57,7 @@ class RedisKeys(Enum):
                     r.set(keyname, 0)
                 cur = r.get(keyname)
                 r.incr(keyname)
-                return cur
+                return int(cur)
             else:
                 print("Could not acquire lock.")
                 exit(1)

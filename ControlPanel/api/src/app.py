@@ -10,9 +10,11 @@
 ###############################################################################
 
 import os
+import time
+
+import markdown
 from flask import Flask, jsonify
 from flask_cors import CORS
-import markdown
 from src.pi_node import PiNodeController
 from src.redis_keys import RedisKeys
 from src.timer import Timer  # Treated as a global Timer()
@@ -25,107 +27,6 @@ worker_key = RedisKeys.API_WORKER_ID.get_then_increment()
 pi_node_controller = PiNodeController(config["pi_nodes"])
 
 
-@app.route("/payload", methods=["GET"])
-def payload():
-    """
-    Returns a full data payload for the room.
-    This might be good to just call all the time and get the data you want.
-    """
-    return jsonify(generate_payload()), 200
-
-
-def generate_payload():
-    """
-    Returns a full data payload for the room.
-    This might be good to just call all the time and get the data you want.
-    This little bit of extra processing comes at a freebie for updating anything
-    on the fly. Since the data is tiny it's not a big deal to open the config
-    file every time.
-
-    If this grows too large, I can have it cache the config instead.
-    """
-    config = open_yaml_as_dict(RedisKeys.API_YAML_CONFIG.get())
-
-    payload = {}
-    payload["room_name"] = config["room_info"]["name"].upper()
-    payload["control_panel_title"] = "Control Panel for " + config["room_info"]["name"]
-    payload["room_status"] = RedisKeys.API_ROOM_STATUS.get()
-    payload["time_remaining"] = Timer().get_time()
-    #payload["pi_statuses"] = 
-    #payload["script"] = 
-    return payload
-
-
-def get_payload_data(data: str):
-    """
-    Get the payload data for the room.
-    """
-    payload = generate_payload()
-    return payload[data]
-
-
-@app.route("/room_name", methods=["GET"])
-def room_name():
-    """
-    Return the title of the room.
-    Useful for the front end to know what the room is doing.
-    """
-    return get_payload_data("room_name"), 200
-
-
-@app.route("/control_panel_title", methods=["GET"])
-def control_panel_title():
-    """
-    Return the title of the control panel.
-    Useful for the front end to know what the control panel is doing.
-    """
-    payload = generate_payload()
-    return payload["control_panel_title"], 200
-
-
-@app.route("/status", methods=["GET"])
-def status():
-    """
-    Return the status of the room.
-    Useful for the front end to know what the room is doing.
-    """
-    return RedisKeys.API_ROOM_STATUS.get(), 200
-
-
-@app.route("/time_remaining", methods=["GET"])
-def time_remaining():
-    return get_payload_data("time_remaining"), 200
-
-
-@app.route("/restart_server", methods=["POST"])
-def restart_server():
-    """
-    Restart the server.
-    """
-    pid = RedisKeys.GUNICORN_PID.get()
-    print(f"Restarting server with PID: {pid}")
-    yield "Restarting Server"
-    os.system(f"kill -HUP {pid}")
-    return "Server Restarted", 200
-
-
-def load() -> int:
-    """
-    Return the load percentage of the room.
-    This will be for letting the front end to know it can open up.
-    Right now this is just phony data, TODO real loading.
-    """
-    percent = RedisKeys.API_LOAD_PERCENTAGE.get()
-    percent = int(percent)
-    new_percent = percent + 10
-    if new_percent > 100:
-        new_percent = 100
-    RedisKeys.API_LOAD_PERCENTAGE.set(str(new_percent))
-    if new_percent == 100:
-        RedisKeys.API_ROOM_STATUS.set("READY")
-    return new_percent
-
-
 @app.route("/")
 def home():
     """
@@ -134,8 +35,54 @@ def home():
     """
     html = "<p>API Interface</p>"
     html += f"<p>Worker Key: {worker_key}</p>"
-    html += "<p>End points</p>"
+    html += f"<p>Up Time: {uptime()}</p>"
     return html, 200
+
+
+###############################################################################
+#                            Client Endpoints                                 #
+###############################################################################
+
+
+@app.route("/fetch/all", methods=["GET"])
+def fetch_all():
+    """
+    Return all the data to the requester.
+    This is used to initialize the front end.
+    """
+    return jsonify(generate_full_payload()), 200
+
+
+@app.route("/fetch/dynamic", methods=["GET"])
+def fetch_dynamic():
+    """
+    Return the dynamic data to the requester.
+    This is data that may change after the server has started.
+    """
+    return jsonify(generate_dynamic_payload()), 200
+
+
+@app.route("/fetch/static", methods=["GET"])
+def fetch_static():
+    """
+    Return the static data to the requester.
+    This is data that will not change after the server has started.
+    """
+    return jsonify(generate_static_payload()), 200
+
+
+@app.route("/fetch/<specific_data>", methods=["GET"])
+def fetch_specific_data(specific_data):
+    """
+    Return a specific data payload for the room.
+    This might be good to just call all the time and get the data you want.
+    """
+    full_payload = generate_full_payload()
+    data = search_nested_dicts(full_payload, specific_data)
+    if data is not None:
+        return jsonify(data), 200
+    else:
+        return "Data Not Found", 404
 
 
 @app.route("/start/", defaults={"gameguide": "None", "players": "None"})
@@ -158,44 +105,43 @@ def toggle():
     timer = Timer()
     if not timer.has_started:
         timer.start()
-        broadcast("room_start")
+        pi_node_controller.broadcast("room_start")
         return "Room Started"
 
     if not timer.is_paused:
         timer.pause()
-        broadcast("pause")
+        pi_node_controller.broadcast("pause")
         return "Room Paused"
 
     timer.resume()
-    broadcast("resume")
+    pi_node_controller.broadcast("resume")
     return "Room Resumed"
 
 
-@app.route("/trigger/", defaults={"message": "None"})
-@app.route("/trigger/<message>", methods=["POST"])
-def trigger(message):
-    broadcast(message)
-    return "Not Implemented", 501
+@app.route("/override/<trigger_name>", methods=["POST"])
+def override_broadcast(trigger_name):
+    """
+    Set an override for the room.
+    """
+    pi_node_controller.broadcast(trigger_name)
+    return "Not Implemented (Override Broadcast)", 501
 
 
-@app.route("/relay/", defaults={"message": "None", "pi_node": "None"})
-@app.route("/relay/<message>/<pi_node>", methods=["POST"])
-def relay(message, pi_node):
+@app.route("/override/<trigger_name>/<pi_name>", methods=["POST"])
+def override_relay(trigger_name, pi_name):
     """
-    TODO
+    Set an override for a specific Pi.
     """
-    return "Not Implemented", 501
+    pi_node_controller.relay(pi_name, trigger_name)
+    return "Not Implemented (Override Relay)", 501
 
 
 @app.route("/reset", methods=["POST"])
 def reset():
     print("SIMULATING RESET SINCE NO PIS ARE CONNECTED")
-    # This needs to tell all the pis to reset, wait for them to reset,
-    # The reset itself.
-    # pi_node_controller.reset_all()
-    # Timer().reset()
-    # Also restart the API, lowkey.
-    return "Room Reset"
+    pi_node_controller.broadcast("reset")
+    return restart_api()
+
 
 @app.route("/stop", methods=["POST"])
 def stop():
@@ -203,13 +149,93 @@ def stop():
     Stop the room.
     """
     Timer().stop()
-    broadcast("stop")
+    pi_node_controller.broadcast("stop")
     RedisKeys.API_ROOM_STATUS.set("STOPPED")
-    return "Room Stopped", 200
+    return fetch_dynamic()
 
 
-@app.route("/script", methods=["GET"])
-def script():
+@app.route("/restart_api", methods=["POST"])
+def restart_api():
+    """
+    Restart the server.
+    This might be useful outside of "reset" but I doubt it.
+    This probably breaks everything if you do it while the room is running.
+    """
+    pid = RedisKeys.GUNICORN_PID.get()
+    print(f"Restarting server with PID: {pid}")
+    os.system(f"kill -HUP {pid}")
+    return fetch_all()
+
+
+###############################################################################
+#                             Node Endpoints                                  #
+###############################################################################
+
+
+@app.route("/trigger/", defaults={"message": "None"})
+@app.route("/trigger/<message>", methods=["POST"])
+def trigger(message):
+    """
+    This is technically identical to "override_broadcast" but it's the pi
+    nodes alerting the server of a trigger, rather than the front end trying
+    to bypass a problem or manually setting the state of something.
+    """
+    pi_node_controller.broadcast(message)
+    return f"Triggered: {message}", 200
+
+
+@app.route("/update_status/<pi_name>/<status>", methods=["POST"])
+def update_status(pi_name, status):
+    """
+    Update the status of a Pi.
+    """
+    pi_node_controller.update_status(pi_name, status)
+    return f"Updated Status: {pi_name} - {status}", 200
+
+
+###############################################################################
+#                             Helper Functions
+###############################################################################
+
+
+def generate_full_payload() -> dict:
+    """
+    Combine the two payloads into one, keep data divided.
+    """
+    payload = {}
+    payload["dynamic"] = generate_dynamic_payload()
+    payload["static"] = generate_static_payload()
+    return payload
+
+
+def generate_dynamic_payload() -> dict:
+    """
+    Generate the dynamic payload for the room.
+    This is data that will likely change during the server's uptime.
+    """
+    payload = {}
+    payload["load_percentage"] = load()
+    payload["room_status"] = RedisKeys.API_ROOM_STATUS.get()
+    payload["time_remaining"] = Timer().get_time()
+    payload["pi_nodes"] = pi_node_controller.get_serializable_pis()
+    return payload
+
+
+def generate_static_payload():
+    """
+    Generate the static payload for the room.
+    This is data that will not change between server restarts.
+    """
+    config = open_yaml_as_dict(RedisKeys.API_YAML_CONFIG.get())
+    payload = {}
+    payload["room_name"] = config["room_info"]["name"].upper()
+    payload["last_boot"] = RedisKeys.API_LAST_BOOT.get()
+    payload["overrides"] = generate_override_endpoints()
+    payload["script"] = generate_script_html()
+    return payload
+
+
+def generate_script_html():
     """
     Return the script for the room.
     This gives the front end the script to display for the gameguide.
@@ -224,14 +250,79 @@ def script():
     return html
 
 
-@app.route("/pi_statuses", methods=["GET"])
-def pi_statuses():
+def generate_override_endpoints():
+    return "TODO"
+
+
+def search_nested_dicts(data: dict, key: str):
     """
-    Get the statuses of all the pi nodes.
+    Search for a key in the data.
     """
-    pi_nodes_dict = {}
-    pi_nodes_dict["pi_nodes"] = pi_node_controller.get_serializable_pis()
-    return jsonify(pi_nodes_dict)
+
+    # Search for the key in the top level of the data
+    for k, v in data.items():
+        if k == key:
+            return v
+
+    # Dive deeper into the data
+    for k, v in data.items():
+        if isinstance(v, dict):
+            result = search_nested_dicts(v, key)
+            if result:
+                return result
+    return None
+
+
+def uptime() -> str:
+    """
+    Return the uptime of the server.
+    """
+    last_boot = int(RedisKeys.API_LAST_BOOT.get())
+    now = int(time.time())
+    delta = now - last_boot
+
+    YEAR = 31536000
+    DAY = 86400
+    HOUR = 3600
+    MINUTE = 60
+
+    years, remainder = divmod(delta, YEAR)
+    days, remainder = divmod(remainder, DAY)
+    hours, remainder = divmod(remainder, HOUR)
+    minutes, seconds = divmod(remainder, MINUTE)
+
+    formatted_time = ""
+    if years:
+        formatted_time += f"{years:02} years, "
+    if days:
+        formatted_time += f"{days:02} days, "
+    formatted_time += f"{hours:02}h{minutes:02}m{seconds:02}s"
+
+    return formatted_time
+
+
+###############################################################################
+#                                   Junk                                      #
+###############################################################################
+
+
+def load() -> int:
+    """
+    Return the load percentage of the room.
+    This will be for letting the front end to know it can open up.
+    Right now this is just phony data, TODO real loading.
+    """
+    print("WARNING THIS IS NOT A REAL LOAD PERCENTAGE")
+    percent = RedisKeys.API_LOAD_PERCENTAGE.get()
+    percent = int(percent)
+    new_percent = percent + 10
+    if new_percent > 100:
+        new_percent = 100
+    RedisKeys.API_LOAD_PERCENTAGE.set(str(new_percent))
+    if new_percent == 100:
+        RedisKeys.API_ROOM_STATUS.set("READY")
+    return new_percent
+
 
 
 def broadcast(message: str):
@@ -239,23 +330,6 @@ def broadcast(message: str):
     TODO
     """
     print("TODO BROADCAST")
-    return
-
-
-def get_pi_statuses():
-    """
-    Get the statuses of all the pi nodes.
-    """
-    print("TODO GET PI STATUSES")
-    return
-
-
-def aggressively_get_pi_statuses():
-    """
-    Get the statuses of all the pi nodes.
-    Do not stop until all the statuses are received as Ready.
-    """
-    print("TODO AGGRESSIVELY GET PI STATUSES")
     return
 
 
