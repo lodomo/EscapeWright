@@ -18,7 +18,7 @@ class Timer:
     def __init__(
         self,
         length: int = 60,
-        redis_key: str = RedisKeys().API_ROOM_TIMER,
+        redis_key: str = RedisKeys.API_ROOM_TIMER.value,
         new_timer: bool = False,
     ):
         """
@@ -63,6 +63,8 @@ class Timer:
         self.__is_paused = False
         self.__is_stopped = False
 
+        self.__remaining_at_pause = ""
+
         if new_timer:
             self.reset()
         else:
@@ -85,7 +87,7 @@ class Timer:
         """
         Save the timer data to the redis key
         """
-        RedisKeys().update_key(self.redis_key, self.__str__())
+        RedisKeys.API_ROOM_TIMER.set(self.__str__())
         return
 
     def load_from_redis(self):
@@ -94,7 +96,7 @@ class Timer:
         when the timer is doing anything to change states incase it already
         did change a state.
         """
-        data = RedisKeys().API_ROOM_TIMER_DATA()
+        data = RedisKeys.API_ROOM_TIMER.get()
 
         if data is None:
             print("No timer data found in redis.")
@@ -207,6 +209,7 @@ class Timer:
             raise ValueError("Timer is already paused.")
 
         self.__paused_time = int(time.time())
+        self.__remaining_at_pause = self.__format_time()
         self.__is_paused = True
         self.save_to_redis()
         return
@@ -234,6 +237,7 @@ class Timer:
         """
         self.load_from_redis()
         self.__is_stopped = True
+        self.__end_time = 0
         self.save_to_redis()
         return
 
@@ -263,10 +267,7 @@ class Timer:
         """
         self.load_from_redis()
         if self.__is_paused:
-            return "PAUSED"
-
-        if self.__is_stopped:
-            return "STOPPED"
+            return self.__remaining_at_pause
 
         return self.__format_time()
 
