@@ -5,6 +5,7 @@ class RoomStatus():
     PAUSED = "PAUSED"
     ERROR = "ERROR"
     STOPPED = "STOPPED"
+    LOADING = "LOADING"
 
 
 class LoadingStatus():
@@ -15,3 +16,14 @@ class LoadingStatus():
 class ConfigKeys():
     CONFIG_YAML = "./src/config.yaml"
     PI_NODES = "pi_nodes"
+
+
+class Broadcasts():
+    """
+    These are not all inclusive, but they are common across all the rooms.
+    """
+    ROOM_START = "ROOM_START"
+    PAUSE = "PAUSE"
+    RESUME = "RESUME"
+    STOP = "STOP"
+    RESET = "RESET"

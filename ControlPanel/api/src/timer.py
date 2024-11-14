@@ -1,24 +1,24 @@
-###############################################################################
-#
-#      Author: Lorenzo D. Moon
-#     Purpose: Controls the timer for the room
-#     Version: 2.2 Updated 10-31-2024
-# Description: Timer controls for the room.
-#              Optional length parameter for the timer.
-#              Key Functions: Start, Pause, Resume, Stop, Reset, Get Time.
-#
-###############################################################################
-
 import time
 
 from src.redis_keys import RedisKeys
 
 
+class TimerStates:
+    """
+    This class is used to define the states of the timer.
+    """
+    IDLE = "IDLE"
+    RUNNING = "RUNNING"
+    PAUSED = "PAUSED"
+    STOPPED = "STOPPED"
+
+
 class Timer:
+
     def __init__(
         self,
         length: int = 60,
-        redis_key: str = RedisKeys.API_ROOM_TIMER.value,
+        redis_key: str = RedisKeys.API_ROOM_TIMER.get(),
         new_timer: bool = False,
     ):
         """
@@ -62,8 +62,6 @@ class Timer:
         self.__has_started = False
         self.__is_paused = False
         self.__is_stopped = False
-
-        self.__remaining_at_pause = ""
 
         if new_timer:
             self.reset()
@@ -209,7 +207,6 @@ class Timer:
             raise ValueError("Timer is already paused.")
 
         self.__paused_time = int(time.time())
-        self.__remaining_at_pause = self.__format_time()
         self.__is_paused = True
         self.save_to_redis()
         return
@@ -266,10 +263,13 @@ class Timer:
         Format is "HH:MM:SS"
         """
         self.load_from_redis()
-        if self.__is_paused:
-            return self.__remaining_at_pause
 
-        return self.__format_time()
+        if self.__is_paused:
+            remaining_time = self.__end_time - self.__paused_time
+        else:
+            remaining_time = self.__calc_time_remaining()
+
+        return self.__format_time(remaining_time)
 
     def __calc_time_remaining(self) -> int:
         """
@@ -288,12 +288,11 @@ class Timer:
             return 0
         return time_remaining
 
-    def __format_time(self) -> str:
+    def __format_time(self, seconds) -> str:
         """
         Format the time in a string of "HH:MM:SS"
         """
         self.load_from_redis()
-        remaining = self.__calc_time_remaining()
-        hrs, remainder = divmod(remaining, 3600)
+        hrs, remainder = divmod(seconds, 3600)
         mins, secs = divmod(remainder, 60)
         return "{:02}:{:02}:{:02}".format(int(hrs), int(mins), int(secs))

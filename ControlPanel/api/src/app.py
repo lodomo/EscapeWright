@@ -1,14 +1,7 @@
-#############################################################################
-#
-#      Author: Lorenzo D. Moon
-#     Purpose: Control the A Simulated Reality Experience
-#     Version: 0.0.1 - Derived from Code Samurai Version 2.X, Vastly Different
-# Description: Backend API for communicating with the pi nodes.
-#              This should not be ran directly, instead through a gunicorn
-#              server.
-#
 ###############################################################################
-
+# Description: TODO
+# Version: TODO
+###############################################################################
 import os
 import time
 
@@ -19,12 +12,13 @@ from src.pi_node import PiNodeController
 from src.redis_keys import RedisKeys
 from src.timer import Timer  # Treated as a global Timer()
 from src.yaml_reader import open_yaml_as_dict
+from src.enums import RoomStatus, LoadingStatus, ConfigKeys, Broadcasts
 
 app = Flask(__name__)
 CORS(app)
 config = open_yaml_as_dict(RedisKeys.API_YAML_CONFIG.get())
 worker_key = RedisKeys.API_WORKER_ID.get_then_increment()
-pi_node_controller = PiNodeController(config["pi_nodes"])
+pi_node_controller = PiNodeController(config[ConfigKeys.PI_NODES])
 
 
 ###############################################################################
@@ -37,22 +31,87 @@ def home():
     This should be a mini api interface just to make
     sure everything works.
     """
-    html = \
-        """
-        <p>API Interface</p>
+    all_data = generate_full_payload()
+    last_boot = all_data["static"]["last_boot"]
+    # Convert to DD/MM/YYYY HH:MM:SS
+    last_boot = time.strftime("%d %b %Y %H:%M:%S", time.localtime(int(last_boot)))
+    html = "<p>API Interface</p>"
+    html += f"<p>Worker ID: {worker_key}<br/>"
+    html += f"Room Name: {all_data['static']['room_name']}<br/>"
+    html += f"Room Status: {all_data['dynamic']['room_status']}<br/>"
+    html += f"Time Remaining: {all_data['dynamic']['time_remaining']}<br/>"
+    html += f"Load Percentage: {all_data['dynamic']['load_percentage']}%<br/>"
+    html += f"Uptime: {uptime()}<br/>"
+    html += f"Last Boot: {last_boot}<br/>"
+    html += """
         <a href='/fetch/all'>Fetch All</a><br>
         <a href='/fetch/dynamic'>Fetch Dynamic</a><br>
         <a href='/fetch/static'>Fetch Static</a><br>
-
         <form id="fetchForm" onsubmit="redirectToFetch(); return false;">
           <input type="text" id="userInput" placeholder="Fetch Specific Data" required>
           <button type="submit">Submit</button>
         </form>
 
+        <form id="overrideForm" onsubmit="redirectToBroadcast(); return false;">
+          <input type="text" id="userInputBroadcast" placeholder="Broadcast Override to All" required>
+          <button type="submit">Broadcast</button>
+        </form>
+
+        <form id="overrideForm" onsubmit="redirectToRelay(); return false;">
+          <input type="text" id="userInputRelay" placeholder="Relay to Send" required>
+          <input type="text" id="userInputNode" placeholder="Pi Node Name" required>
+          <button type="submit">Relay</button>
+        </form>
+
+        <form onsubmit="sendPostRequest('/start/API_FORCE_START/0'); return false;" style="display:inline;">
+          <button type="submit">Start Room</button>
+        </form><br>
+
+        <form onsubmit="sendPostRequest('/toggle'); return false;" style="display:inline;">
+          <button type="submit">Toggle Room</button>
+        </form><br>
+
+        <form onsubmit="sendPostRequest('/stop'); return false;" style="display:inline;">
+          <button type="submit">Stop Room</button>
+        </form><br>
+
+        <form onsubmit="sendPostRequest('/reset'); return false;" style="display:inline;">
+          <button type="submit">Reset Room</button>
+        </form><br>
+
+        <form onsubmit="sendPostRequest('/restart_api'); return false;" style="display:inline;">
+          <button type="submit">Restart API</button>
+        </form><br>
+
         <script>
           function redirectToFetch() {
             const input = document.getElementById("userInput").value;
             window.location.href = `/fetch/${encodeURIComponent(input)}`;
+          }
+
+          function sendPostRequest(url) {
+            fetch(url, {
+              method: 'POST'
+            })
+            .then(response => {
+              if (!response.ok) {
+                throw new Error('Request failed');
+              }
+              console.log('Request successful');
+              // The request was successful, nothing further is needed
+            })
+            .catch(error => console.error('Error:', error));
+          }
+
+          function redirectToBroadcast() {
+            const input = document.getElementById("userInputBroadcast").value;
+            sendPostRequest(`/override/${encodeURIComponent(input)}`);
+          }
+
+          function redirectToRelay() {
+            const input = document.getElementById("userInputRelay").value;
+            const input2 = document.getElementById("userInputNode").value;
+            sendPostRequest(`/override/${encodeURIComponent(input)}/${encodeURIComponent(input2)}`);
           }
         </script>
         """
@@ -115,9 +174,7 @@ def start(gameguide, players):
     """
     if Timer().has_started:
         return "Error: Room Already Started", 400
-
-    toggle()
-    return "Room Started", 200
+    return toggle()
 
 
 @app.route("/toggle", methods=["POST"])
@@ -125,17 +182,20 @@ def toggle():
     timer = Timer()
     if not timer.has_started:
         timer.start()
-        pi_node_controller.broadcast("room_start")
-        return "Room Started"
+        pi_node_controller.broadcast(Broadcasts.ROOM_START)
+        RedisKeys.API_ROOM_STATUS.set(RoomStatus.RUNNING)
+        return Broadcasts.ROOM_START, 200
 
     if not timer.is_paused:
         timer.pause()
-        pi_node_controller.broadcast("pause")
-        return "Room Paused"
+        pi_node_controller.broadcast(Broadcasts.PAUSE)
+        RedisKeys.API_ROOM_STATUS.set(RoomStatus.PAUSED)
+        return RoomStatus.PAUSED, 200
 
     timer.resume()
-    pi_node_controller.broadcast("resume")
-    return "Room Resumed"
+    pi_node_controller.broadcast(Broadcasts.RESUME)
+    RedisKeys.API_ROOM_STATUS.set(RoomStatus.RUNNING)
+    return RoomStatus.RUNNING, 200
 
 
 @app.route("/override/<trigger_name>", methods=["POST"])
@@ -159,7 +219,7 @@ def override_relay(trigger_name, pi_name):
 @app.route("/reset", methods=["POST"])
 def reset():
     print("SIMULATING RESET SINCE NO PIS ARE CONNECTED")
-    pi_node_controller.broadcast("reset")
+    pi_node_controller.broadcast(Broadcasts.RESET)
     return restart_api()
 
 
@@ -169,9 +229,9 @@ def stop():
     Stop the room.
     """
     Timer().stop()
-    pi_node_controller.broadcast("stop")
-    RedisKeys.API_ROOM_STATUS.set("STOPPED")
-    return fetch_dynamic()
+    pi_node_controller.broadcast(Broadcasts.STOP)
+    RedisKeys.API_ROOM_STATUS.set(RoomStatus.STOPPED)
+    return RoomStatus.STOPPED, 200
 
 
 @app.route("/restart_api", methods=["POST"])
@@ -184,7 +244,7 @@ def restart_api():
     pid = RedisKeys.GUNICORN_PID.get()
     print(f"Restarting server with PID: {pid}")
     os.system(f"kill -HUP {pid}")
-    return fetch_all()
+    return "Restarting Server", 200
 
 
 ###############################################################################
@@ -234,7 +294,7 @@ def generate_dynamic_payload() -> dict:
     This is data that will likely change during the server's uptime.
     """
     payload = {}
-    payload["load_percentage"] = load()
+    payload["load_percentage"] = RedisKeys.API_LOAD_PERCENTAGE.get()
     payload["room_status"] = RedisKeys.API_ROOM_STATUS.get()
     payload["time_remaining"] = Timer().get_time()
     payload["pi_nodes"] = pi_node_controller.get_serializable_pis()
@@ -327,11 +387,14 @@ def load() -> int:
     This will be for letting the front end to know it can open up.
     Right now this is just phony data, TODO real loading.
     """
-    if RedisKeys.API_ROOM_STATUS.get() == "LOADING":
+    if RedisKeys.API_ROOM_STATUS.get() == RoomStatus.LOADING:
         # This worker should not force more loading to happen
         return
 
-    RedisKeys.API_LOADING_STATUS.set("LOADING")
+    if RedisKeys.API_ROOM_STATUS.get() != RoomStatus.BOOTING:
+        return
+
+    RedisKeys.API_LOADING_STATUS.set(LoadingStatus.ACTIVE)
     print("WARNING THIS IS NOT A REAL LOAD PERCENTAGE")
     percent = RedisKeys.API_LOAD_PERCENTAGE.get()
     percent = int(percent)
@@ -340,7 +403,8 @@ def load() -> int:
         new_percent = 100
     RedisKeys.API_LOAD_PERCENTAGE.set(str(new_percent))
     if new_percent == 100:
-        RedisKeys.API_ROOM_STATUS.set("READY")
+        RedisKeys.API_ROOM_STATUS.set(RoomStatus.READY)
+    RedisKeys.API_LOADING_STATUS.set(LoadingStatus.IDLE)
     return new_percent
 
 
