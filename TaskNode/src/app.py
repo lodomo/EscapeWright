@@ -79,7 +79,7 @@ def relay(message):
         # Try "STOP" on the role, and do handling if it fails
         try:
             role.relay(Broadcasts.STOP)
-            return "STOPPED", 200
+            return f"Relay Received, Action Taken: {message}", 200
         except Exception as e:
             print(f"STOP FAILED: {e}")
             print("Restarting Server")
