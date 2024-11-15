@@ -2,6 +2,10 @@
 
 BUMPER="[ESCAPEWRIGHT] "
 
+echo "$BUMPER Installing dependencies"
+sudo apt-get update
+sudo apt-get install python3 python3-pip python3-venv
+
 echo "$BUMPER Installing pipenv"
 pip install pipenv
 
