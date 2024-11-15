@@ -4,10 +4,10 @@ After=network.target
 
 [Service]
 Type=simple
-StandardOutput=append:%hEscapeWright/TaskNode/logs/Output.log
-StandardError=append:%hEscapeWright/TaskNode/logs/Error.log
+StandardOutput=append:%h/EscapeWright/TaskNode/logs/Output.log
+StandardError=append:%h/EscapeWright/TaskNode/logs/Error.log
 Restart=on-failure
-WorkingDirectory=%hEscapeWright/TaskNode/
+WorkingDirectory=%h/EscapeWright/TaskNode/
 ExecStart=./run.sh
 
 [Install]
