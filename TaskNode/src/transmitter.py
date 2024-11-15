@@ -1,14 +1,25 @@
-import threading
+###############################################################################
+# Description: Transmits messages to the control panel
+# Version: 0.1
+###############################################################################
 
+import threading
 import requests
 
 
 class Transmitter:
     def __init__(self, data):
         self.__name = data["name"]
+        self.__activated = True
+
+        if "control_panel" not in data:
+            print("No control panel data provided, this role will not be able to transmit")
+            self.__activated = False
+        else:
+            self.__activated = True
+
         self.__control_ip = data["control_panel"]["ip"]
         self.__port = data["control_panel"]["port"]
-
         control_url = f"http://{self.__control_ip}:{self.__port}"
         self.__trigger_url = f"{control_url}/trigger"
         self.__status_url = f"{control_url}/update_status"
@@ -23,6 +34,9 @@ class Transmitter:
         }
 
     def __send_request(self, url):
+        if not self.__activated:
+            return "Transmitter not activated"
+
         attempts = 10
         while attempts > 0:
             try:

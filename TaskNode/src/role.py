@@ -46,6 +46,7 @@ class Role(ABC):
             self.transmitter = Transmitter(config)
             print(self.transmitter.info())
         else:
+            self.transmitter = None
             print("No config provided, this role will not be able to transmit")
         pass
 
@@ -75,8 +76,9 @@ class Role(ABC):
     def set_status(self, status):
         self.status_was = self.status
         self.status = status
-        # Also needs to transmit status to the API
-        print("TODO: Transmit Status to API")
+
+        if self.transmitter:
+            self.transmitter.update_status(status)
         pass
 
     def send_trigger(self, trigger):
@@ -84,8 +86,9 @@ class Role(ABC):
         This is called when the Role wants to ACTIVATE a trigger
         This is NOT to respond to a trigger
         """
-        print("TODO: Transmit Trigger to API")
-        pass
+        if self.transmitter:
+            self.transmitter.trigger(trigger)
+        return
 
     def relay(self, trigger) -> bool:
         """

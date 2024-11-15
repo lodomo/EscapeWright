@@ -1,0 +1,13 @@
+[Unit]
+Description=EscapeWright Task Node
+After=network.target
+
+[Service]
+Type=simple
+StandardOutput=append:%h/TaskNode/logs/Output.log
+StandardError=append:%h/TaskNode/logs/Error.log
+Restart=on-failure
+ExecStart=/bin/bash %h/TaskNode/run.sh
+
+[Install]
+WantedBy=multi-user.target
