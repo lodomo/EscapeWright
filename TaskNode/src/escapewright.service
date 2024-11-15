@@ -4,11 +4,11 @@ After=network.target
 
 [Service]
 Type=simple
-StandardOutput=append:$HOME/EscapeWright/TaskNode/logs/Output.log
-StandardError=append:$HOME/EscapeWright/TaskNode/logs/Error.log
+StandardOutput=file:/home/lodomo/EscapeWright/TaskNode/logs/Output.log
+StandardError=file:/home/lodomo/EscapeWright/TaskNode/logs/Error.log
 Restart=on-failure
-WorkingDirectory=$HOME/EscapeWright/TaskNode/
-ExecStart=./run.sh
+WorkingDirectory=/home/your_username/EscapeWright/TaskNode/
+ExecStart=/bin/bash /home/your_username/EscapeWright/TaskNode/run.sh
 
 [Install]
 WantedBy=multi-user.target
