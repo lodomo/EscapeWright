@@ -1,12 +1,28 @@
 [Unit]
-Description=EscapeWright Task Node
+Description=Gunicorn EscapeWright Task Node
 After=network.target
 
 [Service]
-Type=simple
-Restart=on-failure
+# Run the service as your user
+User=lodomo
+Group=lodomo
+
+# Set the working directory to the app's root
 WorkingDirectory=/home/lodomo/EscapeWright/TaskNode/
-ExecStart=/home/lodomo/EscapeWright/TaskNode/run.sh
+
+# Command to start Gunicorn via pipenv
+ExecStart=/usr/bin/pipenv run gunicorn -c ./src/gunicorn.conf.py --pid ./src/gunicorn.pid src.app:app
+
+# Graceful reload support
+ExecReload=/bin/kill -s HUP $MAINPID
+
+# Restart the service on failure
+Restart=always
+RestartSec=3
+
+# Timeout for stopping
+TimeoutStopSec=5
 
 [Install]
 WantedBy=multi-user.target
+
