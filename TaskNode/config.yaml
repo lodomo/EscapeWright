@@ -1,0 +1,17 @@
+name: HelloPi
+
+control_panel:
+  ip: 192.168.251.1
+  port: 12413
+
+role:
+  module: hello_role
+  class: HelloRole
+
+triggers:
+  - ROOM_START
+  - START
+  - PAUSE
+  - RESUME
+  - STOP
+  - RESET

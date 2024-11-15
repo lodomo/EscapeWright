@@ -1,23 +1,23 @@
 ###############################################################################
-# Description: TODO
-# Version: TODO
+# Description: Control Panel API
+# Version: 0.1
 ###############################################################################
 import os
 import time
 
 import markdown
-from flask import Flask, jsonify
+from flask import Flask, jsonify, render_template
 from flask_cors import CORS
+from src.enums import Broadcasts, ConfigKeys, LoadingStatus, RoomStatus
 from src.pi_node import PiNodeController
 from src.redis_keys import RedisKeys
 from src.timer import Timer  # Treated as a global Timer()
 from src.yaml_reader import open_yaml_as_dict
-from src.enums import RoomStatus, LoadingStatus, ConfigKeys, Broadcasts
 
 app = Flask(__name__)
 CORS(app)
 config = open_yaml_as_dict(RedisKeys.API_YAML_CONFIG.get())
-worker_key = RedisKeys.API_WORKER_ID.get_then_increment()
+worker_id = RedisKeys.API_WORKER_ID.get_then_increment()
 pi_node_controller = PiNodeController(config[ConfigKeys.PI_NODES])
 
 
@@ -25,97 +25,23 @@ pi_node_controller = PiNodeController(config[ConfigKeys.PI_NODES])
 #                              Basic Interface                                #
 ###############################################################################
 
+
 @app.route("/")
 def home():
     """
-    This should be a mini api interface just to make
-    sure everything works.
+    Micro-Frontend for the room.
+    This gives you full power over the API and is not intended for anyone
+    but tech support to access.
+
+    See "templates/index.html" for how the Micro-Frontend is structured.
     """
     all_data = generate_full_payload()
     last_boot = all_data["static"]["last_boot"]
-    # Convert to DD/MM/YYYY HH:MM:SS
-    last_boot = time.strftime("%d %b %Y %H:%M:%S", time.localtime(int(last_boot)))
-    html = "<p>API Interface</p>"
-    html += f"<p>Worker ID: {worker_key}<br/>"
-    html += f"Room Name: {all_data['static']['room_name']}<br/>"
-    html += f"Room Status: {all_data['dynamic']['room_status']}<br/>"
-    html += f"Time Remaining: {all_data['dynamic']['time_remaining']}<br/>"
-    html += f"Load Percentage: {all_data['dynamic']['load_percentage']}%<br/>"
-    html += f"Uptime: {uptime()}<br/>"
-    html += f"Last Boot: {last_boot}<br/>"
-    html += """
-        <a href='/fetch/all'>Fetch All</a><br>
-        <a href='/fetch/dynamic'>Fetch Dynamic</a><br>
-        <a href='/fetch/static'>Fetch Static</a><br>
-        <form id="fetchForm" onsubmit="redirectToFetch(); return false;">
-          <input type="text" id="userInput" placeholder="Fetch Specific Data" required>
-          <button type="submit">Submit</button>
-        </form>
-
-        <form id="overrideForm" onsubmit="redirectToBroadcast(); return false;">
-          <input type="text" id="userInputBroadcast" placeholder="Broadcast Override to All" required>
-          <button type="submit">Broadcast</button>
-        </form>
-
-        <form id="overrideForm" onsubmit="redirectToRelay(); return false;">
-          <input type="text" id="userInputRelay" placeholder="Relay to Send" required>
-          <input type="text" id="userInputNode" placeholder="Pi Node Name" required>
-          <button type="submit">Relay</button>
-        </form>
-
-        <form onsubmit="sendPostRequest('/start/API_FORCE_START/0'); return false;" style="display:inline;">
-          <button type="submit">Start Room</button>
-        </form><br>
-
-        <form onsubmit="sendPostRequest('/toggle'); return false;" style="display:inline;">
-          <button type="submit">Toggle Room</button>
-        </form><br>
-
-        <form onsubmit="sendPostRequest('/stop'); return false;" style="display:inline;">
-          <button type="submit">Stop Room</button>
-        </form><br>
-
-        <form onsubmit="sendPostRequest('/reset'); return false;" style="display:inline;">
-          <button type="submit">Reset Room</button>
-        </form><br>
-
-        <form onsubmit="sendPostRequest('/restart_api'); return false;" style="display:inline;">
-          <button type="submit">Restart API</button>
-        </form><br>
-
-        <script>
-          function redirectToFetch() {
-            const input = document.getElementById("userInput").value;
-            window.location.href = `/fetch/${encodeURIComponent(input)}`;
-          }
-
-          function sendPostRequest(url) {
-            fetch(url, {
-              method: 'POST'
-            })
-            .then(response => {
-              if (!response.ok) {
-                throw new Error('Request failed');
-              }
-              console.log('Request successful');
-              // The request was successful, nothing further is needed
-            })
-            .catch(error => console.error('Error:', error));
-          }
-
-          function redirectToBroadcast() {
-            const input = document.getElementById("userInputBroadcast").value;
-            sendPostRequest(`/override/${encodeURIComponent(input)}`);
-          }
-
-          function redirectToRelay() {
-            const input = document.getElementById("userInputRelay").value;
-            const input2 = document.getElementById("userInputNode").value;
-            sendPostRequest(`/override/${encodeURIComponent(input)}/${encodeURIComponent(input2)}`);
-          }
-        </script>
-        """
-    return html, 200
+    last_boot = time.strftime(
+        "%d %b %Y %H:%M:%S", time.localtime(int(last_boot)))
+    all_data["last_boot_formatted"] = last_boot
+    all_data["uptime"] = uptime()
+    return render_template("index.html", **all_data)
 
 
 ###############################################################################
@@ -174,11 +100,11 @@ def start(gameguide, players):
     """
     if Timer().has_started:
         return "Error: Room Already Started", 400
-    return toggle()
+    return toggle_state()
 
 
-@app.route("/toggle", methods=["POST"])
-def toggle():
+@app.route("/toggle_state", methods=["POST"])
+def toggle_state():
     timer = Timer()
     if not timer.has_started:
         timer.start()
@@ -294,6 +220,7 @@ def generate_dynamic_payload() -> dict:
     This is data that will likely change during the server's uptime.
     """
     payload = {}
+    payload["worker_id"] = worker_id
     payload["load_percentage"] = RedisKeys.API_LOAD_PERCENTAGE.get()
     payload["room_status"] = RedisKeys.API_ROOM_STATUS.get()
     payload["time_remaining"] = Timer().get_time()
@@ -381,31 +308,39 @@ def uptime() -> str:
     return formatted_time
 
 
-def load() -> int:
+def load():
     """
     Return the load percentage of the room.
     This will be for letting the front end to know it can open up.
     Right now this is just phony data, TODO real loading.
+    This will need error checking, it will need to restart the API if it locks
+    out from HTML requests. This will be a beeeefy function.
     """
-    if RedisKeys.API_ROOM_STATUS.get() == RoomStatus.LOADING:
-        # This worker should not force more loading to happen
-        return
-
-    if RedisKeys.API_ROOM_STATUS.get() != RoomStatus.BOOTING:
-        return
-
+    print("Loading Room...")
     RedisKeys.API_LOADING_STATUS.set(LoadingStatus.ACTIVE)
     print("WARNING THIS IS NOT A REAL LOAD PERCENTAGE")
     percent = RedisKeys.API_LOAD_PERCENTAGE.get()
     percent = int(percent)
-    new_percent = percent + 10
-    if new_percent > 100:
-        new_percent = 100
-    RedisKeys.API_LOAD_PERCENTAGE.set(str(new_percent))
-    if new_percent == 100:
+
+    while percent < 100:
+        time.sleep(0.5)
+        percent += 10
+        RedisKeys.API_LOAD_PERCENTAGE.set(percent)
+        print(f"Loading Room... {percent}%")
+
+    if percent >= 100:
         RedisKeys.API_ROOM_STATUS.set(RoomStatus.READY)
     RedisKeys.API_LOADING_STATUS.set(LoadingStatus.IDLE)
-    return new_percent
+    return
+
+
+###############################################################################
+#                              Initial Room Loading                           #
+###############################################################################
+
+
+if worker_id == 0:
+    load()
 
 
 if __name__ == "__main__":

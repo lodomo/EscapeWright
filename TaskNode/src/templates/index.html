@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <title></title>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  </head>
+  <body>
+    <div id="app">
+        <p>Task Node API Interface</p>
+            <p> 
+            Status: {{ status }}<br/>
+            Uptime: {{ uptime }}<br/>
+            Last Boot: {{ last_boot }}<br/>
+            Triggers: {{ triggers }}<br/>
+        </p>
+        
+        <form id="relayForm" onsubmit="relayMessage(); return false;">
+          <input type="text" id="userInputRelay" placeholder="Relay Message" required>
+          <button type="submit">Relay</button>
+        </form>
+
+        <form onsubmit="sendPostRequest('/restart_api'); return false;" style="display:inline;">
+          <button type="submit">Restart API</button>
+        </form><br>
+
+        <script>
+          function sendPostRequest(url) {
+            fetch(url, {
+              method: 'POST'
+            })
+            .then(response => {
+              if (!response.ok) {
+                throw new Error('Request failed');
+              }
+              console.log('Request successful');
+              // The request was successful, nothing further is needed
+            })
+            .catch(error => console.error('Error:', error));
+          }
+
+          function relayMessage() {
+            const input = document.getElementById("userInputRelay").value;
+              sendPostRequest(`/relay/${input}`);
+          }
+        </script>
+    </div>
+  </body>
+</html>
