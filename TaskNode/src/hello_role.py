@@ -5,6 +5,7 @@
 
 from src.role import Role
 from src.enums import Statuses
+import time
 
 
 class HelloRole(Role):
@@ -21,4 +22,5 @@ class HelloRole(Role):
     def logic(self):
         while self.status is Statuses.ACTIVE:
             print("Hello World")
+            time.sleep(1)
         pass
