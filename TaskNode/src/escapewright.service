@@ -4,10 +4,11 @@ After=network.target
 
 [Service]
 Type=simple
-StandardOutput=append:%h/TaskNode/logs/Output.log
-StandardError=append:%h/TaskNode/logs/Error.log
+StandardOutput=append:%hEscapeWright/TaskNode/logs/Output.log
+StandardError=append:%hEscapeWright/TaskNode/logs/Error.log
 Restart=on-failure
-ExecStart=/bin/bash %h/TaskNode/run.sh
+WorkingDirectory=%hEscapeWright/TaskNode/
+ExecStart=./run.sh
 
 [Install]
 WantedBy=multi-user.target

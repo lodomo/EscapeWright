@@ -13,17 +13,27 @@
             Status: {{ status }}<br/>
             Uptime: {{ uptime }}<br/>
             Last Boot: {{ last_boot }}<br/>
-            Triggers: {{ triggers }}<br/>
-        </p>
+        <form id="triggerForm" onsubmit="relaySelectedTrigger(); return false;">
+          <label for="triggerSelect">Select Trigger:</label>
+          <select id="triggerSelect">
+            {% for trigger in triggers %}
+              <option value="{{ trigger }}">{{ trigger }}</option>
+            {% endfor %}
+          </select>
+          <button type="submit">Activate Trigger</button>
+        </form>
         
         <form id="relayForm" onsubmit="relayMessage(); return false;">
+          <label for="relayForm">Manual Relay:</label>
           <input type="text" id="userInputRelay" placeholder="Relay Message" required>
           <button type="submit">Relay</button>
         </form>
 
         <form onsubmit="sendPostRequest('/restart_api'); return false;" style="display:inline;">
+          <label for="RestartAPI">Force Reset:</label>
           <button type="submit">Restart API</button>
-        </form><br>
+        </form>
+        </p>
 
         <script>
           function sendPostRequest(url) {
@@ -38,6 +48,11 @@
               // The request was successful, nothing further is needed
             })
             .catch(error => console.error('Error:', error));
+          }
+
+          function relaySelectedTrigger() {
+            const selectedTrigger = document.getElementById("triggerSelect").value;
+            sendPostRequest(`/relay/${selectedTrigger}`);
           }
 
           function relayMessage() {

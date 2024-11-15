@@ -1,13 +1,20 @@
 name: HelloPi
 
-control_panel:
-  ip: 192.168.251.1
-  port: 12413
+# Uncomment the following lines to connect to a control panel
+#control_panel:
+#  ip: 192.168.251.1
+#  port: 12413
 
 role:
+  # The module is the filename of the role class. (Without the .py extension)
+  # This file needs to be put into the /src/ folder.
+  # The class is the name of the class in the module.
   module: hello_role
   class: HelloRole
 
+# Add in all the triggers that your role will respond to.
+# This ONLY affects the API Micropanel, not the actual triggers that are
+# inside the role. Those are defined in the role itself.
 triggers:
   - ROOM_START
   - START

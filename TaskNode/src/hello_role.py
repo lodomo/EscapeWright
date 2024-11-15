@@ -6,6 +6,7 @@
 from src.role import Role
 from src.enums import Statuses
 
+
 class HelloRole(Role):
     """
     This is a test role.

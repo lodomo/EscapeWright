@@ -4,25 +4,30 @@
 ###############################################################################
 
 import threading
+
 import requests
 
 
 class Transmitter:
     def __init__(self, data):
         self.__name = data["name"]
-        self.__activated = True
+        self.__activated = False
+        self.__control_ip = None
+        self.__port = None
+        self.__trigger_url = None
+        self.__status_url = None
 
-        if "control_panel" not in data:
-            print("No control panel data provided, this role will not be able to transmit")
-            self.__activated = False
-        else:
+        if "control_panel" in data:
             self.__activated = True
-
-        self.__control_ip = data["control_panel"]["ip"]
-        self.__port = data["control_panel"]["port"]
-        control_url = f"http://{self.__control_ip}:{self.__port}"
-        self.__trigger_url = f"{control_url}/trigger"
-        self.__status_url = f"{control_url}/update_status"
+            self.__control_ip = data["control_panel"]["ip"]
+            self.__port = data["control_panel"]["port"]
+            control_url = f"http://{self.__control_ip}:{self.__port}"
+            self.__trigger_url = f"{control_url}/trigger"
+            self.__status_url = f"{control_url}/update_status"
+        else:
+            print(
+                "No control panel data provided, this role will not be able to transmit"
+            )
 
     def info(self):
         return {
