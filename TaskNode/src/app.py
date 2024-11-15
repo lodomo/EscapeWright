@@ -72,6 +72,7 @@ def relay(message):
 
     # The only special non-role required message is reset.
     if message == Broadcasts.RESET:
+        role.relay(Broadcasts.STOP)
         return restart_api()
 
     if message == Broadcasts.STOP:
