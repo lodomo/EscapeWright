@@ -4,8 +4,6 @@ After=network.target
 
 [Service]
 Type=simple
-StandardOutput=file:/home/lodomo/EscapeWright/TaskNode/logs/Output.log
-StandardError=file:/home/lodomo/EscapeWright/TaskNode/logs/Error.log
 Restart=on-failure
 WorkingDirectory=/home/lodomo/EscapeWright/TaskNode/
 ExecStart=/home/lodomo/EscapeWright/TaskNode/run.sh
