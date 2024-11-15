@@ -20,7 +20,7 @@ class HelloRole(Role):
         pass
 
     def logic(self):
-        while self.status is Statuses.ACTIVE:
+        while self.__status is Statuses.ACTIVE:
             print("Hello World")
             time.sleep(1)
         pass

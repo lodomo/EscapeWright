@@ -92,6 +92,14 @@ def relay(message):
         return f"Relay Received, No Action Taken: {message}", 200
 
 
+@app.route("/status", methods=["GET"])
+def status():
+    """
+    Return the status of the Node
+    """
+    return role.status, 200
+
+
 @app.route("/restart_api", methods=["POST"])
 def restart_api():
     """

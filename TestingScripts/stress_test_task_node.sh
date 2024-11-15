@@ -1,0 +1,6 @@
+#!/bin/bash
+
+TASK_NODE_IP=192.168.254.201
+TASK_NODE_PORT=12413
+
+curl -X GET http://$TASK_NODE_IP:$TASK_NODE_PORT/status

@@ -31,8 +31,8 @@ class Role(ABC):
     """
 
     def __init__(self, config: dict = None):
-        self.status = Statuses.INIT
-        self.status_was = Statuses.INIT
+        self.__status = Statuses.INIT
+        self.__status_was = Statuses.INIT
         self.__role_thread = threading.Thread(target=self.logic)
         self.relays = []
         self.triggers = {
@@ -49,6 +49,10 @@ class Role(ABC):
             self.transmitter = None
             print("No config provided, this role will not be able to transmit")
         pass
+
+    @property
+    def status(self):
+        return self.__status
 
     @abstractmethod
     def load(self):
@@ -69,13 +73,13 @@ class Role(ABC):
         pass
 
     def resume(self):
-        status_was = self.status_was.copy()
+        status_was = self.__status_was.copy()
         self.set_status(status_was)
         pass
 
     def set_status(self, status):
-        self.status_was = self.status
-        self.status = status
+        self.__status_was = self.__status
+        self.__status = status
 
         if self.transmitter:
             self.transmitter.update_status(status)
@@ -166,6 +170,6 @@ class RoleTemplate(Role):
         When the role gets a trigger, it should handle it by popping the trigger
         off the self.relays stack.
         """
-        while self.status is Statuses.ACTIVE:
+        while self.__status is Statuses.ACTIVE:
             print("Hello World")
         pass
