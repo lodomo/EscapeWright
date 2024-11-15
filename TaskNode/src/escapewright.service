@@ -7,8 +7,8 @@ Type=simple
 StandardOutput=file:/home/lodomo/EscapeWright/TaskNode/logs/Output.log
 StandardError=file:/home/lodomo/EscapeWright/TaskNode/logs/Error.log
 Restart=on-failure
-WorkingDirectory=/home/your_username/EscapeWright/TaskNode/
-ExecStart=/bin/bash /home/your_username/EscapeWright/TaskNode/run.sh
+WorkingDirectory=/home/lodomo/EscapeWright/TaskNode/
+ExecStart=/bin/bash /home/lodomo/EscapeWright/TaskNode/run.sh
 
 [Install]
 WantedBy=multi-user.target
