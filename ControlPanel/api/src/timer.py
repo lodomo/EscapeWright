@@ -255,7 +255,7 @@ class Timer:
         self.save_to_redis()
         return
 
-    def get_time(self) -> str:
+    def get_remaining_time(self) -> str:
         """
         Get the time remaining in proper format.
         If the timer is paused, return "PAUSED".
@@ -269,7 +269,11 @@ class Timer:
         else:
             remaining_time = self.__calc_time_remaining()
 
-        return self.__format_time(remaining_time)
+        return int(remaining_time)
+
+    def get_time_formatted(self) -> str:
+        time = self.get_remaining_time()
+        return self.__format_time(time)
 
     def __calc_time_remaining(self) -> int:
         """

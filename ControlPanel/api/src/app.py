@@ -223,7 +223,8 @@ def generate_dynamic_payload() -> dict:
     payload["worker_id"] = worker_id
     payload["load_percentage"] = RedisKeys.API_LOAD_PERCENTAGE.get()
     payload["room_status"] = RedisKeys.API_ROOM_STATUS.get()
-    payload["time_remaining"] = Timer().get_time()
+    payload["time_remaining_secs"] = Timer().get_remaining_time()
+    payload["time_remaining_formatted"] = Timer().get_time_formatted()
     payload["pi_nodes"] = pi_node_controller.get_serializable_pis()
     return payload
 
@@ -239,6 +240,7 @@ def generate_static_payload():
     payload["last_boot"] = RedisKeys.API_LAST_BOOT.get()
     payload["overrides"] = generate_override_endpoints()
     payload["script"] = generate_script_html()
+    payload["timer_length_secs"] = Timer().length * 60
     return payload
 
 
